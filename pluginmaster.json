@@ -3,7 +3,7 @@
     "Author": "Laficia",
     "Name": "狩猎模型替换",
     "InternalName": "HuntModelSwapCN",
-    "AssemblyVersion": "0.1.0.2",
+    "AssemblyVersion": "0.1.0.3",
     "Description": "独立于 HHT。/hms 打开，替换小怪为 S/A/B 狩猎外观，或在面前生成本地预览。支持隐藏自己和其他小怪模型、恢复显示；修正头顶名称并同步名牌标记。实验性技能动作可搜索或使用 /hms play 技能ID 播放。仅本机显示，不产生真实伤害。",
     "ApplicableVersion": "any",
     "Tags": [
@@ -17,14 +17,14 @@
     "CanUnloadAsync": false,
     "LoadPriority": 0,
     "Punchline": "将小怪模型、名称和等级显示为指定 S/A/B 狩猎怪物",
-    "Changelog": "0.1.0.2：新增隐藏自己/其他小怪模型和 /hms show 恢复显示，保留演示对象；通过名牌更新接口覆盖头顶名称，同步目标 NPC 名牌标记并可恢复。新增面前生成本地预览及技能动作试播，预置布弗鲁五种技能。297 项离线检查通过，新功能仍需游戏内验证。",
+    "Changelog": "0.1.0.3：本地生成预览隐藏头顶血条，保留所选怪物的名字、等级与原版名牌标记，不影响真实怪物血条。默认使用所选 S/A/B 怪物原版大小；手动缩放需单独开启，切换怪物时关闭并重置。保留隐藏、名牌、生成和技能试播功能。",
     "AcceptsFeedback": true,
+    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.3/latest.zip",
     "IsHide": false,
-    "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN",
-    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.2/latest.zip",
     "IsTestingExclusive": false,
-    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.2/latest.zip",
-    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.2/latest.zip",
-    "LastUpdate": 1792869936
+    "LastUpdate": 1792870940,
+    "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN",
+    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.3/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.3/latest.zip"
   }
 ]
