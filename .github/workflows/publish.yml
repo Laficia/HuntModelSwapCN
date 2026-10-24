@@ -1,0 +1,51 @@
+name: Publish HuntModelSwapCN
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and expand source
+        run: |
+          sha256sum -c SHA256SUMS.txt
+          cp latest.zip "$RUNNER_TEMP/latest.zip"
+          python3 - <<'PY'
+          import json, os, pathlib, re, zipfile
+          manifest = json.loads(pathlib.Path('pluginmaster.json').read_text(encoding='utf-8-sig'))[0]
+          version = manifest['AssemblyVersion']
+          if manifest['InternalName'] != 'HuntModelSwapCN' or manifest['DalamudApiLevel'] != 15:
+              raise RuntimeError('Unexpected plugin identity or API')
+          if not re.fullmatch(r'\d+\.\d+\.\d+\.\d+', version):
+              raise RuntimeError('Invalid release version')
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f'VERSION={version}\n')
+          with zipfile.ZipFile('latest.zip') as z:
+              package = json.loads(z.read('HuntModelSwapCN.json'))
+              if package['AssemblyVersion'] != version or package['InternalName'] != manifest['InternalName']:
+                  raise RuntimeError('Manifest and package mismatch')
+              if 'HuntModelSwapCN.dll' not in z.namelist():
+                  raise RuntimeError('Missing plugin DLL')
+          with zipfile.ZipFile('source.zip') as z:
+              for name in z.namelist():
+                  p = pathlib.PurePosixPath(name)
+                  if p.is_absolute() or '..' in p.parts or '.git' in p.parts:
+                      raise RuntimeError('Unsafe archive path')
+              z.extractall('.')
+          PY
+          git restore --source=HEAD -- .github/workflows
+      - name: Publish reviewed source
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm source.zip latest.zip
+          git add -A
+          git commit -m "Publish HuntModelSwapCN $VERSION source and index"
+          git push origin HEAD:main
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v$VERSION" "$RUNNER_TEMP/latest.zip" SHA256SUMS.txt --title "狩猎模型替换 $VERSION（开发测试版）" --latest --notes-file release-notes.zh-CN.md --target "$(git rev-parse HEAD)"
