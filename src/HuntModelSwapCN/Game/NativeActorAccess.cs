@@ -21,6 +21,13 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
     }
 
     public bool Exists(ActorIdentity actor) => Resolve(actor) is not null;
+    public float? Heading(ActorIdentity actor, int expectedModelId)
+    {
+        if (Resolve(actor) is not { } npc) return null;
+        var c = (NativeCharacter*)npc.Address;
+        return c->ModelContainer.ModelCharaId == expectedModelId && float.IsFinite(c->GameObject.Rotation)
+            ? ModelRotation.Degrees(c->GameObject.Rotation) : null;
+    }
 
     private NativeCharacter* AnimationCharacter(ActorIdentity actor, int expectedModelId)
     {

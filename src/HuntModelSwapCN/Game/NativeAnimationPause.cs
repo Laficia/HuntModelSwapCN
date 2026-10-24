@@ -21,6 +21,8 @@ public sealed unsafe class NativeAnimationPause : IAnimationPauseAccess, IDispos
     private Hook<SlotSpeedDelegate>? slotHook;
     private bool errorReported;
     public Func<nint, bool>? ShouldPause { private get; set; }
+    public Func<ActorIdentity, bool>? CanControl { private get; set; }
+    private readonly Dictionary<nint, (ActorIdentity Actor, int ModelId)> pendingRefresh = [];
 
     public NativeAnimationPause(NativeActorAccess actors, IGameInteropProvider interop, IPluginLog log)
     {
@@ -69,6 +71,19 @@ public sealed unsafe class NativeAnimationPause : IAnimationPauseAccess, IDispos
             timeline->OverallSpeed = 0;
             return true;
         }
+        // Returning changed forces the caller to propagate restored speeds even
+        // when the overall scalar already equals the game's calculated value.
+        if (timeline != null && pendingRefresh.Remove((nint)timeline->OwnerObject, out var pending))
+        {
+            try
+            {
+                if (IsCurrent(pending.Actor, pending.ModelId) && (CanControl?.Invoke(pending.Actor) ?? false)) return true;
+            }
+            catch (Exception ex)
+            {
+                if (!errorReported) { errorReported = true; log.Error(ex, "恢复动画刷新对象已不可用"); }
+            }
+        }
         return changed;
     }
 
@@ -94,8 +109,8 @@ public sealed unsafe class NativeAnimationPause : IAnimationPauseAccess, IDispos
     public void Write(ActorIdentity actor, int modelId, AnimationClockState state)
     {
         var c = Character(actor, modelId);
-        NativeAnimationClockCodec.Write(c, state);
-        for (uint slot = 0; slot < 14; slot++) c->Timeline.TimelineSequencer.SetSlotSpeed(slot, state.SlotSpeeds[slot]);
+        NativeAnimationClockCodec.Write(c, state, (slot, speed) => c->Timeline.TimelineSequencer.SetSlotSpeed(slot, speed));
+        pendingRefresh[actor.Address] = (actor, modelId);
     }
 
     public void Freeze(ActorIdentity actor, int modelId)
@@ -108,7 +123,16 @@ public sealed unsafe class NativeAnimationPause : IAnimationPauseAccess, IDispos
     public void Dispose()
     {
         ShouldPause = null;
+        CanControl = null;
+        pendingRefresh.Clear();
         slotHook?.Dispose(); overallHook?.Dispose();
         GC.KeepAlive(overallDetour); GC.KeepAlive(slotDetour);
+    }
+
+    public void PrunePending()
+    {
+        foreach (var pending in pendingRefresh.Values.ToArray())
+            if (!IsCurrent(pending.Actor, pending.ModelId) || !(CanControl?.Invoke(pending.Actor) ?? false))
+                pendingRefresh.Remove(pending.Actor.Address);
     }
 }

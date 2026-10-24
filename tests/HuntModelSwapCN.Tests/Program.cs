@@ -473,19 +473,83 @@ unsafe
     NativeCharacter clockNative = default;
     clockNative.NameId = 321;
     clockNative.GameObject.Position = new(1, 2, 3);
-    NativeAnimationClockCodec.Write(&clockNative, clock);
+    var clockPointer = &clockNative;
+    var dirtySlots = new HashSet<uint>();
+    void NativeSpeedSetter(uint slot, float speed)
+    {
+        // Matches the observed native behavior: identical cached speeds do not
+        // set the scheduler's dirty flag, so render playback is not refreshed.
+        if (clockPointer->Timeline.TimelineSequencer.TimelineSpeeds[(int)slot] == speed) return;
+        clockPointer->Timeline.TimelineSequencer.TimelineSpeeds[(int)slot] = speed;
+        dirtySlots.Add(slot);
+    }
+    NativeAnimationClockCodec.Write(&clockNative, clock, NativeSpeedSetter);
     var capturedClock = NativeAnimationClockCodec.Capture(&clockNative);
-    NativeAnimationClockCodec.Write(&clockNative, new(0, new float[14]));
+    NativeAnimationClockCodec.Write(&clockNative, new(0, new float[14]), NativeSpeedSetter);
     Check(clockNative.Timeline.OverallSpeed == 0 && clockNative.Timeline.TimelineSequencer.TimelineSpeeds.ToArray().All(s => s == 0),
         "Native clock writes must cover every animation slot.");
-    NativeAnimationClockCodec.Write(&clockNative, capturedClock);
+    dirtySlots.Clear();
+    NativeAnimationClockCodec.Write(&clockNative, capturedClock, NativeSpeedSetter);
+    Check(dirtySlots.Count == 14,
+        "Resume must dirty every native slot, not prefill the cache and make SetSlotSpeed skip the scheduler refresh.");
     Check(clockNative.Timeline.OverallSpeed == 0.8f
         && clockNative.Timeline.TimelineSequencer.TimelineSpeeds.ToArray().SequenceEqual(clock.SlotSpeeds)
         && clockNative.NameId == 321 && clockNative.GameObject.Position.Y == 2,
         "Clock capture/restore must round-trip exact speeds without changing identity or world position.");
-    try { NativeAnimationClockCodec.Write(&clockNative, new(float.NaN, new float[14])); throw new Exception("Invalid clock write."); }
+    dirtySlots.Clear();
+    NativeAnimationClockCodec.Write(&clockNative, capturedClock, NativeSpeedSetter);
+    Check(dirtySlots.Count == 14 && clockNative.Timeline.TimelineSequencer.TimelineSpeeds.ToArray().SequenceEqual(clock.SlotSpeeds),
+        "An explicit repair with already-restored cache values must still refresh frozen render playback without changing final speeds.");
+    try { NativeAnimationClockCodec.Write(&clockNative, new(float.NaN, new float[14]), NativeSpeedSetter); throw new Exception("Invalid clock write."); }
     catch (InvalidOperationException) { Check(clockNative.Timeline.OverallSpeed == 0.8f, "Invalid clock data must not partially overwrite the native state."); }
 }
+pauseAccess.Clocks[actor] = new(0, new float[14]);
+Check(pause.Resume(actor, repairIfNotPaused: true) && pauseAccess.Clocks[actor].OverallSpeed == 1
+    && pauseAccess.Clocks[actor].SlotSpeeds.All(s => s == 1),
+    "Explicit resume without a pause snapshot must recover zero clocks left by an older version.");
+Check(pause.Resume(actor, repairIfNotPaused: true) && pauseAccess.Clocks[actor].SlotSpeeds.All(s => s == 1),
+    "A second explicit resume must remain usable and refresh existing playback.");
+var rotationAnimations = new FakeAnimationAccess();
+var rotationEligible = true;
+var rotation = new ModelRotation(pauseSession, rotationAnimations, _ => rotationEligible);
+rotation.Set(actor, 90);
+Check(MathF.Abs(rotationAnimations.Rotations[actor] - MathF.PI / 2) < 0.001f,
+    "Manual rotation must convert freely entered degrees into the native horizontal angle.");
+rotationAnimations.Rotations[actor] = 0;
+rotation.Tick();
+Check(MathF.Abs(rotationAnimations.Rotations[actor] - MathF.PI / 2) < 0.001f,
+    "The chosen heading must persist after an ordinary client facing refresh.");
+rotation.Set(actor, 450);
+Check(MathF.Abs(rotationAnimations.Rotations[actor] - MathF.PI / 2) < 0.001f,
+    "Angles beyond a full revolution must normalize without restricting the requested heading.");
+rotation.Set(actor, -45);
+Check(MathF.Abs(ModelRotation.Degrees(rotationAnimations.Rotations[actor]) - 315) < 0.001f,
+    "Negative rotations must wrap into a usable 0-360 degree display.");
+rotation.Release(actor);
+var rotationWrites = rotationAnimations.FacingWrites;
+rotation.Tick();
+Check(rotationAnimations.FacingWrites == rotationWrites && rotation.Actors.Count == 0,
+    "Releasing manual heading must stop further writes without moving the model again.");
+rotation.Set(actor, 180);
+rotationEligible = false;
+rotationWrites = rotationAnimations.FacingWrites;
+rotation.Tick();
+Check(rotation.Actors.Count == 0 && rotationAnimations.FacingWrites == rotationWrites,
+    "Losing local ownership must discard rotation control without writing to the old actor.");
+rotationEligible = true;
+rotation.Set(actor, 0);
+rotation.Clear();
+rotationWrites = rotationAnimations.FacingWrites;
+rotation.Tick();
+Check(rotationAnimations.FacingWrites == rotationWrites, "Scene cleanup must discard rotation without native writes.");
+try { rotation.Set(actor, float.NaN); throw new Exception("Invalid rotation accepted."); } catch (InvalidOperationException) { tests++; }
+Check(rotationAnimations.FacingWrites == rotationWrites, "Invalid angles must not affect model orientation.");
+pause.Pause(actor);
+rotation.Set(actor, 270);
+Check(pause.IsPaused(actor) && pauseAccess.Clocks[actor].SlotSpeeds.All(s => s == 0)
+    && MathF.Abs(ModelRotation.Degrees(rotationAnimations.Rotations[actor]) - 270) < 0.001f,
+    "A frozen model must remain paused while the independent manual rotation control changes its heading.");
+pause.Resume(actor); rotation.Release(actor);
 var pausedComboActors = new FakeAccess();
 pausedComboActors.Actors[actor] = original;
 var pausedComboSession = new SwapSession(pausedComboActors);

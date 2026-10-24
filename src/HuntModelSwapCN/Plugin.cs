@@ -31,10 +31,12 @@ public sealed class Plugin : IDalamudPlugin
     private readonly BufruSequence sequence;
     private readonly NativeAnimationPause pauseAccess;
     private readonly AnimationPause animationPause;
+    private readonly ModelRotation modelRotation;
     private readonly NativeModelVisibility visibilityAccess;
     private readonly ModelVisibility modelVisibility;
     private readonly NameplatePresentation nameplatePresentation;
     private readonly IReadOnlyList<HuntAppearance> catalog;
+    private readonly MapChoice[] mapChoices;
     private volatile IReadOnlyDictionary<uint, SkillAnimation> skills = new Dictionary<uint, SkillAnimation>();
     private volatile bool skillsLoaded;
     private volatile string? skillsError;
@@ -43,10 +45,15 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ConcurrentQueue<Request> requests = new();
     private volatile UiSnapshot snapshot = new(null, "未选中小怪", "请先进入游戏。", [], "就绪");
     private bool visible;
+    private bool floatingControls;
+    private volatile ActorSelection? controlSelection;
+    private ActorIdentity? rotationInputActor;
+    private float rotationDegrees;
     private volatile bool disposed;
     private string search = "";
     private int rankFilter;
     private int expansionFilter = -1;
+    private uint territoryFilter;
     private int selected = -1;
     private float scale = 1;
     private float spawnDistance = 8;
@@ -61,13 +68,17 @@ public sealed class Plugin : IDalamudPlugin
     private SkillAnimation[] skillMatches = [];
     private record Request(long Epoch, string Action, ActorIdentity? Actor, int Selection = -1, float Scale = 1,
         uint SkillId = 0, bool ChatFeedback = false, float Distance = 8, bool HideSelf = false, int HoldMs = 2000,
-        bool HideAllMonsters = false);
+        bool HideAllMonsters = false, float AngleDegrees = 0);
     private sealed record HiddenTarget(ActorIdentity Actor, string Name);
+    private sealed record ActorSelection(ActorIdentity Actor);
+    private sealed record ActorHeading(ActorIdentity Actor, float? Degrees);
+    private sealed record MapChoice(uint TerritoryId, uint Expansion, string Name);
     private sealed record UiSnapshot(ActorIdentity? Target, string TargetName, string? CannotApply,
         SwapEntry[] Entries, string Status, ActorIdentity? LocalActor = null,
         bool HideSelf = false, int HiddenCount = 0, string? CannotHide = null, HiddenTarget[]? HiddenTargets = null,
         bool ComboRunning = false, string ComboStatus = "", string ComboDirections = "", float ComboRemaining = 0,
-        bool HideAllMonsters = false, ActorIdentity[]? PausedActors = null);
+        bool HideAllMonsters = false, ActorIdentity[]? PausedActors = null, ActorHeading[]? Headings = null,
+        ActorIdentity[]? RotationActors = null);
 
     public Plugin(IDalamudPluginInterface pluginInterface, IFramework framework, ICommandManager commands,
         IClientState client, ICondition condition, IObjectTable objects, IDataManager data,
@@ -89,25 +100,31 @@ public sealed class Plugin : IDalamudPlugin
         pauseAccess = new(actors, interop, log);
         animationPause = new(session, pauseAccess, actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor));
         pauseAccess.ShouldPause = animationPause.IsPausedAddress;
+        pauseAccess.CanControl = actor => session.Entries.Any(e => e.Actor == actor)
+            && (!localPreview.Owns(actor) || localPreview.OwnsLive(actor));
+        modelRotation = new(session, actors, actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor));
         sequence = new(session, preview, actors, actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor),
             animationPause.IsPaused);
         visibilityAccess = new(objects);
         modelVisibility = new(visibilityAccess);
         catalog = HuntCatalog.Load(data.GetExcelSheet<TerritoryType>(), data.GetExcelSheet<BNpcName>(),
             data.GetExcelSheet<PlaceName>());
+        mapChoices = catalog.GroupBy(h => h.TerritoryId)
+            .Select(g => new MapChoice(g.Key, g.First().Expansion, g.First().Territory))
+            .OrderByDescending(m => m.Expansion).ThenBy(m => m.TerritoryId).ToArray();
         var models = data.GetExcelSheet<ModelChara>();
         modelFamilies = catalog.Select(h => h.ModelId).Distinct().ToDictionary(id => id,
             id => SkillCatalog.ModelFamily(models.GetRow((uint)id)));
         nameplatePresentation = new(nameplates, session, localPreview, log);
         commands.AddHandler("/hms", new CommandInfo(OnCommand)
-            { HelpMessage = "打开狩猎模型替换；/hms pause 暂停动作；/hms resume 恢复动作；/hms show 恢复显示；/hms restore 恢复全部；/hms play 技能ID 单次动作；/hms combo 布弗鲁连招；/hms stop 停止连招。" });
+            { HelpMessage = "打开狩猎模型替换；/hms controls 悬浮控制；/hms pause 暂停；/hms resume 恢复；/hms rotate 角度 水平旋转；/hms show 恢复显示；/hms restore 恢复全部；/hms play 技能ID；/hms combo 布弗鲁连招；/hms stop 停止连招。" });
         pluginInterface.UiBuilder.Draw += Draw;
         pluginInterface.UiBuilder.OpenMainUi += Open;
         pluginInterface.UiBuilder.OpenConfigUi += Open;
         client.TerritoryChanged += OnTerritoryChanged;
         client.Logout += OnLogout;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.10 initialized. No appearance writes or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.11 initialized. No appearance writes or animation playback have been requested.");
     }
 
     private void Open()
@@ -122,22 +139,31 @@ public sealed class Plugin : IDalamudPlugin
             try
             {
                 var skillId = PreviewCommand.Parse(arguments);
-                requests.Enqueue(new(Interlocked.Read(ref epoch), "play", snapshot.LocalActor ?? snapshot.Target,
+                requests.Enqueue(new(Interlocked.Read(ref epoch), "play", ControlActor(snapshot),
                     SkillId: skillId, ChatFeedback: true));
             }
             catch (InvalidOperationException ex) { chat.Print($"[狩猎模型替换] {ex.Message}"); }
         }
         else if (arguments.Trim().Equals("combo", StringComparison.OrdinalIgnoreCase))
-            requests.Enqueue(new(Interlocked.Read(ref epoch), "start-combo", snapshot.LocalActor ?? snapshot.Target,
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "start-combo", ControlActor(snapshot),
                 ChatFeedback: true, HoldMs: (int)(sequenceHoldSeconds * 1000)));
         else if (arguments.Trim().Equals("stop", StringComparison.OrdinalIgnoreCase))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "stop-combo", null, ChatFeedback: true));
         else if (arguments.Trim().Equals("show", StringComparison.OrdinalIgnoreCase))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "show-all", null, ChatFeedback: true));
         else if (arguments.Trim().Equals("pause", StringComparison.OrdinalIgnoreCase))
-            requests.Enqueue(new(Interlocked.Read(ref epoch), "pause", snapshot.LocalActor ?? snapshot.Target, ChatFeedback: true));
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "pause", ControlActor(snapshot), ChatFeedback: true));
         else if (arguments.Trim().Equals("resume", StringComparison.OrdinalIgnoreCase))
-            requests.Enqueue(new(Interlocked.Read(ref epoch), "resume", snapshot.LocalActor ?? snapshot.Target, ChatFeedback: true));
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "resume", ControlActor(snapshot), ChatFeedback: true));
+        else if (arguments.Trim().Equals("controls", StringComparison.OrdinalIgnoreCase)) floatingControls = !floatingControls;
+        else if (arguments.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Equals("rotate", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            var parts = arguments.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2 && float.TryParse(parts[1], System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var degrees) && float.IsFinite(degrees))
+                requests.Enqueue(new(Interlocked.Read(ref epoch), "rotate", ControlActor(snapshot), ChatFeedback: true, AngleDegrees: degrees));
+            else chat.Print("[狩猎模型替换] 用法：/hms rotate 90（水平角度，0～360°）。");
+        }
         else if (arguments.Trim().Equals("restore", StringComparison.OrdinalIgnoreCase))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "all", null));
         else if (visible) visible = false;
@@ -152,6 +178,7 @@ public sealed class Plugin : IDalamudPlugin
         requests.Clear();
         sequence.ForgetScene();
         animationPause.ForgetScene();
+        modelRotation.Clear();
         try { modelVisibility.Reset(); }
         catch (Exception ex) { log.Error(ex, "切换场景时恢复模型显示失败"); }
         session.ForgetDespawned();
@@ -173,6 +200,7 @@ public sealed class Plugin : IDalamudPlugin
             if (Loading)
             {
                 sequence.ForgetScene();
+                modelRotation.Clear();
                 try { animationPause.Reset(); }
                 finally
                 {
@@ -201,6 +229,9 @@ public sealed class Plugin : IDalamudPlugin
             }
             try { animationPause.Tick(); }
             catch (Exception ex) { status = "暂停动画维护失败，可点击恢复动作。"; log.Error(ex, status); }
+            pauseAccess.PrunePending();
+            try { modelRotation.Tick(); }
+            catch (Exception ex) { status = "旋转对象已不可用，已解除固定朝向。"; log.Error(ex, status); }
             var wasRunning = sequence.Running;
             try { sequence.Tick(Environment.TickCount64); }
             catch (Exception ex) { status = sequence.Status; log.Error(ex, "布弗鲁连招已中断"); }
@@ -222,7 +253,9 @@ public sealed class Plugin : IDalamudPlugin
                 modelVisibility.ManagedActors.Where(a => a != visibilityAccess.Self)
                     .Select(a => new HiddenTarget(a, visibilityAccess.Name(a))).ToArray(),
                 sequence.Running, sequence.Status, sequence.DirectionOrder, sequence.RemainingSeconds(Environment.TickCount64),
-                modelVisibility.HideAllMonsters, animationPause.Actors.ToArray());
+                modelVisibility.HideAllMonsters, animationPause.Actors.ToArray(),
+                entries.Select(e => new ActorHeading(e.Actor, actors.Heading(e.Actor, e.Applied.ModelId))).ToArray(),
+                modelRotation.Actors.ToArray());
         }
         catch (Exception ex)
         {
@@ -241,6 +274,11 @@ public sealed class Plugin : IDalamudPlugin
             animationPause.Resume(oldPreview.Actor);
         else if (request.Action is "apply" or "restore" && request.Actor is { } changingActor)
             animationPause.Resume(changingActor);
+        if (request.Action == "all") modelRotation.Clear();
+        else if (request.Action is "spawn" or "remove-local" && localPreview.Actor is { } rotatingPreview)
+            modelRotation.Release(rotatingPreview.Actor);
+        else if (request.Action is "apply" or "restore" or "start-combo" && request.Actor is { } rotatingActor)
+            modelRotation.Release(rotatingActor);
         if (request.Action is "spawn" or "remove-local" or "all" or "apply" or "restore" or "resize" or "play")
             sequence.Stop("已取消连招，正在执行新的演示操作。");
         if (request.Action == "stop-combo")
@@ -312,7 +350,20 @@ public sealed class Plugin : IDalamudPlugin
         }
         if (request.Action == "resume")
         {
-            status = animationPause.Resume(actor) ? "已恢复该对象暂停前的动画速度，连招继续。" : "该演示对象当前没有暂停动作。";
+            status = animationPause.Resume(actor, repairIfNotPaused: true) ? "已刷新并恢复该对象的动画播放。" : "对象已不可用，未恢复旧速度。";
+            return;
+        }
+        if (request.Action == "rotate")
+        {
+            sequence.Stop("已停止自动连招，改为手动旋转。");
+            modelRotation.Set(actor, request.AngleDegrees);
+            status = "已设置并保持演示模型的水平朝向，暂停状态不变。";
+            return;
+        }
+        if (request.Action == "release-rotation")
+        {
+            modelRotation.Release(actor);
+            status = "已解除固定朝向。";
             return;
         }
         if (request.Action == "start-combo")
@@ -392,12 +443,26 @@ public sealed class Plugin : IDalamudPlugin
 
     private void Draw()
     {
-        if (!visible || disposed) return;
+        if (disposed) return;
         var view = snapshot;
+        if (floatingControls)
+        {
+            ImGui.SetNextWindowSize(new Vector2(480, 340), ImGuiCond.FirstUseEver);
+            if (ImGui.Begin("模型悬浮控制###HuntModelSwapControls", ref floatingControls))
+            {
+                DrawModelControls(view);
+                ImGui.TextWrapped(view.Status);
+            }
+            ImGui.End();
+        }
+        if (!visible) return;
         ImGui.SetNextWindowSize(new Vector2(700, 640), ImGuiCond.FirstUseEver);
         if (ImGui.Begin("狩猎模型替换 /hms###HuntModelSwapCN", ref visible))
         {
             ImGui.TextWrapped("选择狩猎怪物后，可在面前生成本地预览，或替换当前小怪的外观。只影响本机显示。");
+            ImGui.Checkbox("显示悬浮控制窗 /hms controls", ref floatingControls);
+            DrawModelControls(view);
+            ImGui.Separator();
             var hideSelf = view.HideSelf;
             ImGui.BeginDisabled(Loading);
             if (ImGui.Checkbox("隐藏自己模型", ref hideSelf))
@@ -451,6 +516,21 @@ public sealed class Plugin : IDalamudPlugin
                     if (ImGui.Selectable($"{expansion + 2}.0", expansion == expansionFilter)) expansionFilter = expansion;
                 ImGui.EndCombo();
             }
+            var availableMaps = mapChoices.Where(m => expansionFilter < 0 || m.Expansion == expansionFilter);
+            // A previous version's map must not silently filter out every hunt.
+            if (territoryFilter != 0 && !availableMaps.Any(m => m.TerritoryId == territoryFilter)) territoryFilter = 0;
+            var chosenMap = mapChoices.FirstOrDefault(m => m.TerritoryId == territoryFilter);
+            ImGui.SetNextItemWidth(300);
+            if (ImGui.BeginCombo("地图", chosenMap?.Name ?? "全部地图"))
+            {
+                if (ImGui.Selectable("全部地图", territoryFilter == 0)) territoryFilter = 0;
+                foreach (var map in availableMaps)
+                    if (ImGui.Selectable($"{(expansionFilter < 0 ? $"{map.Expansion + 2}.0 · " : "")}{map.Name}##map{map.TerritoryId}",
+                        territoryFilter == map.TerritoryId)) territoryFilter = map.TerritoryId;
+                ImGui.EndCombo();
+            }
+            ImGui.SameLine();
+            if (ImGui.SmallButton("全部地图")) territoryFilter = 0;
             ImGui.SetNextItemWidth(-1);
             ImGui.InputTextWithHint("##search", "搜索怪物名称或地图", ref search, 128);
             if (ImGui.BeginChild("catalog", new Vector2(0, 230), true))
@@ -460,6 +540,7 @@ public sealed class Plugin : IDalamudPlugin
                     var hunt = catalog[i];
                     if ((rankFilter != 0 && hunt.Rank != rankFilter)
                         || (expansionFilter >= 0 && hunt.Expansion != expansionFilter)
+                        || (territoryFilter != 0 && hunt.TerritoryId != territoryFilter)
                         || (!hunt.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
                             && !hunt.Territory.Contains(search, StringComparison.OrdinalIgnoreCase))) continue;
                     if (ImGui.Selectable($"{hunt.VersionName} {hunt.RankName}  Lv.{hunt.Level} {hunt.Name}  ·  {hunt.Territory}##{i}", selected == i))
@@ -482,12 +563,12 @@ public sealed class Plugin : IDalamudPlugin
             if (selected >= 0) ImGui.TextWrapped($"「{catalog[selected].Name}」原版倍率：{catalog[selected].Scale:G}。输入值直接作为模型倍率，不再额外乘原版体型。");
             var sizeValid = float.IsFinite(scale) && scale > 0;
             if (!sizeValid) ImGui.TextWrapped("请输入大于 0 的有限倍率。");
-            var resizeActor = view.LocalActor ?? view.Target;
+            var resizeActor = ControlActor(view);
             var resizeEntry = view.Entries.FirstOrDefault(e => e.Actor == resizeActor);
             ImGui.BeginDisabled(Loading || !sizeValid || resizeEntry is null || resizeEntry.WaitingForDraw || resizeEntry.Restoring);
             if (ImGui.Button("应用体型到演示对象")) Enqueue("resize", resizeActor);
             ImGui.EndDisabled();
-            if (resizeEntry is not null) ImGui.TextWrapped($"体型调整对象：{resizeEntry.ReplacementName}，当前倍率 {resizeEntry.Applied.ModelScale:G}。有本地预览时优先调整它。");
+            if (resizeEntry is not null) ImGui.TextWrapped($"体型调整对象：{resizeEntry.ReplacementName}，当前倍率 {resizeEntry.Applied.ModelScale:G}。可在上方控制对象中切换。");
             ImGui.SetNextItemWidth(240);
             ImGui.SliderFloat("前方生成距离（米）", ref spawnDistance, 2, 30, "%.1f");
             ImGui.BeginDisabled(Loading || selected < 0 || !sizeValid);
@@ -514,7 +595,6 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.EndDisabled();
             if (reason is not null) ImGui.TextWrapped(reason);
             ImGui.TextWrapped(view.Status);
-            DrawAnimationPause(view);
             DrawSkillPreview(view);
             if (ImGui.CollapsingHeader($"已替换对象 ({view.Entries.Length})"))
                 foreach (var entry in view.Entries)
@@ -532,22 +612,57 @@ public sealed class Plugin : IDalamudPlugin
         ImGui.End();
     }
 
-    private void DrawAnimationPause(UiSnapshot view)
+    private ActorIdentity? ControlActor(UiSnapshot view) => controlSelection is { } chosen
+        && view.Entries.Any(e => e.Actor == chosen.Actor) ? chosen.Actor : view.LocalActor ?? view.Target;
+
+    private void Rotate(ActorIdentity? actor, float degrees)
+        => requests.Enqueue(new(Interlocked.Read(ref epoch), "rotate", actor, AngleDegrees: degrees));
+
+    private void DrawModelControls(UiSnapshot view)
     {
-        var actor = view.LocalActor ?? view.Target;
+        ImGui.SetNextItemWidth(270);
+        var selectedActor = ControlActor(view);
+        var selectedEntry = view.Entries.FirstOrDefault(e => e.Actor == selectedActor);
+        var automatic = controlSelection is not { } explicitChoice || !view.Entries.Any(e => e.Actor == explicitChoice.Actor);
+        if (ImGui.BeginCombo("控制对象", automatic ? "自动（优先本地预览）" : selectedEntry?.ReplacementName ?? "无演示对象"))
+        {
+            if (ImGui.Selectable("自动（优先本地预览）", automatic)) controlSelection = null;
+            foreach (var demo in view.Entries)
+                if (ImGui.Selectable($"{demo.ReplacementName}（{(demo.Actor == view.LocalActor ? "本地生成" : demo.OriginalName)}）##control{demo.Actor.Index}-{demo.Actor.ObjectId}",
+                    !automatic && demo.Actor == selectedActor)) controlSelection = new(demo.Actor);
+            ImGui.EndCombo();
+        }
+        var actor = ControlActor(view);
         var entry = view.Entries.FirstOrDefault(e => e.Actor == actor);
         var paused = actor.HasValue && (view.PausedActors?.Contains(actor.Value) ?? false);
         ImGui.BeginDisabled(Loading || entry is null || entry.WaitingForDraw || entry.Restoring);
-        if (ImGui.Button(paused ? "恢复动作 /hms resume" : "暂停所有动作 /hms pause"))
-            Enqueue(paused ? "resume" : "pause", actor);
+        if (ImGui.Button("暂停动作 /hms pause")) Enqueue("pause", actor);
+        ImGui.SameLine();
+        if (ImGui.Button("恢复动作 /hms resume")) Enqueue("resume", actor);
+        if (rotationInputActor != actor)
+        {
+            rotationInputActor = actor;
+            rotationDegrees = view.Headings?.FirstOrDefault(h => h.Actor == actor)?.Degrees ?? 0;
+        }
+        ImGui.SetNextItemWidth(260);
+        if (ImGui.SliderFloat("水平旋转（度）", ref rotationDegrees, 0, 360, "%.1f°")) Rotate(actor, rotationDegrees);
+        var heading = view.Headings?.FirstOrDefault(h => h.Actor == actor)?.Degrees ?? rotationDegrees;
+        if (ImGui.SmallButton("左转45°")) { rotationDegrees = (heading + 315) % 360; Rotate(actor, rotationDegrees); }
+        ImGui.SameLine();
+        if (ImGui.SmallButton("右转45°")) { rotationDegrees = (heading + 45) % 360; Rotate(actor, rotationDegrees); }
+        ImGui.SameLine();
+        if (ImGui.SmallButton("应用角度")) Rotate(actor, rotationDegrees);
+        ImGui.SameLine();
+        if (ImGui.SmallButton("解除固定朝向")) Enqueue("release-rotation", actor);
         ImGui.EndDisabled();
-        if (entry is not null) ImGui.TextWrapped($"动作控制对象：{entry.ReplacementName}（{(paused ? "已暂停" : "播放中")}）。本地预览优先；仅暂停本机动画，真实怪物的移动、伤害和独立特效不会停止。");
+        if (entry is not null) ImGui.TextWrapped($"{entry.ReplacementName} · {(paused ? "已暂停" : "播放中")} · 朝向 {heading:F1}°。可在控制对象中选定模型，无需持续选中它。");
         if ((view.PausedActors?.Length ?? 0) > 0)
         {
             if (ImGui.SmallButton("恢复所有暂停动作")) Enqueue("resume-all");
             ImGui.SameLine();
             ImGui.TextUnformatted($"已暂停 {view.PausedActors!.Length} 个演示对象");
         }
+        ImGui.TextWrapped("仅控制本机显示；真实小怪的服务器移动与伤害仍继续。手动旋转会停止自动连招。");
     }
 
     private void DrawSkillPreview(UiSnapshot view)
@@ -582,12 +697,13 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.TextWrapped($"吸气方向记录（相对开始朝向）：{view.ComboDirections}");
             if (!view.ComboRunning) ImGui.TextWrapped(view.ComboStatus);
         }
-        var playActor = view.LocalActor ?? view.Target;
+        var playActor = ControlActor(view);
         var entry = view.Entries.FirstOrDefault(e => e.Actor == playActor);
-        ImGui.TextUnformatted($"演示对象：{(view.LocalActor.HasValue ? entry?.ReplacementName + "（本地生成）" : view.TargetName)}");
+        ImGui.TextUnformatted($"演示对象：{entry?.ReplacementName ?? view.TargetName}{(playActor == view.LocalActor && playActor.HasValue ? "（本地生成）" : "")}");
         var family = entry is not null && modelFamilies.TryGetValue(entry.Applied.ModelId, out var key) ? key : "";
-        var reason = Loading ? "请等待角色进入场景。" : (view.LocalActor.HasValue ? null : view.CannotApply)
-            ?? (entry is null ? "请先生成本地预览，或替换当前目标的模型。" : entry.WaitingForDraw || entry.Restoring ? "请等待对象完成重绘。" : null);
+        var reason = Loading ? "请等待角色进入场景。"
+            : entry is null ? "请先生成本地预览，或替换当前目标的模型。"
+            : entry.WaitingForDraw || entry.Restoring ? "请等待对象完成重绘。" : null;
         if (playActor.HasValue && (view.PausedActors?.Contains(playActor.Value) ?? false)) reason = "对象已暂停，请先恢复动作。";
         var hunt = entry is null ? null : catalog.FirstOrDefault(h => h.ModelId == entry.Applied.ModelId
             && h.Name == entry.ReplacementName);
@@ -683,6 +799,7 @@ public sealed class Plugin : IDalamudPlugin
             void Shutdown()
             {
                 sequence.Stop("插件卸载，连招已取消。");
+                modelRotation.Clear();
                 try { animationPause.Reset(); }
                 finally
                 {

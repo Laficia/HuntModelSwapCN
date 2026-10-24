@@ -44,9 +44,23 @@ public sealed class AnimationPause(SwapSession session, IAnimationPauseAccess ac
         catch { entries[actor] = entry with { FreezeFailed = true }; throw; }
     }
 
-    public bool Resume(ActorIdentity actor)
+    public bool Resume(ActorIdentity actor, bool repairIfNotPaused = false)
     {
-        if (!entries.Remove(actor, out var entry)) return false;
+        if (!entries.Remove(actor, out var entry))
+        {
+            if (!repairIfNotPaused) return false;
+            var applied = session.Entries.FirstOrDefault(e => e.Actor == actor)
+                ?? throw new InvalidOperationException("请先生成预览或替换目标模型。");
+            entry = new(actor, applied.Applied.ModelId, new(0, []));
+            if (!Valid(entry)) throw new InvalidOperationException("演示对象不可用，请等待模型完成加载。");
+            var state = access.Capture(actor, entry.ModelId);
+            state.Validate();
+            // Explicit recovery also repairs zero-speed clocks left by an older
+            // plugin version when no saved pause lease survives the update.
+            access.Write(actor, entry.ModelId, new(state.OverallSpeed == 0 ? 1 : state.OverallSpeed,
+                state.SlotSpeeds.Select(speed => speed == 0 ? 1 : speed).ToArray()));
+            return true;
+        }
         if (!Valid(entry)) return false; // Never apply old speeds to a new model/owner.
         try { access.Write(actor, entry.ModelId, entry.Original); }
         catch { entries[actor] = entry; throw; }
