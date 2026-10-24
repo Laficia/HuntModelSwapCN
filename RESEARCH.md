@@ -134,6 +134,16 @@ UI 提供开始/停止、记录方向、阶段剩余时间，命令为 `/hms com
 
 生成脚本只读取本地研究输入并输出事实映射；研究缓存、完整 Wiki 文本、上游克隆不随源码包分发。固定来源与许可见 `THIRD_PARTY_NOTICES.md`。Release 编译无警告，1459 项离线检查通过，涵盖所有条目和本机资源；游戏内最终动画、特效及各同名版本仍待验证。其他 S 怪本版提供单次动作，自动转向连招仍仅布弗鲁支持。
 
+## 0.1.0.8 预览名牌高度与被动小怪隐藏
+
+旧实现仅维护 ModelScale、GameObject.Scale 与 DrawObject.Object.Scale，未更新原生名牌的 NameplateOffset/NameplateOffsetTarget 缓存。对本机客户端文件的只读检查显示，名牌位置使用已缩放的挂点偏移，加上 NameplateOffsetScaleMultiplier × GameObject.Scale。原生挂点优先 45，缺失时回退 46；字段及虚函数按本机 FFXIVClientStructs 7.57.0.9602 反射核验，上游定义见 [GameObject](https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/Object/GameObject.cs) 和 [DrawObject](https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Graphics/Scene/DrawObject.cs)。没有将分析中的地址或偏移写成插件硬编码。
+
+NativeLocalActorAccess 在完整 lease/nonce 通过且模型 LoadState=3 后，从 DrawObject.GetAttachBoneLocalLocation 取未缩放挂点，结合实际绘制缩放、DrawOffset 与 GameObject.GetHeight 更新两个缓存；未加载时等待，无挂点时使用原生高度/偏移回退。原生额外文字间距由游戏继续处理，避免重复计入。NativeLocalNameplateCodec 只处理有限数值，绝不从上一帧的已缩放缓存继续相乘。绘制缩放确实变化时设置 IsTransformChanged，让渲染变换重算；相同缩放不反复标脏。高度修正仅通过所有权检查后的本地预览路径调用，不写真实 NPC 的名牌偏移。
+
+旧 CanHide 检查 IsHostile，使部分被动战斗 NPC 被拦截。改为核验完整目标身份、战斗 NPC 类型/Combatant 子类型及无玩家 Owner，不再将主动攻击状态作为隐藏条件。本机 BNpcName 395/1142 为蜜蜂云，401 为跳蜥幼体；未使用名称白名单，其他符合条件的被动小怪同样可隐藏。没有修改敌对、交战或身份字段。
+
+Release 编译无警告，1480 项离线检查通过；新增缩放后名牌位置、放大后缩小、换模型、重复帧不累计、非法坐标拒绝、未加载等待、绘制变换标脏与被动 NPC 允许隐藏/宠物拒绝等回归检查。运行时挂点读取、显示时机与两种小怪的实际隐藏效果仍需游戏内确认。
+
 ## 主要参考
 
 - [Glamourer 模型编辑入口](https://github.com/Ottermandias/Glamourer/blob/e165910345b17b99d9aa35990005b5e0f73ae65b/Glamourer/State/StateEditor.cs)

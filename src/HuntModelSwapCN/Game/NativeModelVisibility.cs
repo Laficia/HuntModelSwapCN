@@ -2,7 +2,6 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using HuntModelSwapCN.Core;
-using NpcKind = Dalamud.Game.ClientState.Objects.Enums.BattleNpcSubKind;
 
 namespace HuntModelSwapCN.Game;
 
@@ -18,12 +17,8 @@ public sealed unsafe class NativeModelVisibility(IObjectTable objects) : IModelV
 
     public string? CanHide(ActorIdentity actor)
     {
-        if (Resolve(actor) is not IBattleNpc npc || npc.BattleNpcKind != NpcKind.Combatant)
-            return "请先选中一只战斗小怪。";
-        if (npc.OwnerId is not (0 or 0xe0000000)) return "不能隐藏宠物或其他角色所属对象。";
-        if (!((FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)npc.Address)->IsHostile)
-            return "请选择敌对小怪，不隐藏友方 NPC。";
-        return null;
+        if (Resolve(actor) is not IBattleNpc npc) return "请先选中一只战斗小怪（主动或被动均可）。";
+        return ModelVisibilityCodec.CannotHideSelected((GameObject*)npc.Address);
     }
 
     private IGameObject? Resolve(ActorIdentity actor)

@@ -116,6 +116,10 @@ unsafe
     Check(native.GameObject.Scale == 3.5f && captured.ObjectScale == 3.5f,
         "Object scale must follow the target's original scale, rather than the source creature's size.");
     Check((System.Numerics.Vector3)draw.Object.Scale == new System.Numerics.Vector3(3.5f), "The actual draw transform must use the target's true scale.");
+    Check(draw.Object.IsTransformChanged, "A changed draw scale must invalidate cached render transforms.");
+    draw.Object.IsTransformChanged = false;
+    NativeAppearanceCodec.WriteScale(&native, source);
+    Check(!draw.Object.IsTransformChanged, "An unchanged scale must not invalidate draw transforms every frame.");
     Check(native.GameObject.UpdateFlags.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Name)
         && native.GameObject.UpdateFlags.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Unk2),
         "Renaming must dirty the name while preserving other queued update flags.");
@@ -134,6 +138,88 @@ try { DisplayName.Encode(new string('蛇', 22)); throw new Exception("An overlon
 catch (InvalidOperationException) { tests++; }
 
 // Regression: spawned actors used friendly green nameplates despite the correct name/level/icon data.
+// A local preview's cached label anchor must track its actual render scale.
+unsafe
+{
+    NativeCharacter localNative = default;
+    FFXIVClientStructs.FFXIV.Client.Graphics.Scene.DrawObject draw = default;
+    localNative.GameObject.DrawObject = &draw;
+    localNative.GameObject.Position = new(12, 34, 56);
+    localNative.GameObject.DrawOffset = new(0.2f, 0.4f, -0.3f);
+    localNative.GameObject.NameplateOffsetScaleMultiplier = 0.7f;
+    localNative.GameObject.NameplateOffset = new(0, 2, 0);
+    localNative.GameObject.NameplateOffsetTarget = new(0, 2, 0);
+    var attachment = new System.Numerics.Vector3(0.5f, 4, -0.5f);
+    draw.Object.Scale = new(1);
+    Check(NativeLocalNameplateCodec.Write(&localNative, attachment, 0.6f)
+        && (System.Numerics.Vector3)localNative.GameObject.NameplateOffset == new System.Numerics.Vector3(0.7f, 5, -0.8f),
+        "A loaded model's native attachment plus draw/height offsets must determine its label anchor.");
+    draw.Object.Scale = new(3);
+    Check(NativeLocalNameplateCodec.Write(&localNative, attachment, 0.6f)
+        && localNative.GameObject.NameplateOffset.Y == 13
+        && localNative.GameObject.NameplateOffsetTarget.Y == 13,
+        "Enlarging a preview must move both the rendered label and interpolation target above the enlarged model.");
+    Check(!NativeLocalNameplateCodec.Write(&localNative, attachment, 0.6f)
+        && localNative.GameObject.NameplateOffset.Y == 13,
+        "Repeated frame updates must not compound the previous label height.");
+    draw.Object.Scale = new(0.5f);
+    Check(NativeLocalNameplateCodec.Write(&localNative, attachment, 0.6f)
+        && localNative.GameObject.NameplateOffset.Y == 3,
+        "Shrinking after enlargement must use the unscaled attachment again, not a cached scaled offset.");
+    Check(NativeLocalNameplateCodec.Write(&localNative, new(0, 10, 0), 0.6f)
+        && localNative.GameObject.NameplateOffset.Y == 6,
+        "Changing the preview model must use the new model's attachment height.");
+    var validAnchor = localNative.GameObject.NameplateOffset;
+    Check(!NativeLocalNameplateCodec.Write(&localNative, new(float.NaN, 1, 0), 0.6f)
+        && (System.Numerics.Vector3)localNative.GameObject.NameplateOffset == (System.Numerics.Vector3)validAnchor,
+        "Invalid model attachment data must leave the last valid native anchor intact.");
+    draw.Object.Scale = new(float.PositiveInfinity);
+    Check(!NativeLocalNameplateCodec.Write(&localNative, attachment, 0.6f),
+        "Non-finite transforms must never be written into nameplate coordinates.");
+    localNative.GameObject.DrawObject = null;
+    Check(!NativeLocalNameplateCodec.Write(&localNative, attachment, 0.6f),
+        "An unloaded preview must wait for a model before updating its nameplate height.");
+    Check(localNative.GameObject.Position.Y == 34 && localNative.GameObject.NameplateOffsetScaleMultiplier == 0.7f
+        && localNative.GameObject.Scale == 0 && localNative.GameObject.Height == 0,
+        "Label correction must preserve placement, native extra nameplate gap and gameplay height/scale fields.");
+}
+
+// Passive combat NPCs such as 蜜蜂云 and 跳蜥幼体 were rejected
+// by a hostile-flag check even though the user explicitly selected the creature.
+unsafe
+{
+    NativeCharacter passive = default;
+    passive.GameObject.ObjectKind = FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind.BattleNpc;
+    passive.GameObject.SubKind = 5;
+    foreach (var nameId in new uint[] { 395, 401, 1142 })
+    {
+        passive.NameId = nameId;
+        passive.IsHostile = false;
+        passive.GameObject.OwnerId = 0xe0000000;
+        Check(ModelVisibilityCodec.CannotHideSelected(&passive.GameObject) is null,
+            "Explicitly selected passive combat creatures must be hideable without setting hostile or combat flags.");
+        ModelVisibilityCodec.SetHidden(&passive.GameObject, true);
+        Check(ModelVisibilityCodec.IsHidden(&passive.GameObject) && !passive.IsHostile && passive.NameId == nameId,
+            "Hiding a passive creature must not make it aggressive or change its identity.");
+        ModelVisibilityCodec.SetHidden(&passive.GameObject, false);
+    }
+    passive.GameObject.OwnerId = 0;
+    Check(ModelVisibilityCodec.CannotHideSelected(&passive.GameObject) is null,
+        "Unowned passive NPCs can also use the reversible model visibility control.");
+    passive.GameObject.OwnerId = 123;
+    Check(ModelVisibilityCodec.CannotHideSelected(&passive.GameObject) is not null,
+        "Removing the hostile requirement must not allow hiding another character's pet.");
+    passive.GameObject.OwnerId = 0;
+    passive.GameObject.SubKind = 2;
+    Check(ModelVisibilityCodec.CannotHideSelected(&passive.GameObject) is not null,
+        "Non-combat battle objects remain outside the selected-monster hide action.");
+    passive.GameObject.SubKind = 5;
+    passive.GameObject.ObjectKind = FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind.Pc;
+    Check(ModelVisibilityCodec.CannotHideSelected(&passive.GameObject) is not null
+        && ModelVisibilityCodec.CannotHideSelected(null) is not null,
+        "An unrelated player or absent target must not pass selected-monster validation.");
+}
+
 unsafe
 {
     NativeCharacter localNative = default;

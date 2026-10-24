@@ -46,7 +46,11 @@ public static unsafe class NativeAppearanceCodec
     {
         c->ModelScale = state.ModelScale;
         c->GameObject.Scale = state.ObjectScale;
-        if (c->GameObject.DrawObject != null) c->GameObject.DrawObject->Object.Scale = state.DrawScale;
+        if (c->GameObject.DrawObject != null && (System.Numerics.Vector3)c->GameObject.DrawObject->Object.Scale != state.DrawScale)
+        {
+            c->GameObject.DrawObject->Object.Scale = state.DrawScale;
+            c->GameObject.DrawObject->Object.IsTransformChanged = true;
+        }
     }
 
     // NameId is deliberately untouched: it participates in actor identity and hunt recognition.

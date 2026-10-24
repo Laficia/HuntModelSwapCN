@@ -2,6 +2,27 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 2 && args[1] == "--nameplate-height")
+{
+    var objectType = typeof(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject);
+    foreach (var field in objectType.GetFields().Where(f => !f.IsStatic
+        && new[] { "Height", "Scale", "Nameplate", "DrawOffset", "DrawObject" }.Any(n => f.Name.Contains(n))))
+        Console.WriteLine($"{field.Name}: {field.FieldType.Name} offset={System.Runtime.InteropServices.Marshal.OffsetOf(objectType, field.Name):X}");
+    foreach (var type in new[] { objectType, typeof(ModelContainer) })
+        foreach (var method in type.GetMethods().Where(m => m.DeclaringType == type
+            && new[] { "Height", "Nameplate", "NamePlate", "Scale" }.Any(n => m.Name.Contains(n))))
+            Console.WriteLine($"{type.Name}.{method}: {string.Join("; ", method.GetCustomAttributesData())}");
+    Console.WriteLine("ModelChara: " + string.Join(", ", typeof(ModelChara).GetProperties().Select(p => $"{p.Name}:{p.PropertyType.Name}")));
+    Console.WriteLine("Character attributes: " + string.Join("; ", typeof(Character).GetCustomAttributesData()));
+    foreach (var method in typeof(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.DrawObject).GetMethods()
+        .Where(m => m.Name.Contains("AttachBone") || m.Name.Contains("TransformChanged")))
+        Console.WriteLine($"DrawObject.{method}: {string.Join("; ", method.GetCustomAttributesData())}");
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    foreach (var n in probe.Excel.GetSheet<BNpcName>()!.Where(n => n.Singular.ToString() is "蜜蜂云" or "跳蜥幼体"))
+        Console.WriteLine($"Battle NPC name: {n.RowId} {n.Singular}");
+    return;
+}
+
 if (args.Length == 3 && args[1] == "--export-skill-data")
 {
     using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });

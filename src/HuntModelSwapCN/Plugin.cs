@@ -99,7 +99,7 @@ public sealed class Plugin : IDalamudPlugin
         client.TerritoryChanged += OnTerritoryChanged;
         client.Logout += OnLogout;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.7 initialized. No appearance writes or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.8 initialized. No appearance writes or animation playback have been requested.");
     }
 
     private void Open()
@@ -196,7 +196,7 @@ public sealed class Plugin : IDalamudPlugin
                 identity.HasValue ? actors.CanApply(identity.Value) : "请先选中一只普通小怪。",
                 entries, status, localPreview.Actor?.Actor,
                 modelVisibility.HideSelf, modelVisibility.Count,
-                identity.HasValue ? visibilityAccess.CanHide(identity.Value) : "请先选中一只敌对小怪。",
+                identity.HasValue ? visibilityAccess.CanHide(identity.Value) : "请先选中一只战斗小怪（主动或被动均可）。",
                 modelVisibility.ManagedActors.Where(a => a != visibilityAccess.Self)
                     .Select(a => new HiddenTarget(a, visibilityAccess.Name(a))).ToArray(),
                 sequence.Running, sequence.Status, sequence.DirectionOrder, sequence.RemainingSeconds(Environment.TickCount64));
@@ -362,7 +362,7 @@ public sealed class Plugin : IDalamudPlugin
             if (ImGui.Button("恢复全部显示 /hms show")) Enqueue("show-all");
             ImGui.SameLine();
             ImGui.TextUnformatted($"已管理隐藏对象：{view.HiddenCount}");
-            ImGui.TextWrapped("先选中一只敌对小怪，再点击隐藏。可逐只隐藏；隐藏后从下方列表恢复，无需再次点中模型。切图、登出自动恢复。仅隐藏模型，名牌和独立技能特效仍可能显示。");
+            ImGui.TextWrapped("先选中一只战斗小怪，再点击隐藏，主动与被动小怪均可。可逐只隐藏；隐藏后从下方列表恢复，无需再次点中模型。切图、登出自动恢复。仅隐藏模型，名牌和独立技能特效仍可能显示。");
             if (hiddenTargets.Length > 0 && ImGui.CollapsingHeader($"单独隐藏的小怪 ({hiddenTargets.Length})", ImGuiTreeNodeFlags.DefaultOpen))
                 foreach (var hidden in hiddenTargets)
                 {

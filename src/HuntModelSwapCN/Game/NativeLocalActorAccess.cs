@@ -77,6 +77,14 @@ public sealed unsafe class NativeLocalActorAccess(IObjectTable objects, ITargetM
         if (!Exists(lease)) return;
         var c = ClientObjectManager.Instance()->GetObjectByIndex(lease.ClientIndex);
         if (NativeLocalPresentationCodec.Write(c, lease.Battalion)) nameplates.RequestRedraw();
+        var draw = c->GameObject.DrawObject;
+        if (draw == null || draw->LoadState != 3) return;
+        // Native nameplate attachment 45; the game falls back to attachment 46.
+        // Read the unscaled model point anew, never multiply the previous cache.
+        var bone = draw->HasAttachBone(45) ? 45 : draw->HasAttachBone(46) ? 46 : -1;
+        FFXIVClientStructs.FFXIV.Common.Math.Vector3 attachment = default;
+        if (bone >= 0) draw->GetAttachBoneLocalLocation(&attachment, bone);
+        NativeLocalNameplateCodec.Write(c, attachment, c->GameObject.GetHeight());
     }
 
     public void Delete(LocalActorLease lease)

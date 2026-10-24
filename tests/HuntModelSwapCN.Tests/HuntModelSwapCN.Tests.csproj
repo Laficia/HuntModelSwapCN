@@ -20,6 +20,7 @@
     <Compile Include="../../src/HuntModelSwapCN/Catalog/HuntSkillPresets.cs" Link="HuntSkillPresets.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Game/NativeAppearanceCodec.cs" Link="NativeAppearanceCodec.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Game/NativeLocalPresentationCodec.cs" Link="NativeLocalPresentationCodec.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Game/NativeLocalNameplateCodec.cs" Link="NativeLocalNameplateCodec.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Game/ModelVisibilityCodec.cs" Link="ModelVisibilityCodec.cs" />
     <Reference Include="FFXIVClientStructs"><HintPath>$(DALAMUD_HOME)/FFXIVClientStructs.dll</HintPath></Reference>
     <Reference Include="InteropGenerator.Runtime"><HintPath>$(DALAMUD_HOME)/InteropGenerator.Runtime.dll</HintPath></Reference>
