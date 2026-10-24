@@ -1,0 +1,30 @@
+[
+  {
+    "Author": "Laficia",
+    "Name": "狩猎模型替换",
+    "InternalName": "HuntModelSwapCN",
+    "AssemblyVersion": "0.1.0.1",
+    "Description": "独立于 HHT。使用 /hms 打开，按版本、地图和 S/A/B 级别选择怪物，同时替换当前目标的模型、名称和显示等级，并可恢复原模型、原名与原等级。仅修改本机显示。",
+    "ApplicableVersion": "any",
+    "Tags": [
+      "hunt",
+      "model",
+      "npc"
+    ],
+    "DalamudApiLevel": 15,
+    "LoadRequiredState": 0,
+    "LoadSync": false,
+    "CanUnloadAsync": false,
+    "LoadPriority": 0,
+    "Punchline": "将小怪模型、名称和等级显示为指定 S/A/B 狩猎怪物",
+    "Changelog": "0.1.0.1：同步替换显示名称和对应数值等级；体型以目标怪物原版数据为1倍，每次选择默认真实体型，客户端刷新后重新应用；恢复时还原模型、原名、原等级与原缩放。",
+    "AcceptsFeedback": true,
+    "IsHide": false,
+    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.1/latest.zip",
+    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.1/latest.zip",
+    "LastUpdate": 1792866695,
+    "IsTestingExclusive": false,
+    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.1/latest.zip",
+    "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN"
+  }
+]
