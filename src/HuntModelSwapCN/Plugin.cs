@@ -28,6 +28,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly SwapSession session;
     private readonly ActionPreview preview;
     private readonly LocalPreview localPreview;
+    private readonly BufruSequence sequence;
     private readonly NativeModelVisibility visibilityAccess;
     private readonly ModelVisibility modelVisibility;
     private readonly NameplatePresentation nameplatePresentation;
@@ -47,6 +48,7 @@ public sealed class Plugin : IDalamudPlugin
     private int selected = -1;
     private float scale = 1;
     private float spawnDistance = 8;
+    private float sequenceHoldSeconds = 2;
     private string status = "就绪";
     private long epoch;
     private string skillSearch = "";
@@ -55,11 +57,12 @@ public sealed class Plugin : IDalamudPlugin
     private string? lastSkillFilter;
     private SkillAnimation[] skillMatches = [];
     private record Request(long Epoch, string Action, ActorIdentity? Actor, int Selection = -1, float Scale = 1,
-        uint SkillId = 0, bool ChatFeedback = false, float Distance = 8, bool HideSelf = false);
+        uint SkillId = 0, bool ChatFeedback = false, float Distance = 8, bool HideSelf = false, int HoldMs = 2000);
     private sealed record HiddenTarget(ActorIdentity Actor, string Name);
     private sealed record UiSnapshot(ActorIdentity? Target, string TargetName, string? CannotApply,
         SwapEntry[] Entries, string Status, ActorIdentity? LocalActor = null,
-        bool HideSelf = false, int HiddenCount = 0, string? CannotHide = null, HiddenTarget[]? HiddenTargets = null);
+        bool HideSelf = false, int HiddenCount = 0, string? CannotHide = null, HiddenTarget[]? HiddenTargets = null,
+        bool ComboRunning = false, string ComboStatus = "", string ComboDirections = "", float ComboRemaining = 0);
 
     public Plugin(IDalamudPluginInterface pluginInterface, IFramework framework, ICommandManager commands,
         IClientState client, ICondition condition, IObjectTable objects, IDataManager data,
@@ -78,6 +81,7 @@ public sealed class Plugin : IDalamudPlugin
         session = new(actors);
         preview = new(session, actors);
         localPreview = new(session, new NativeLocalActorAccess(objects, targets, actors, nameplates));
+        sequence = new(session, preview, actors, actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor));
         visibilityAccess = new(objects);
         modelVisibility = new(visibilityAccess);
         catalog = HuntCatalog.Load(data.GetExcelSheet<TerritoryType>(), data.GetExcelSheet<BNpcName>(),
@@ -87,14 +91,14 @@ public sealed class Plugin : IDalamudPlugin
             id => SkillCatalog.ModelFamily(models.GetRow((uint)id)));
         nameplatePresentation = new(nameplates, session, localPreview, log);
         commands.AddHandler("/hms", new CommandInfo(OnCommand)
-            { HelpMessage = "打开狩猎模型替换；/hms show 恢复模型显示；/hms restore 恢复全部；/hms play 技能ID 播放本地动作（实验）。" });
+            { HelpMessage = "打开狩猎模型替换；/hms show 恢复显示；/hms restore 恢复全部；/hms play 技能ID 单次动作；/hms combo 布弗鲁连招；/hms stop 停止连招。" });
         pluginInterface.UiBuilder.Draw += Draw;
         pluginInterface.UiBuilder.OpenMainUi += Open;
         pluginInterface.UiBuilder.OpenConfigUi += Open;
         client.TerritoryChanged += OnTerritoryChanged;
         client.Logout += OnLogout;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.5 initialized. No appearance writes or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.6 initialized. No appearance writes or animation playback have been requested.");
     }
 
     private void Open()
@@ -114,6 +118,11 @@ public sealed class Plugin : IDalamudPlugin
             }
             catch (InvalidOperationException ex) { chat.Print($"[狩猎模型替换] {ex.Message}"); }
         }
+        else if (arguments.Trim().Equals("combo", StringComparison.OrdinalIgnoreCase))
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "start-combo", snapshot.LocalActor ?? snapshot.Target,
+                ChatFeedback: true, HoldMs: (int)(sequenceHoldSeconds * 1000)));
+        else if (arguments.Trim().Equals("stop", StringComparison.OrdinalIgnoreCase))
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "stop-combo", null, ChatFeedback: true));
         else if (arguments.Trim().Equals("show", StringComparison.OrdinalIgnoreCase))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "show-all", null, ChatFeedback: true));
         else if (arguments.Trim().Equals("restore", StringComparison.OrdinalIgnoreCase))
@@ -128,6 +137,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         Interlocked.Increment(ref epoch);
         requests.Clear();
+        sequence.ForgetScene();
         try { modelVisibility.Reset(); }
         catch (Exception ex) { log.Error(ex, "切换场景时恢复模型显示失败"); }
         session.ForgetDespawned();
@@ -148,6 +158,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             if (Loading)
             {
+                sequence.ForgetScene();
                 try { modelVisibility.Reset(); }
                 finally { localPreview.Clear(); }
                 return;
@@ -170,6 +181,10 @@ public sealed class Plugin : IDalamudPlugin
                     if (request.ChatFeedback) chat.Print($"[狩猎模型替换] {status}");
                 }
             }
+            var wasRunning = sequence.Running;
+            try { sequence.Tick(Environment.TickCount64); }
+            catch (Exception ex) { status = sequence.Status; log.Error(ex, "布弗鲁连招已中断"); }
+            if (wasRunning && !sequence.Running) status = sequence.Status;
             var npc = targets.Target as IBattleNpc;
             var entries = session.Entries.ToArray();
             // Wait for redraw before recording/restoring a selected object's model visibility.
@@ -182,7 +197,8 @@ public sealed class Plugin : IDalamudPlugin
                 modelVisibility.HideSelf, modelVisibility.Count,
                 identity.HasValue ? visibilityAccess.CanHide(identity.Value) : "请先选中一只敌对小怪。",
                 modelVisibility.ManagedActors.Where(a => a != visibilityAccess.Self)
-                    .Select(a => new HiddenTarget(a, visibilityAccess.Name(a))).ToArray());
+                    .Select(a => new HiddenTarget(a, visibilityAccess.Name(a))).ToArray(),
+                sequence.Running, sequence.Status, sequence.DirectionOrder, sequence.RemainingSeconds(Environment.TickCount64));
         }
         catch (Exception ex)
         {
@@ -193,6 +209,14 @@ public sealed class Plugin : IDalamudPlugin
 
     private void Execute(Request request)
     {
+        if (request.Action is "spawn" or "remove-local" or "all" or "apply" or "restore" or "resize" or "play")
+            sequence.Stop("已取消连招，正在执行新的演示操作。");
+        if (request.Action == "stop-combo")
+        {
+            sequence.Stop();
+            status = sequence.Status;
+            return;
+        }
         if (request.Action == "visibility")
         {
             modelVisibility.SetHideSelf(request.HideSelf);
@@ -235,6 +259,14 @@ public sealed class Plugin : IDalamudPlugin
             return;
         }
         if (request.Actor is not { } actor) throw new InvalidOperationException("请先选中一只普通小怪。");
+        if (request.Action == "start-combo")
+        {
+            LoadSkills();
+            sequence.Start(actor, skills, Enumerable.Range(0, 5).Select(_ => Random.Shared.Next(4)).ToArray(),
+                request.HoldMs, Environment.TickCount64);
+            status = "已开始布弗鲁五次吸气 → 同顺序五次喷嚏的本地连招。";
+            return;
+        }
         if (request.Action == "hide-target")
         {
             if (visibilityAccess.CanHide(actor) is { } hideReason) throw new InvalidOperationException(hideReason);
@@ -300,7 +332,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void Enqueue(string action, ActorIdentity? actor = null)
         => requests.Enqueue(new(Interlocked.Read(ref epoch), action, actor, selected,
-            scale, Distance: spawnDistance));
+            scale, Distance: spawnDistance, HoldMs: (int)(sequenceHoldSeconds * 1000)));
 
     private void Draw()
     {
@@ -457,6 +489,16 @@ public sealed class Plugin : IDalamudPlugin
             return;
         }
         ImGui.TextWrapped("仅播放本机动作，不改变真实技能或伤害。附带特效取决于动作资源；原怪移动、攻击可能中断演示。");
+        if (view.ComboRunning)
+        {
+            if (ImGui.Button("停止布弗鲁连招 /hms stop")) Enqueue("stop-combo");
+            ImGui.TextWrapped($"{view.ComboStatus}，本阶段剩余 {view.ComboRemaining:F1} 秒。");
+        }
+        if (view.ComboDirections.Length > 0)
+        {
+            ImGui.TextWrapped($"吸气方向记录（相对开始朝向）：{view.ComboDirections}");
+            if (!view.ComboRunning) ImGui.TextWrapped(view.ComboStatus);
+        }
         var playActor = view.LocalActor ?? view.Target;
         var entry = view.Entries.FirstOrDefault(e => e.Actor == playActor);
         ImGui.TextUnformatted($"演示对象：{(view.LocalActor.HasValue ? entry?.ReplacementName + "（本地生成）" : view.TargetName)}");
@@ -476,7 +518,13 @@ public sealed class Plugin : IDalamudPlugin
                     if (ImGui.Button($"{skill.Name}  /hms play {skill.ActionId}"))
                         requests.Enqueue(new(Interlocked.Read(ref epoch), "play", playActor, SkillId: skill.ActionId));
                 ImGui.EndDisabled();
-                ImGui.TextWrapped("技能归属依据灰机 Wiki 资料；仅演示单次动作，不模拟吸气顺序、转向、击退或异常状态。");
+                ImGui.TextWrapped("上面的快捷按钮播放单次动作；下方可启动吸气/喷嚏连招。技能归属依据你提供的灰机 Wiki 资料。");
+                ImGui.SetNextItemWidth(240);
+                ImGui.SliderFloat("连招动作停留（秒）", ref sequenceHoldSeconds, 0.75f, 10f, "%.2f");
+                ImGui.BeginDisabled(reason is not null || view.ComboRunning);
+                if (ImGui.Button("五次吸气 → 五次喷嚏 /hms combo")) Enqueue("start-combo", playActor);
+                ImGui.EndDisabled();
+                ImGui.TextWrapped("连招记录五次随机方向，吸气后按同顺序转向喷嚏。咏唱以面板倒计时表示；可调整动作停留避免打断。停止后取消剩余步骤，当前动画可能继续至结束。仅本机演示，不产生真实范围伤害、击退或击倒。");
                 ImGui.Separator();
             }
         }
@@ -526,6 +574,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             void Shutdown()
             {
+                sequence.Stop("插件卸载，连招已取消。");
                 try { modelVisibility.Reset(); }
                 finally
                 {

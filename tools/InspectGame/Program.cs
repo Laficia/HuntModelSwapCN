@@ -2,6 +2,20 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 2 && args[1] == "--bufru-chain")
+{
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    var actions = probe.Excel.GetSheet<Lumina.Excel.Sheets.Action>()!;
+    var timelines = probe.Excel.GetSheet<ActionTimeline>()!;
+    foreach (var action in actions.Where(a => a.RowId is >= 27295 and <= 27320))
+    {
+        var start = timelines.GetRowOrDefault(action.AnimationStart.RowId);
+        var end = timelines.GetRowOrDefault(action.AnimationEnd.RowId);
+        Console.WriteLine($"{action.RowId}: {action.Name} cast={action.Cast100ms / 10f:F1}s start={action.AnimationStart.RowId}:{start?.Key} end={action.AnimationEnd.RowId}:{end?.Key} range={action.EffectRange} castType={action.CastType}");
+    }
+    return;
+}
+
 if (args.Length == 2 && args[1] == "--local-nameplate")
 {
     Console.WriteLine($"Character.IsHostile writable={typeof(Character).GetProperty("IsHostile")?.CanWrite}");

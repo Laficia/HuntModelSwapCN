@@ -112,6 +112,18 @@ if (!oldIsHuman)
 
 参考：[CharacterData](https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/Character/CharacterData.cs)、[GameObject.GetNamePlateColorType](https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/Object/GameObject.cs)、[BNpcBase 数据结构](https://github.com/xivdev/EXDSchema/blob/latest/BNpcBase.yml)、[Battalion 数据结构](https://github.com/xivdev/EXDSchema/blob/latest/Battalion.yml)。
 
+## 0.1.0.6 布弗鲁方向连招
+
+按用户提供的灰机 Wiki 摘录，先记录五次随机前/右/后/左吸气方向，再按相同顺序喷嚏。直接访问该页面仍返回 403，本版使用用户给出的摘录作为技能归属资料。动作和时长从本机国服数据核对：27307/27308 吸气均为时间轴 3201（m0741/mon_sp001），咏唱分别 4000/300 ms；27309/27310 喷嚏均为 3202（mon_sp002），咏唱 5000/300 ms。
+
+`SkillAnimation` 新增本机表的 `CastTimeMs`。`BufruSequence` 在框架线程逐段计时，调用既有 `ActionPreview.Play` 与原生 `GameObject.SetRotation`，不调用游戏施法接口。方向相对于初始朝向，数组在开始时复制；每个步骤只有咏唱等待和动作停留两个阶段。停留默认 2000 ms，可调 750～10000 ms。卡顿后只推进一个阶段，并以当前帧重新定时，避免集中补播。
+
+对象必须仍处于布弗鲁外观会话、没有重绘/恢复，并通过原生模型、存活、绘制状态核验。本地预览另核验 nonce；取消后的旧对象不得收到朝向恢复。正常结束和显式停止先清除运行状态，再尝试恢复初始朝向。场景清理仅丢弃状态，不使用旧索引。动画接口失败会停止一次并记录错误，不继续每帧重试。
+
+UI 提供开始/停止、记录方向、阶段剩余时间，命令为 `/hms combo` 和 `/hms stop`。当前咏唱只是插件倒计时，不启动原生咏唱状态或 Action.AnimationStart（对应记录不是直接可用的完整战斗咏唱实现）。停止不保证切断当前已经调度的动画；独立 VFX、地面 AoE、命中、击退、击倒与其他状态未模拟。
+
+357 项离线检查通过，新增十次方向/动作顺序、短重复咏唱、本地所有权丢失、场景变化、停止恢复、接口失败、卡顿不突发补播和非法输入。演示的最终转向、动作持续时间和附带特效仍需游戏内测试。
+
 ## 主要参考
 
 - [Glamourer 模型编辑入口](https://github.com/Ottermandias/Glamourer/blob/e165910345b17b99d9aa35990005b5e0f73ae65b/Glamourer/State/StateEditor.cs)

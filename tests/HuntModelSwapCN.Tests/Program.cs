@@ -213,6 +213,98 @@ foreach (var command in new[] { "play", "play 0", "play -1", "play 1.2", "play 4
 Check(testSkill.Matches("27316") && testSkill.Matches("碎颈") && testSkill.Family == "[SKL_ID]",
     "Search and dynamic skeleton resources must retain their meaning.");
 
+var comboAccess = new FakeAccess();
+comboAccess.Actors.Add(actor, original);
+var comboSession = new SwapSession(comboAccess);
+comboSession.Apply(actor, "小怪", "布弗鲁", State(3315, 3));
+comboSession.Tick();
+var comboAnimation = new FakeAnimationAccess();
+comboAnimation.Rotations[actor] = 0.4f;
+var comboPlayback = new ActionPreview(comboSession, comboAnimation);
+var eligible = true;
+var combo = new BufruSequence(comboSession, comboPlayback, comboAnimation, _ => eligible);
+var comboSkills = new Dictionary<uint, SkillAnimation>
+{
+    [27307] = new(27307, "五倍吸气", 3201, "mon_sp/[SKL_ID]/mon_sp001", 1, 4000),
+    [27308] = new(27308, "五倍吸气", 3201, "mon_sp/[SKL_ID]/mon_sp001", 1, 300),
+    [27309] = new(27309, "五倍喷嚏", 3202, "mon_sp/[SKL_ID]/mon_sp002", 1, 5000),
+    [27310] = new(27310, "五倍喷嚏", 3202, "mon_sp/[SKL_ID]/mon_sp002", 1, 300),
+};
+var comboDirections = new[] { 0, 1, 3, 2, 0 };
+combo.Start(actor, comboSkills, comboDirections, 1000, 0);
+Check(combo.Running && combo.DirectionOrder == "前 → 右 → 左 → 后 → 前" && combo.RemainingSeconds(1000) == 3,
+    "A combo must record exactly five directions relative to its initial heading and expose cast progress.");
+combo.Tick(3999);
+Check(comboAnimation.Calls.Count == 0, "The first inhale must wait for its four-second cast.");
+long comboNow = 4000;
+for (var step = 0; step < 10; step++)
+{
+    if (step > 0)
+    {
+        comboNow += 1000;
+        combo.Tick(comboNow); // Begin the next cast after the preceding animation's hold.
+        comboNow += step == 5 ? 5000 : 300;
+    }
+    combo.Tick(comboNow);
+    var played = comboAnimation.DirectionalPlays.Last();
+    var expectedHeading = 0.4f + comboDirections[step % 5] * MathF.PI / 2;
+    Check(comboAnimation.Calls.Count == step + 1 && played.Timeline == (step < 5 ? 3201 : 3202)
+        && MathF.Abs(MathF.IEEERemainder(played.Rotation - expectedHeading, MathF.Tau)) < 0.001f,
+        $"Combo step {step + 1} must play the correct inhale/sneeze timeline in the memorized direction.");
+}
+combo.Tick(comboNow + 1000);
+Check(!combo.Running && comboAnimation.Calls.Count == 10 && MathF.Abs(comboAnimation.Rotations[actor] - 0.4f) < 0.001f,
+    "Completing a combo must play exactly ten actions and restore the initial heading.");
+combo.Start(actor, comboSkills, comboDirections, 1000, 100000);
+combo.Tick(104000);
+combo.Stop();
+var callsAfterStop = comboAnimation.Calls.Count;
+combo.Tick(120000);
+Check(!combo.Running && comboAnimation.Calls.Count == callsAfterStop && MathF.Abs(comboAnimation.Rotations[actor] - 0.4f) < 0.001f,
+    "Stopping must cancel every remaining step and restore facing without scheduling more animations.");
+combo.Start(actor, comboSkills, comboDirections, 1000, 200000);
+var writesBeforeScene = comboAnimation.FacingWrites;
+combo.ForgetScene();
+combo.Tick(220000);
+Check(!combo.Running && combo.DirectionOrder == "" && comboAnimation.FacingWrites == writesBeforeScene,
+    "A scene change must discard the combo without writing the old actor's rotation.");
+combo.Start(actor, comboSkills, comboDirections, 1000, 300000);
+eligible = false; // Same identity, but a local actor has lost its ownership nonce.
+var writesBeforeOwnershipLoss = comboAnimation.FacingWrites;
+combo.Tick(300001);
+Check(!combo.Running && comboAnimation.FacingWrites == writesBeforeOwnershipLoss,
+    "Losing local ownership must cancel the combo without restoring rotation into a recycled actor.");
+eligible = true;
+combo.Start(actor, comboSkills, comboDirections, 1000, 400000);
+comboAnimation.Unavailable = true;
+try { combo.Tick(400001); throw new Exception("Expected unavailable animation actor."); } catch (InvalidOperationException) { }
+combo.Tick(410000);
+Check(!combo.Running && comboAnimation.Calls.Count == callsAfterStop,
+    "An animation wrapper failure must stop the sequence once and prevent repeated playback attempts.");
+comboAnimation.Unavailable = false;
+combo.Start(actor, comboSkills, comboDirections, 1000, 500000);
+combo.Tick(600000);
+var afterStall = comboAnimation.Calls.Count;
+combo.Tick(600001);
+combo.Tick(601000);
+Check(comboAnimation.Calls.Count == afterStall,
+    "A long stalled frame must not burst all missed steps or skip a visible cast phase.");
+combo.Tick(601300);
+Check(comboAnimation.Calls.Count == afterStall + 1, "The next action must resume after its own cast and hold timing.");
+combo.Stop();
+var callsBeforeInvalid = comboAnimation.Calls.Count;
+foreach (var (directions, hold) in new[] { (new[] { 0, 1, 2, 3 }, 1000), (new[] { 0, 1, 2, 3, 4 }, 1000),
+    (comboDirections, 749), (comboDirections, 10001) })
+    try { combo.Start(actor, comboSkills, directions, hold, 700000); throw new Exception("Invalid combo accepted."); }
+    catch (InvalidOperationException) { tests++; }
+var missingComboSkills = comboSkills.Where(p => p.Key != 27308).ToDictionary(p => p.Key, p => p.Value);
+try { combo.Start(actor, missingComboSkills, comboDirections, 1000, 700000); throw new Exception("Incomplete combo accepted."); }
+catch (InvalidOperationException) { tests++; }
+comboSession.Apply(actor, "小怪", "其他怪", State(235, 3));
+comboSession.Tick();
+try { combo.Start(actor, comboSkills, comboDirections, 1000, 700000); throw new Exception("Wrong model combo accepted."); }
+catch (InvalidOperationException) { Check(comboAnimation.Calls.Count == callsBeforeInvalid, "Only a completed Bufru appearance may start its combo."); }
+
 var resizeAccess = new FakeAccess();
 resizeAccess.Actors.Add(actor, original);
 var resizeSession = new SwapSession(resizeAccess);
@@ -445,6 +537,10 @@ if (args.Length == 1)
     var actions = game.Excel.GetSheet<Lumina.Excel.Sheets.Action>(Language.ChineseSimplified);
     var timelines = game.Excel.GetSheet<ActionTimeline>();
     var skills = SkillCatalog.Load(actions, timelines);
+    Check(new uint[] { 27307, 27308, 27309, 27310 }.Select(id => skills[id].CastTimeMs).SequenceEqual(new[] { 4000, 300, 5000, 300 }),
+        "Bufru combo cast times must come from the CN action data, including the short repeat actions.");
+    Check(skills[27308].TimelineId == skills[27307].TimelineId && skills[27310].TimelineId == skills[27309].TimelineId,
+        "Bufru repeat actions must resolve to the same inhale/sneeze resources as the first cast.");
     Console.WriteLine($"Playable action records: {skills.Count}");
     Check(skills.Count > 10000 && skills.All(p => p.Value.ActionId == p.Key && p.Value.TimelineId > 0
         && p.Value.Slot < 14 && !string.IsNullOrWhiteSpace(p.Value.TimelineKey)),
@@ -491,11 +587,27 @@ sealed class FakeAccess : IActorAccess
             ModelScale = state.ModelScale, ObjectScale = state.ObjectScale, DrawScale = state.DrawScale, NameplateIcon = state.NameplateIcon };
 }
 
-sealed class FakeAnimationAccess : IAnimationAccess
+sealed class FakeAnimationAccess : IAnimationAccess, IDirectionalAnimationAccess
 {
     public List<(ActorIdentity Actor, int Model, ushort Timeline)> Calls { get; } = [];
+    public Dictionary<ActorIdentity, float> Rotations { get; } = [];
+    public List<(ActorIdentity Actor, ushort Timeline, float Rotation)> DirectionalPlays { get; } = [];
+    public int FacingWrites { get; private set; }
+    public bool Unavailable { get; set; }
     public void PlayAnimation(ActorIdentity actor, int expectedModelId, ushort timelineId)
-        => Calls.Add((actor, expectedModelId, timelineId));
+    {
+        if (Unavailable) throw new InvalidOperationException("Simulated missing animation actor.");
+        Calls.Add((actor, expectedModelId, timelineId));
+        DirectionalPlays.Add((actor, timelineId, Rotations.GetValueOrDefault(actor)));
+    }
+    public float Rotation(ActorIdentity actor, int expectedModelId)
+        => !Unavailable ? Rotations.GetValueOrDefault(actor) : throw new InvalidOperationException("Simulated missing actor.");
+    public void Face(ActorIdentity actor, int expectedModelId, float rotation)
+    {
+        if (Unavailable) throw new InvalidOperationException("Simulated missing actor.");
+        Rotations[actor] = rotation;
+        FacingWrites++;
+    }
 }
 
 sealed class FakeLocalAccess(FakeAccess access) : ILocalActorAccess

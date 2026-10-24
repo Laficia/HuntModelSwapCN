@@ -4,7 +4,7 @@ using GameAction = Lumina.Excel.Sheets.Action;
 
 namespace HuntModelSwapCN.Catalog;
 
-public sealed record SkillAnimation(uint ActionId, string Name, ushort TimelineId, string TimelineKey, byte Slot)
+public sealed record SkillAnimation(uint ActionId, string Name, ushort TimelineId, string TimelineKey, byte Slot, int CastTimeMs = 0)
 {
     // This identifies animation resources, not which skills a particular hunt actually owns.
     public string Family => TimelineKey.StartsWith("mon_sp/", StringComparison.Ordinal)
@@ -31,7 +31,7 @@ public static class SkillCatalog
             if (string.IsNullOrWhiteSpace(key)) continue;
             var name = action.Name.ToString();
             result.Add(action.RowId, new(action.RowId, string.IsNullOrWhiteSpace(name) ? "未命名技能" : name,
-                (ushort)id, key, timeline.Slot));
+                (ushort)id, key, timeline.Slot, action.Cast100ms * 100));
         }
         return result;
     }

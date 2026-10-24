@@ -8,7 +8,7 @@ using NativeCharacter = FFXIVClientStructs.FFXIV.Client.Game.Character.Character
 
 namespace HuntModelSwapCN.Game;
 
-public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui nameplates) : IActorAccess, IAnimationAccess
+public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui nameplates) : IActorAccess, IAnimationAccess, IDirectionalAnimationAccess
 {
     public static ActorIdentity Identity(IBattleNpc npc)
         => new(npc.ObjectIndex, npc.GameObjectId, npc.BaseId, npc.NameId, npc.Address);
@@ -22,7 +22,7 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
 
     public bool Exists(ActorIdentity actor) => Resolve(actor) is not null;
 
-    public void PlayAnimation(ActorIdentity actor, int expectedModelId, ushort timelineId)
+    private NativeCharacter* AnimationCharacter(ActorIdentity actor, int expectedModelId)
     {
         if (CanApply(actor) is { } reason) throw new InvalidOperationException(reason);
         var c = Character(actor);
@@ -30,6 +30,22 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
             throw new InvalidOperationException("目标模型已变化，请重新替换后再播放。");
         if (c->GameObject.DrawObject->LoadState != 3)
             throw new InvalidOperationException("目标模型仍在加载，请稍后再播放。");
+        return c;
+    }
+
+    public float Rotation(ActorIdentity actor, int expectedModelId) => AnimationCharacter(actor, expectedModelId)->GameObject.Rotation;
+
+    public void Face(ActorIdentity actor, int expectedModelId, float rotation)
+    {
+        if (!float.IsFinite(rotation)) throw new InvalidOperationException("演示朝向无效。");
+        var c = AnimationCharacter(actor, expectedModelId);
+        if (MathF.Abs(MathF.IEEERemainder(c->GameObject.Rotation - rotation, MathF.Tau)) > 0.001f)
+            c->GameObject.SetRotation(rotation);
+    }
+
+    public void PlayAnimation(ActorIdentity actor, int expectedModelId, ushort timelineId)
+    {
+        var c = AnimationCharacter(actor, expectedModelId);
         // Playback only: never call ActionManager.UseAction or synthesize action-effect packets.
         c->Timeline.TimelineSequencer.PlayTimeline(timelineId);
     }

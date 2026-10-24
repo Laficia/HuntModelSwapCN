@@ -48,11 +48,12 @@ public sealed class LocalPreview(SwapSession session, ILocalActorAccess access)
 {
     public LocalActorLease? Actor { get; private set; }
     public bool Owns(ActorIdentity actor) => Actor?.Actor == actor;
+    public bool OwnsLive(ActorIdentity actor) => Actor is { } lease && lease.Actor == actor && access.Exists(lease);
 
     // Nameplate visibility bit 0x2 draws the HP gauge; keep text and all other bits intact.
     // Revalidate the native ownership marker even if a slot has the same object identity.
     public int NameplateVisibility(ActorIdentity actor, int flags)
-        => Actor is { } lease && lease.Actor == actor && access.Exists(lease) ? flags & ~0x2 : flags;
+        => OwnsLive(actor) ? flags & ~0x2 : flags;
 
     public ActorIdentity Spawn(HuntAppearance appearance, float scale, float distance)
     {
