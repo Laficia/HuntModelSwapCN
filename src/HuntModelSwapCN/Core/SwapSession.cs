@@ -4,7 +4,7 @@ namespace HuntModelSwapCN.Core;
 public readonly record struct ActorIdentity(ushort Index, ulong ObjectId, uint DataId, uint NameId, nint Address);
 public sealed record VisualState(int ModelId, int SecondaryModelId, float ModelScale,
     byte[] Customize, ulong[] Equipment, ulong[] Weapons, byte Flags1, byte Flags2,
-    byte[] NameBytes, byte Level, float ObjectScale, System.Numerics.Vector3 DrawScale);
+    byte[] NameBytes, byte Level, float ObjectScale, System.Numerics.Vector3 DrawScale, byte NameplateIcon = 0);
 public interface IActorAccess
 {
     bool Exists(ActorIdentity actor);
@@ -20,6 +20,9 @@ public sealed class SwapSession(IActorAccess access)
 {
     private readonly Dictionary<ActorIdentity, SwapEntry> entries = new();
     public IReadOnlyCollection<SwapEntry> Entries => entries.Values;
+
+    public string? NameFor(ActorIdentity actor) => entries.TryGetValue(actor, out var entry)
+        ? entry.Restoring ? entry.OriginalName : entry.ReplacementName : null;
 
     public void Apply(ActorIdentity actor, string originalName, string replacementName, VisualState state)
     {
@@ -61,6 +64,8 @@ public sealed class SwapSession(IActorAccess access)
 
     // Used only after the game has discarded the territory's actors.
     public void ForgetDespawned() => entries.Clear();
+
+    public void Forget(ActorIdentity actor) => entries.Remove(actor);
 
     public void Shutdown()
     {

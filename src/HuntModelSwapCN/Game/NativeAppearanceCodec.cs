@@ -14,7 +14,7 @@ public static unsafe class NativeAppearanceCodec
             c->DrawData.WeaponData.ToArray().Select(w => w.ModelId.Value).ToArray(),
             c->DrawData.Flags1, c->DrawData.Flags2, c->GameObject.Name.ToArray(), c->Level,
             c->GameObject.Scale, c->GameObject.DrawObject != null
-                ? c->GameObject.DrawObject->Object.Scale : new System.Numerics.Vector3(c->GameObject.Scale));
+                ? c->GameObject.DrawObject->Object.Scale : new System.Numerics.Vector3(c->GameObject.Scale), c->Icon);
 
     public static void Validate(VisualState state)
     {
@@ -65,6 +65,11 @@ public static unsafe class NativeAppearanceCodec
         if (c->Level != state.Level)
         {
             c->Level = state.Level;
+            changed = true;
+        }
+        if (c->Icon != state.NameplateIcon)
+        {
+            c->Icon = state.NameplateIcon;
             changed = true;
         }
         return changed;

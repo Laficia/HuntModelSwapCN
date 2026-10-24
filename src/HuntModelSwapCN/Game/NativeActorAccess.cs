@@ -8,7 +8,7 @@ using NativeCharacter = FFXIVClientStructs.FFXIV.Client.Game.Character.Character
 
 namespace HuntModelSwapCN.Game;
 
-public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui nameplates) : IActorAccess
+public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui nameplates) : IActorAccess, IAnimationAccess
 {
     public static ActorIdentity Identity(IBattleNpc npc)
         => new(npc.ObjectIndex, npc.GameObjectId, npc.BaseId, npc.NameId, npc.Address);
@@ -21,6 +21,18 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
     }
 
     public bool Exists(ActorIdentity actor) => Resolve(actor) is not null;
+
+    public void PlayAnimation(ActorIdentity actor, int expectedModelId, ushort timelineId)
+    {
+        if (CanApply(actor) is { } reason) throw new InvalidOperationException(reason);
+        var c = Character(actor);
+        if (c->ModelContainer.ModelCharaId != expectedModelId)
+            throw new InvalidOperationException("目标模型已变化，请重新替换后再播放。");
+        if (c->GameObject.DrawObject->LoadState != 3)
+            throw new InvalidOperationException("目标模型仍在加载，请稍后再播放。");
+        // Playback only: never call ActionManager.UseAction or synthesize action-effect packets.
+        c->Timeline.TimelineSequencer.PlayTimeline(timelineId);
+    }
 
     public string? CanApply(ActorIdentity actor)
     {
@@ -59,6 +71,7 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
             Flags1 = (byte)(current.Flags1 & ~1),
             Flags2 = (byte)((current.Flags2 & ~0x11) | (appearance.Visor ? 0x10 : 0)),
             NameBytes = DisplayName.Encode(appearance.Name),
+            NameplateIcon = appearance.NameplateIcon,
             Level = appearance.Level > 0 ? appearance.Level
                 : throw new InvalidOperationException("尚未配置此版本的狩猎怪等级。"),
         };

@@ -39,6 +39,45 @@ if (!oldIsHuman)
 
 该路线仍需游戏内验证。骨架文件存在、原生结构的读写检查通过，都不能保证任意两个怪物的战斗动画兼容。
 
+## 0.1.0.2 本地技能动作演示
+
+调用本机国服 API 15 的 `Character.Timeline.TimelineSequencer.PlayTimeline(ushort, void*)`，只请求一次本地动画调度，不调用 `ActionManager.UseAction`，不合成战斗消息。技能 Action ID 通过 `Action.AnimationEnd` 转换为时间轴 ID，二者不能混用；不直接播放受击对象的 `ActionTimelineHit`。当前不模拟读条阶段和方向序列，也不额外加载独立施法/命中特效。
+
+本机可读取 47,121 条具有有效动作时间轴的非玩家技能候选记录，其中存在同名不同 ID、共用时间轴和历史内容。`mon_sp/[SKL_ID]/...` 是按目标骨架解析的模板，并不表示任意模型都拥有对应技能。不能仅根据同名、相同时间轴或同骨架推导怪物真实技能归属。
+
+第一组人工核对预置为布弗鲁（BNpcName 10617、ModelChara 3315、模型资源 m0741）：
+
+| 技能 | Action ID | AnimationEnd |
+| --- | --- | --- |
+| 巨魔碎颈臂 | 27316 | 3205 |
+| 五倍吸气 | 27307 | 3201 |
+| 五倍喷嚏 | 27309 | 3202 |
+| 上击 | 27314 | 3204 |
+| 腐烂孢子 | 27313 | 3203 |
+
+技能名称及归属依据用户提供的[灰机 Wiki 布弗鲁页面摘录](https://ff14.huijiwiki.com/wiki/布弗鲁)；本次直接访问页面受安全验证限制，没有把页面本身标为已读取。五个 ID 已与本地国服表对应，`chara/action/mon_sp/m0741/mon_sp001..005.tmb` 均存在。这只证明资源映射，不证明运行时画面、特效或战斗机制正确。
+
+播放由 UI/命令加入框架线程队列，执行时重新核验对象身份，要求对象仍在替换会话中、未重绘/恢复、存活、模型 ID 一致且绘制对象加载完成。连续播放间隔 750 ms。技能表首次显式请求时才加载；不注册原生界面事件回调。
+
+离线检查覆盖命令拒绝非法参数、槽位复用、重绘/恢复期间拒绝播放、节流、Action ID 到时间轴映射，以及布弗鲁的模型/技能文件。实际动画和附带特效仍需游戏内验证。
+
+## 0.1.0.2 隐藏、头顶名称与名牌标记
+
+- 隐藏只设置 `GameObject.RenderFlags` 的 `VisibilityFlags.Model` 位，不调用移除对象接口，不覆盖名牌位和其他渲染位。分别筛选本地玩家以及无玩家归属的敌对战斗 NPC，已替换对象和本插件创建的本地预览被排除。记录原模型位，关闭/卸载时只恢复这一位，原本已隐藏的对象不强制显示。
+- 每次操作重新解析完整对象身份；对象消失即丢弃记录。切图/登出尝试恢复当前仍匹配的对象，然后清理旧场景记录并关闭开关。`/hms show` 只恢复本插件控制的显示状态；`/hms restore` 另包含恢复替换和移除本地生成对象。
+- 普通怪或 A 怪的头顶名称可能在 UI 层再次按 `BNpcName` 解析，单改 `GameObject.Name` 无法覆盖该路径。通过 `INamePlateGui.OnNamePlateUpdate` 提供的 handler 对完整身份匹配的对象调用 `SetField(NamePlateStringField.Name, ...)`，恢复过程中使用原名。事件在 Dispose 中解绑，不注册自己的原生 UI 委托。
+- `CharacterData.Icon` 是名牌图标类别，外观快照新增这一字段，替换时取目标 `BNpcBase.Rank`，每次刷新维护，恢复时还原。本机所有 201 种常规 S/A/B 数据的 Rank 都为 1；这个类别不是本插件显示的 S/A/B 分级，也不是任务/攻击目标标记 ID。实际小图标最终样式需游戏内验证。
+
+## 0.1.0.2 本地生成预览
+
+使用国服程序集已有的 `ClientObjectManager.CreateBattleCharacter`、`GetObjectByIndex`、`DeleteObjectByIndex` 和 `CharacterSetupContainer.SetupBNpc`。只接受本地池分配的索引，并核验对象表索引位于 200～448 的非网络对象范围。按角色朝向的正前方 2～30 米放置、朝向角色，不做地面碰撞探测。未复制 Brio 的实现代码。
+
+通过 BNpcBase/BNpcName 设置外观后，将预览对象真实 `BaseId` 和 `NameId` 置零，保持中文显示名称与所选等级，避免生成对象伪装为真实狩猎记录。只保留一个本地对象。模型名称的 C-string 终止符后存储 64 位随机所有权标记；删除前同时核验管理器地址、池索引、原生指针、完整对象身份和标记，拒绝删除已复用的槽位。名称覆盖和再次换模保留此标记。
+
+本地生成会话与换模会话分开管理；清理本地对象并撤销其换模记录，不对已销毁的对象重绘。部分初始化失败会尝试删除刚分配的对象；删除失败保留所有权以供重试。切图清理已失效的会话时不按旧索引盲目删除。生成对象和演示动作只影响本机。
+
+当前共 297 项离线检查通过，含隐藏/恢复、所有权丢失、槽位复用、部分失败清理、位置计算、名牌原名和类别恢复，以及 201 种中文名称的所有权标记空间。没有将编译/离线结果视为游戏内生成、动画或名牌效果已经通过。
+
 ## 主要参考
 
 - [Glamourer 模型编辑入口](https://github.com/Ottermandias/Glamourer/blob/e165910345b17b99d9aa35990005b5e0f73ae65b/Glamourer/State/StateEditor.cs)
@@ -47,3 +86,4 @@ if (!oldIsHuman)
 - [NotoriousMonster 数据结构](https://github.com/xivdev/EXDSchema/blob/latest/NotoriousMonster.yml)
 - [BNpcBase 数据结构](https://github.com/xivdev/EXDSchema/blob/latest/BNpcBase.yml)
 - [MonsterModelSwap 换模服务](https://github.com/Jayty07/MonsterModelSwap/blob/main/MonsterModelSwap/Services/ModelSwapService.cs)（原实现针对玩家，不能直接当作普通 NPC 换模成品）。
+- [FFXIVClientStructs 动作调度器](https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/Control/ActionTimelineSequencer.cs)

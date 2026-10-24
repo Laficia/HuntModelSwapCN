@@ -2,6 +2,60 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 2 && args[1] == "--presentation")
+{
+    Console.WriteLine("Character.Icon offset=" + System.Runtime.InteropServices.Marshal.OffsetOf<Character>("Icon"));
+    foreach (var type in new[] { typeof(BNpcBase), typeof(CharacterData), typeof(Character) })
+    {
+        Console.WriteLine(type.FullName);
+        Console.WriteLine(string.Join("\n", type.GetProperties().Select(p => $"{p.Name}: {p.PropertyType.Name}")));
+        Console.WriteLine(string.Join("\n", type.GetFields().Where(f => !f.IsStatic && (f.Name.Contains("Rank") || f.Name.Contains("Icon") || f.Name.Contains("Name"))).Select(f => $"{f.Name}: {f.FieldType.Name}")));
+    }
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    var presentationNames = probe.Excel.GetSheet<BNpcName>()!;
+    foreach (var hunt in probe.Excel.GetSheet<NotoriousMonster>()!.Where(h => h.BNpcName.RowId > 0).Take(12))
+        Console.WriteLine($"{presentationNames.GetRow(hunt.BNpcName.RowId).Singular}: rank={hunt.Rank} base={hunt.BNpcBase.RowId} npcRank={hunt.BNpcBase.Value.Rank}");
+    return;
+}
+
+if (args.Length == 2 && args[1] == "--actions")
+{
+    foreach (var type in new[] { typeof(Lumina.Excel.Sheets.Action), typeof(ActionTimeline), typeof(TimelineContainer),
+        typeof(FFXIVClientStructs.FFXIV.Client.Game.Control.ActionTimelineSequencer),
+        typeof(FFXIVClientStructs.FFXIV.Client.Game.Object.ClientObjectManager), typeof(CharacterSetupContainer) })
+    {
+        Console.WriteLine(type.FullName);
+        Console.WriteLine(string.Join("\n", type.GetProperties().Select(p => $"{p.Name}: {p.PropertyType}")));
+        Console.WriteLine(string.Join("\n", type.GetMethods().Where(m => m.DeclaringType == type && !m.IsSpecialName)));
+    }
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    var actions = probe.Excel.GetSheet<Lumina.Excel.Sheets.Action>()!;
+    Console.WriteLine("Targetable flags: " + string.Join(", ", Enum.GetNames<FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectTargetableFlags>()));
+    var timelines = probe.Excel.GetSheet<ActionTimeline>()!;
+    foreach (var action in actions.Where(a => a.RowId >= 600 && !a.IsPlayerAction && a.AnimationEnd.RowId > 0).Take(35))
+        if (timelines.TryGetRow(action.AnimationEnd.RowId, out var actionTimeline))
+            Console.WriteLine($"{action.RowId}: {action.Name} end={action.AnimationEnd.RowId} key={actionTimeline.Key} slot={actionTimeline.Slot} loop={actionTimeline.IsLoop}");
+    Console.WriteLine($"NPC actions={actions.Count(a => !a.IsPlayerAction && a.AnimationEnd.RowId > 0)}");
+    Console.WriteLine("Key prefixes: " + string.Join(", ", actions.Where(a => !a.IsPlayerAction && a.AnimationEnd.RowId > 0)
+        .Select(a => timelines.TryGetRow(a.AnimationEnd.RowId, out var t) ? t.Key.ToString().Split('/')[0] : "missing")
+        .GroupBy(k => k).OrderByDescending(g => g.Count()).Take(15).Select(g => $"{g.Key}={g.Count()}")));
+    foreach (var name in probe.Excel.GetSheet<BNpcName>()!.Where(n => n.Singular.ToString() == "布弗鲁"))
+    {
+        Console.WriteLine($"Bufru NameId={name.RowId}");
+        foreach (var hunt in probe.Excel.GetSheet<NotoriousMonster>()!.Where(m => m.BNpcName.RowId == name.RowId))
+            Console.WriteLine($"Bufru base={hunt.BNpcBase.RowId} model={hunt.BNpcBase.Value.ModelChara.RowId} modelResource={hunt.BNpcBase.Value.ModelChara.Value.Model}");
+    }
+    var skillNames = new[] { "巨魔碎颈臂", "五倍吸气", "五倍喷嚏", "上击", "腐烂孢子" };
+    foreach (var action in actions.Where(a => skillNames.Contains(a.Name.ToString())))
+    {
+        var timeline = timelines.GetRowOrDefault(action.AnimationEnd.RowId);
+        Console.WriteLine($"Bufru candidate {action.RowId}: {action.Name} start={action.AnimationStart.RowId} end={action.AnimationEnd.RowId} key={timeline?.Key} hit={action.ActionTimelineHit.RowId} cast={action.Cast100ms} player={action.IsPlayerAction}");
+    }
+    foreach (var timeline in timelines.Take(12))
+        Console.WriteLine($"Timeline {timeline.RowId}: {timeline.Key} slot={timeline.Slot} loop={timeline.IsLoop}");
+    return;
+}
+
 if (args.Length != 1) throw new ArgumentException("Pass the game's sqpack directory.");
 Console.WriteLine("NPC kinds: " + string.Join(", ", Enum.GetNames<Dalamud.Game.ClientState.Objects.Enums.BattleNpcSubKind>()));
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
