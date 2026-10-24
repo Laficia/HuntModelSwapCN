@@ -570,6 +570,68 @@ visibility.ForgetScene();
 visibility.Tick(actor, notRedrawing);
 Check(!visibility.Active && visibility.Count == 0 && !visibility.ManagedActors.Any() && visibilityAccess.Writes == writeCount,
     "Discarding an old scene must clear pending selections without writing into a new scene.");
+
+var bulkAccess = new FakeVisibilityAccess();
+bulkAccess.Flags.Add(actor, false);
+bulkAccess.Flags.Add(other, false);
+bulkAccess.Flags.Add(reused, true);
+var bulk = new ModelVisibility(bulkAccess);
+bulk.SetHideAllMonsters(true);
+bulk.Tick(actor, notRedrawing, new[] { actor, other });
+Check(bulk.HideAllMonsters && bulk.Active && !bulkAccess.Flags[actor] && bulkAccess.Flags[other],
+    "Bulk hiding must hide supplied monsters while keeping the independent self switch off.");
+bulk.Tick(actor, notRedrawing, new[] { other, reused });
+Check(bulkAccess.Flags[reused] && bulk.Count == 2,
+    "Monsters newly entering range must join bulk hiding and preserve their original visibility.");
+bulk.Show(other);
+bulk.Tick(actor, notRedrawing, new[] { other, reused });
+bulk.Tick(actor, notRedrawing, new[] { other, reused });
+Check(!bulkAccess.Flags[other] && bulkAccess.Flags[reused] && bulk.HideAllMonsters,
+    "Individually restoring one monster during bulk mode must not hide it again next frame.");
+bulk.Hide(other);
+bulk.Tick(actor, notRedrawing, new[] { other, reused });
+Check(bulkAccess.Flags[other], "An explicit hide must override that monster's bulk-mode show exception.");
+bulk.SetHideAllMonsters(false);
+bulk.Tick(actor, notRedrawing);
+Check(bulkAccess.Flags[other] && bulkAccess.Flags[reused] && bulk.Count == 1,
+    "Disabling bulk mode must preserve individual hides and restore pre-existing hidden state.");
+bulk.Show(other);
+bulk.Tick(actor, notRedrawing);
+Check(!bulkAccess.Flags[other] && !bulk.Active, "Individual restoration must also work after bulk mode is disabled.");
+bulk.SetHideAllMonsters(true);
+bulk.Tick(actor, new HashSet<ActorIdentity> { other }, new[] { other });
+Check(!bulkAccess.Flags[other] && bulk.Count == 0,
+    "Bulk hiding must not capture temporary DisableDraw state during a swap.");
+bulk.Tick(actor, notRedrawing, new[] { other });
+Check(bulkAccess.Flags[other] && bulk.Count == 1,
+    "A redraw must finish before bulk hiding records and applies the actual visibility.");
+bulk.Tick(actor, notRedrawing, Array.Empty<ActorIdentity>());
+Check(!bulkAccess.Flags[other] && bulk.Count == 0 && bulk.HideAllMonsters,
+    "A monster becoming a protected demo must be restored when removed from bulk candidates.");
+bulk.Show(other);
+bulk.SetHideAllMonsters(false);
+bulk.SetHideAllMonsters(true);
+bulk.Tick(actor, notRedrawing, new[] { other });
+Check(bulkAccess.Flags[other], "Re-enabling bulk mode must reset its previous per-monster show exceptions.");
+bulkAccess.Flags.Remove(other);
+bulkAccess.Flags.Add(newOwner, false);
+bulk.Tick(actor, notRedrawing, new[] { other });
+Check(!bulkAccess.Flags[newOwner] && !bulk.ManagedActors.Contains(other),
+    "A stale bulk identity must never hide or restore a recycled object-table slot.");
+bulk.SetHideSelf(true);
+bulk.Tick(actor, notRedrawing, new[] { newOwner, reused });
+Check(bulkAccess.Flags[actor] && bulkAccess.Flags[newOwner], "Bulk and self hiding must operate together.");
+bulk.Reset();
+Check(!bulk.HideAllMonsters && !bulk.HideSelf && !bulk.Active && bulk.Count == 0
+    && !bulkAccess.Flags[actor] && !bulkAccess.Flags[newOwner] && bulkAccess.Flags[reused],
+    "Show-all must disable both switches, clear overrides and restore exact original visibility.");
+bulk.SetHideAllMonsters(true);
+bulk.Show(newOwner);
+var bulkWrites = bulkAccess.Writes;
+bulk.ForgetScene();
+bulk.Tick(actor, notRedrawing, new[] { newOwner });
+Check(!bulk.HideAllMonsters && !bulk.Active && bulkAccess.Writes == bulkWrites,
+    "Changing scenes must discard bulk mode and its pending exceptions without touching new scene objects.");
 unsafe
 {
     FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject native = default;

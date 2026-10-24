@@ -58,12 +58,14 @@ public sealed class Plugin : IDalamudPlugin
     private string? lastSkillFilter;
     private SkillAnimation[] skillMatches = [];
     private record Request(long Epoch, string Action, ActorIdentity? Actor, int Selection = -1, float Scale = 1,
-        uint SkillId = 0, bool ChatFeedback = false, float Distance = 8, bool HideSelf = false, int HoldMs = 2000);
+        uint SkillId = 0, bool ChatFeedback = false, float Distance = 8, bool HideSelf = false, int HoldMs = 2000,
+        bool HideAllMonsters = false);
     private sealed record HiddenTarget(ActorIdentity Actor, string Name);
     private sealed record UiSnapshot(ActorIdentity? Target, string TargetName, string? CannotApply,
         SwapEntry[] Entries, string Status, ActorIdentity? LocalActor = null,
         bool HideSelf = false, int HiddenCount = 0, string? CannotHide = null, HiddenTarget[]? HiddenTargets = null,
-        bool ComboRunning = false, string ComboStatus = "", string ComboDirections = "", float ComboRemaining = 0);
+        bool ComboRunning = false, string ComboStatus = "", string ComboDirections = "", float ComboRemaining = 0,
+        bool HideAllMonsters = false);
 
     public Plugin(IDalamudPluginInterface pluginInterface, IFramework framework, ICommandManager commands,
         IClientState client, ICondition condition, IObjectTable objects, IDataManager data,
@@ -99,7 +101,7 @@ public sealed class Plugin : IDalamudPlugin
         client.TerritoryChanged += OnTerritoryChanged;
         client.Logout += OnLogout;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.8 initialized. No appearance writes or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.9 initialized. No appearance writes or animation playback have been requested.");
     }
 
     private void Open()
@@ -190,7 +192,10 @@ public sealed class Plugin : IDalamudPlugin
             var entries = session.Entries.ToArray();
             // Wait for redraw before recording/restoring a selected object's model visibility.
             var redrawingActors = entries.Where(e => e.WaitingForDraw || e.Restoring).Select(e => e.Actor).ToHashSet();
-            modelVisibility.Tick(visibilityAccess.Self, redrawingActors);
+            var protectedActors = entries.Where(e => !e.Restoring).Select(e => e.Actor).ToHashSet();
+            if (localPreview.Actor is { } ownedPreview) protectedActors.Add(ownedPreview.Actor);
+            modelVisibility.Tick(visibilityAccess.Self, redrawingActors, modelVisibility.HideAllMonsters
+                ? visibilityAccess.BulkCandidates(protectedActors) : null);
             ActorIdentity? identity = npc is { } && npc.IsValid() ? NativeActorAccess.Identity(npc) : null;
             snapshot = new(identity, npc?.Name.ToString() ?? "未选中小怪",
                 identity.HasValue ? actors.CanApply(identity.Value) : "请先选中一只普通小怪。",
@@ -199,7 +204,8 @@ public sealed class Plugin : IDalamudPlugin
                 identity.HasValue ? visibilityAccess.CanHide(identity.Value) : "请先选中一只战斗小怪（主动或被动均可）。",
                 modelVisibility.ManagedActors.Where(a => a != visibilityAccess.Self)
                     .Select(a => new HiddenTarget(a, visibilityAccess.Name(a))).ToArray(),
-                sequence.Running, sequence.Status, sequence.DirectionOrder, sequence.RemainingSeconds(Environment.TickCount64));
+                sequence.Running, sequence.Status, sequence.DirectionOrder, sequence.RemainingSeconds(Environment.TickCount64),
+                modelVisibility.HideAllMonsters);
         }
         catch (Exception ex)
         {
@@ -228,6 +234,13 @@ public sealed class Plugin : IDalamudPlugin
         {
             modelVisibility.Reset();
             status = "已恢复本插件隐藏的所有模型显示。";
+            return;
+        }
+        if (request.Action == "hide-all-monsters")
+        {
+            modelVisibility.SetHideAllMonsters(request.HideAllMonsters);
+            status = request.HideAllMonsters ? "已开启隐藏所有小怪，保留预览和替换演示对象。"
+                : "已关闭隐藏所有小怪；单独隐藏的小怪仍保持隐藏。";
             return;
         }
         if (request.Action == "spawn")
@@ -347,7 +360,12 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.BeginDisabled(Loading);
             if (ImGui.Checkbox("隐藏自己模型", ref hideSelf))
                 requests.Enqueue(new(Interlocked.Read(ref epoch), "visibility", null, HideSelf: hideSelf));
+            var hideAllMonsters = view.HideAllMonsters;
+            if (ImGui.Checkbox("隐藏所有小怪（保留演示对象）", ref hideAllMonsters))
+                requests.Enqueue(new(Interlocked.Read(ref epoch), "hide-all-monsters", null, HideAllMonsters: hideAllMonsters));
             ImGui.EndDisabled();
+            if (view.HideAllMonsters)
+                ImGui.TextWrapped("持续隐藏加载范围内的主动与被动战斗小怪，保留生成预览和已替换的演示对象。列表中单独恢复的小怪在本次开启期间保持显示；重新开启批量隐藏后重置。");
             ImGui.TextUnformatted($"当前目标：{view.TargetName}");
             var hiddenTargets = view.HiddenTargets ?? [];
             var targetHidden = view.Target.HasValue && hiddenTargets.Any(t => t.Actor == view.Target);
@@ -363,7 +381,7 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.SameLine();
             ImGui.TextUnformatted($"已管理隐藏对象：{view.HiddenCount}");
             ImGui.TextWrapped("先选中一只战斗小怪，再点击隐藏，主动与被动小怪均可。可逐只隐藏；隐藏后从下方列表恢复，无需再次点中模型。切图、登出自动恢复。仅隐藏模型，名牌和独立技能特效仍可能显示。");
-            if (hiddenTargets.Length > 0 && ImGui.CollapsingHeader($"单独隐藏的小怪 ({hiddenTargets.Length})", ImGuiTreeNodeFlags.DefaultOpen))
+            if (hiddenTargets.Length > 0 && ImGui.CollapsingHeader($"隐藏的小怪（可逐只恢复）({hiddenTargets.Length})", ImGuiTreeNodeFlags.DefaultOpen))
                 foreach (var hidden in hiddenTargets)
                 {
                     ImGui.PushID($"hidden-{hidden.Actor.Index}-{hidden.Actor.ObjectId}");
@@ -446,7 +464,8 @@ public sealed class Plugin : IDalamudPlugin
             if (ImGui.Button("恢复当前目标")) Enqueue("restore", view.Target);
             ImGui.EndDisabled();
             ImGui.SameLine();
-            ImGui.BeginDisabled(view.Entries.Length == 0 && !view.HideSelf && view.HiddenCount == 0 && hiddenTargets.Length == 0);
+            ImGui.BeginDisabled(view.Entries.Length == 0 && !view.HideSelf && !view.HideAllMonsters
+                && view.HiddenCount == 0 && hiddenTargets.Length == 0);
             if (ImGui.Button("恢复全部")) Enqueue("all");
             ImGui.EndDisabled();
             if (reason is not null) ImGui.TextWrapped(reason);

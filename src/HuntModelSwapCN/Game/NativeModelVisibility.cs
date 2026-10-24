@@ -15,6 +15,16 @@ public sealed unsafe class NativeModelVisibility(IObjectTable objects) : IModelV
 
     public string Name(ActorIdentity actor) => Resolve(actor)?.Name.ToString() ?? "已离开加载范围";
 
+    public IEnumerable<ActorIdentity> BulkCandidates(IReadOnlySet<ActorIdentity> protectedActors)
+    {
+        foreach (var candidate in objects)
+        {
+            if (candidate is not IBattleNpc npc || !npc.IsValid() || npc.Address == 0) continue;
+            var actor = Identity(npc);
+            if (!protectedActors.Contains(actor) && CanHide(actor) is null) yield return actor;
+        }
+    }
+
     public string? CanHide(ActorIdentity actor)
     {
         if (Resolve(actor) is not IBattleNpc npc) return "请先选中一只战斗小怪（主动或被动均可）。";
