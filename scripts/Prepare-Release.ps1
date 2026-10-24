@@ -38,11 +38,11 @@ $packageFiles = @{}
 foreach ($name in @('HuntModelSwapCN.dll','HuntModelSwapCN.json','HuntModelSwapCN.deps.json')) {
     $packageFiles[$name] = Join-Path $release $name
 }
-foreach ($name in @('README.md','RESEARCH.md','LICENSE')) { $packageFiles[$name] = Join-Path $taskRoot $name }
+foreach ($name in @('README.md','RESEARCH.md','LICENSE','THIRD_PARTY_NOTICES.md')) { $packageFiles[$name] = Join-Path $taskRoot $name }
 Write-Archive (Join-Path $staging 'latest.zip') $packageFiles
 
 $sourceFiles = @{}
-foreach ($name in @('.gitignore','Directory.Build.props','LICENSE','README.md','RESEARCH.md',
+foreach ($name in @('.gitignore','Directory.Build.props','LICENSE','README.md','RESEARCH.md','THIRD_PARTY_NOTICES.md',
     'pluginmaster.json','release-notes.zh-CN.md')) { $sourceFiles[$name] = Join-Path $taskRoot $name }
 foreach ($folder in @('src','tests','tools','scripts','.github')) {
     Get-ChildItem -LiteralPath (Join-Path $taskRoot $folder) -Recurse -File -Force |

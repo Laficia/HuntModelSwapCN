@@ -53,6 +53,7 @@ public sealed class Plugin : IDalamudPlugin
     private long epoch;
     private string skillSearch = "";
     private bool sameFamily = true;
+    private bool showSkillVariants;
     private uint selectedSkill;
     private string? lastSkillFilter;
     private SkillAnimation[] skillMatches = [];
@@ -98,7 +99,7 @@ public sealed class Plugin : IDalamudPlugin
         client.TerritoryChanged += OnTerritoryChanged;
         client.Logout += OnLogout;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.6 initialized. No appearance writes or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.7 initialized. No appearance writes or animation playback have been requested.");
     }
 
     private void Open()
@@ -507,26 +508,50 @@ public sealed class Plugin : IDalamudPlugin
             ?? (entry is null ? "请先生成本地预览，或替换当前目标的模型。" : entry.WaitingForDraw || entry.Restoring ? "请等待对象完成重绘。" : null);
         var hunt = entry is null ? null : catalog.FirstOrDefault(h => h.ModelId == entry.Applied.ModelId
             && h.Name == entry.ReplacementName);
-        if (hunt is not null)
+        if (hunt is not null && HuntSkillPresets.Profile(hunt.NameId) is { } profile && profile.ModelId == entry!.Applied.ModelId)
         {
-            var presets = HuntSkillPresets.For(hunt.NameId, skills).ToArray();
-            if (presets.Length > 0)
+            ImGui.TextUnformatted($"{hunt.Name} · 专属技能（Wiki 收录 {profile.Skills.Length} 项）");
+            if (ImGui.SmallButton("打开此怪的 Wiki 技能资料")) Dalamud.Utility.Util.OpenLink(profile.WikiUrl);
+            ImGui.Checkbox("显示同名动作版本（需试播确认）", ref showSkillVariants);
+            if (ImGui.BeginChild("huntSkillPresets", new Vector2(0, 200), true))
             {
-                ImGui.TextUnformatted($"{hunt.Name} · 战斗技能快捷播放");
-                ImGui.BeginDisabled(reason is not null);
-                foreach (var skill in presets)
-                    if (ImGui.Button($"{skill.Name}  /hms play {skill.ActionId}"))
-                        requests.Enqueue(new(Interlocked.Read(ref epoch), "play", playActor, SkillId: skill.ActionId));
-                ImGui.EndDisabled();
-                ImGui.TextWrapped("上面的快捷按钮播放单次动作；下方可启动吸气/喷嚏连招。技能归属依据你提供的灰机 Wiki 资料。");
+                foreach (var item in profile.Skills)
+                {
+                    var skill = HuntSkillPresets.Resolve(item.Name, item.Primary, skills);
+                    ImGui.PushID(item.Name);
+                    ImGui.BeginDisabled(reason is not null || skill is null);
+                    if (ImGui.Button(skill is null ? item.Name : $"{item.Name}  /hms play {skill.ActionId}"))
+                        requests.Enqueue(new(Interlocked.Read(ref epoch), "play", playActor, SkillId: skill!.ActionId));
+                    ImGui.EndDisabled();
+                    if (skill is null)
+                        ImGui.TextDisabled(item.Mode == "variants" ? "同名动作有多个版本，勾选上方选项后可试播。"
+                            : item.Mode == "unavailable" ? "暂无可单独播放的本地释放动作。" : "本机技能表与资料不符，暂不播放。");
+                    else if (item.Mode == "resource") ImGui.TextDisabled("按 Wiki 技能名与本机模型资源对应；动作 ID 为演示映射。");
+                    if (item.Primary?.ActionName is { } actionName) ImGui.TextDisabled($"当前国服技能名：{actionName}");
+                    if (showSkillVariants)
+                        foreach (var mapping in item.Variants.Where(v => v.ActionId != skill?.ActionId))
+                        {
+                            var variant = HuntSkillPresets.Resolve(item.Name, mapping, skills);
+                            ImGui.BeginDisabled(reason is not null || variant is null);
+                            if (ImGui.SmallButton($"试播版本 {mapping.ActionId}##variant{mapping.ActionId}"))
+                                requests.Enqueue(new(Interlocked.Read(ref epoch), "play", playActor, SkillId: mapping.ActionId));
+                            ImGui.EndDisabled();
+                        }
+                    ImGui.PopID();
+                }
+            }
+            ImGui.EndChild();
+            ImGui.TextWrapped("专属技能名按此怪的 Wiki 战斗技能核对；同名版本单独列出。这里只演示单次动作，实际效果仍需游戏内确认。");
+            if (hunt.NameId == HuntSkillPresets.BufruNameId)
+            {
                 ImGui.SetNextItemWidth(240);
                 ImGui.SliderFloat("连招动作停留（秒）", ref sequenceHoldSeconds, 0.75f, 10f, "%.2f");
                 ImGui.BeginDisabled(reason is not null || view.ComboRunning);
                 if (ImGui.Button("五次吸气 → 五次喷嚏 /hms combo")) Enqueue("start-combo", playActor);
                 ImGui.EndDisabled();
                 ImGui.TextWrapped("连招记录五次随机方向，吸气后按同顺序转向喷嚏。咏唱以面板倒计时表示；可调整动作停留避免打断。停止后取消剩余步骤，当前动画可能继续至结束。仅本机演示，不产生真实范围伤害、击退或击倒。");
-                ImGui.Separator();
             }
+            ImGui.Separator();
         }
         ImGui.Checkbox("仅显示当前模型同资源的候选动作", ref sameFamily);
         if (sameFamily && family.Length == 0)

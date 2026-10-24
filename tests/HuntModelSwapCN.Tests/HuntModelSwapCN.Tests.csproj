@@ -7,6 +7,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="../../src/HuntModelSwapCN/Catalog/SRankSkillProfiles.json" LogicalName="HuntModelSwapCN.SRankSkillProfiles.json" />
     <Compile Include="../../src/HuntModelSwapCN/Core/SwapSession.cs" Link="SwapSession.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/DisplayName.cs" Link="DisplayName.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/PreviewCommand.cs" Link="PreviewCommand.cs" />

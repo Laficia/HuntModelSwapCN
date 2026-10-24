@@ -560,7 +560,65 @@ if (args.Length == 1)
         var resource = skill.TimelineKey.Replace("[SKL_ID]", SkillCatalog.ModelFamily(bufModel));
         Check(game.FileExists($"chara/action/{resource}.tmb"), $"Missing Bufru action timeline resource: {resource}");
     }
-    Check(!HuntSkillPresets.For(2953, skills).Any(), "Uncurated hunts must not inherit Bufru's skill list.");
+    Check(HuntSkillPresets.For(2953, skills).Any() && HuntSkillPresets.For(2953, skills).All(s => !preset.Any(b => b.ActionId == s.ActionId)),
+        "Laideronnette must have its own Wiki skill mappings, not inherit Bufru's actions.");
+    Check(HuntSkillPresets.All.Count == 47 && HuntSkillPresets.All.Sum(p => p.Skills.Length) == 300,
+        "Every current regular S hunt must have its reviewed Wiki skill profile.");
+    Check(HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "record")) == 138
+        && HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "resource")) == 116
+        && HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "variants")) == 34
+        && HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "unavailable")) == 12,
+        "Known action records, unique resource mappings, ambiguous variants and unavailable releases must stay distinct.");
+    foreach (var skillProfile in HuntSkillPresets.All)
+    {
+        var hunt = catalog.Single(h => h.NameId == skillProfile.NameId);
+        var family = SkillCatalog.ModelFamily(game.Excel.GetSheet<ModelChara>().GetRow((uint)hunt.ModelId));
+        Check(hunt.Rank == 3 && hunt.Name == skillProfile.Name && hunt.ModelId == skillProfile.ModelId
+            && skillProfile.Skills.Select(s => s.Name).Distinct().Count() == skillProfile.Skills.Length
+            && skillProfile.WikiUrl.StartsWith("https://ff14.huijiwiki.com/wiki/", StringComparison.Ordinal),
+            $"Skill skillProfiles must identify the correct S hunt and retain its Wiki source: {skillProfile.Name}");
+        Check(skillProfile.Skills.Any(s => HuntSkillPresets.Resolve(s.Name, s.Primary, skills) is not null),
+            $"Every current S hunt must have at least one directly available animation mapping: {skillProfile.Name}");
+        foreach (var item in skillProfile.Skills)
+        {
+            Check(item.Mode is "record" or "resource" or "variants" or "unavailable"
+                && ((item.Mode is "record" or "resource") == (item.Primary is not null))
+                && (item.Mode != "variants" || item.Variants.Length > 1)
+                && (item.Mode != "unavailable" || item.Variants.Length == 0),
+                $"Unavailable or ambiguous Wiki entries must never silently become primary actions: {skillProfile.Name}/{item.Name}");
+            foreach (var mapping in item.Variants.Concat(item.Primary is { } primary ? new[] { primary } : []).Distinct())
+            {
+                var resolved = HuntSkillPresets.Resolve(item.Name, mapping, skills);
+                Check(resolved is not null && !actions.GetRow(mapping.ActionId).IsPlayerAction,
+                    $"Every mapped action must still match its CN name and timeline: {skillProfile.Name}/{item.Name}");
+                var resource = mapping.TimelineKey.Replace("[SKL_ID]", family);
+                Check((mapping.TimelineKey.StartsWith($"mon_sp/{family}/", StringComparison.Ordinal)
+                    || mapping.TimelineKey.StartsWith("mon_sp/[SKL_ID]/", StringComparison.Ordinal)
+                    || mapping.TimelineKey.StartsWith("mon_sp/common/", StringComparison.Ordinal)
+                    || mapping.TimelineKey.StartsWith("magic/", StringComparison.Ordinal))
+                    && game.FileExists($"chara/action/{resource}.tmb"),
+                    $"Each skillProfile action must have a compatible installed resource: {skillProfile.Name}/{item.Name}");
+            }
+        }
+    }
+    var testMapping = HuntSkillPresets.Profile(10617)!.Skills.Single(s => s.Name == "五倍吸气").Primary!;
+    var changedSkills = skills.ToDictionary();
+    changedSkills[testMapping.ActionId] = changedSkills[testMapping.ActionId] with { Name = "已变更的技能" };
+    Check(HuntSkillPresets.Resolve("五倍吸气", testMapping, changedSkills) is null,
+        "A changed client action name must disable a curated mapping rather than play an unrelated action.");
+    foreach (var (nameId, wikiName, cnName) in new[] { (8900u, "迅速回旋", "迅猛回旋"),
+        (8895u, "轮转枪", "转轮枪"), (2969u, "等离子立场", "等离子力场") })
+    {
+        var alias = HuntSkillPresets.Profile(nameId)!.Skills.Single(s => s.Name == wikiName).Primary!;
+        Check(alias.ActionName == cnName && HuntSkillPresets.Resolve(wikiName, alias, skills)?.Name == cnName,
+            "Reviewed Wiki spellings must resolve to the current CN action without dropping the skill.");
+        var renamed = skills.ToDictionary();
+        renamed[alias.ActionId] = renamed[alias.ActionId] with { Name = "不匹配" };
+        Check(HuntSkillPresets.Resolve(wikiName, alias, renamed) is null,
+            "An alias must still validate the current CN action name.");
+    }
+    Check(HuntSkillPresets.Profile(0) is null && !HuntSkillPresets.For(0, skills).Any(),
+        "Unmapped actors must not inherit another hunt's curated skill list.");
 }
 Console.WriteLine($"PASS: {tests} checks.");
 

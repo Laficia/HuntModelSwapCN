@@ -2,6 +2,35 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 3 && args[1] == "--export-skill-data")
+{
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    var catalog = HuntModelSwapCN.Catalog.HuntCatalog.Load(probe.Excel.GetSheet<TerritoryType>()!,
+        probe.Excel.GetSheet<BNpcName>()!, probe.Excel.GetSheet<PlaceName>()!);
+    var models = probe.Excel.GetSheet<ModelChara>()!;
+    var skills = HuntModelSwapCN.Catalog.SkillCatalog.Load(probe.Excel.GetSheet<Lumina.Excel.Sheets.Action>()!,
+        probe.Excel.GetSheet<ActionTimeline>()!);
+    var result = new {
+        Hunts = catalog.Where(h => h.Rank == 3).Select(h => new { h.NameId, h.BaseId, h.ModelId, h.Name,
+            h.Expansion, h.Scale, Family = HuntModelSwapCN.Catalog.SkillCatalog.ModelFamily(models.GetRow((uint)h.ModelId)) }),
+        Actions = skills.Values,
+        AllActions = probe.Excel.GetSheet<Lumina.Excel.Sheets.Action>()!.Where(a => !a.IsPlayerAction)
+            .Select(a => new { ActionId = a.RowId, Name = a.Name.ToString(), End = a.AnimationEnd.RowId }),
+        Resources = catalog.Where(h => h.Rank == 3).Select(h => new {
+            h.NameId,
+            Keys = skills.Values.Select(s => s.TimelineKey).Distinct().Where(k => {
+                var family = HuntModelSwapCN.Catalog.SkillCatalog.ModelFamily(models.GetRow((uint)h.ModelId));
+                return k.StartsWith($"mon_sp/{family}/", StringComparison.Ordinal) || k.StartsWith("mon_sp/[SKL_ID]/", StringComparison.Ordinal)
+                    || k.StartsWith("mon_sp/common/", StringComparison.Ordinal) || k.StartsWith("magic/", StringComparison.Ordinal);
+            }).Where(k => probe.FileExists($"chara/action/{k.Replace("[SKL_ID]", HuntModelSwapCN.Catalog.SkillCatalog.ModelFamily(models.GetRow((uint)h.ModelId)))}.tmb"))
+        }),
+    };
+    File.WriteAllText(args[2], System.Text.Json.JsonSerializer.Serialize(result));
+    Console.WriteLine($"Exported {catalog.Count(h => h.Rank == 3)} S hunts and {skills.Count} playable action records.");
+    Console.WriteLine(string.Join("\n", catalog.Where(h => h.Rank == 3).Select(h => $"{h.NameId}: {h.Name}")));
+    return;
+}
+
 if (args.Length == 2 && args[1] == "--bufru-chain")
 {
     using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });

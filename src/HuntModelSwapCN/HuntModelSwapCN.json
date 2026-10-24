@@ -4,11 +4,15 @@
   "InternalName": "HuntModelSwapCN",
   "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN",
   "Punchline": "将小怪模型、名称和等级显示为指定 S/A/B 狩猎怪物",
-  "Description": "独立于 HHT。/hms 打开，替换小怪为 S/A/B 狩猎外观，或在面前生成本地预览。支持自由体型、逐只隐藏和恢复、敌对怪名牌与预览隐藏血条。可搜索技能动作；/hms play 技能ID 单次播放，/hms combo 布弗鲁五次吸气和同顺序转向喷嚏，/hms stop 停止。仅本机演示，不产生真实伤害。",
-  "Changelog": "0.1.0.6：新增布弗鲁五次吸气 → 同顺序五次喷嚏连招，支持随机方向、转向、阶段倒计时、可调动作停留、开始/停止按钮和 /hms combo、/hms stop。结束或停止时尝试恢复朝向，切图、重绘、恢复或所有权失效时取消。包含 0.1.0.5 的本地预览敌对名牌修复；保留隐藏头顶血条、自由体型与逐只隐藏。咏唱仅面板倒计时，不模拟真实范围伤害、击退或击倒。",
+  "Description": "独立于 HHT。/hms 打开，替换小怪为 S/A/B 狩猎外观，或在面前生成本地预览。支持自由体型、逐只隐藏、敌对怪名牌与预览隐藏血条。全部 47 只常规 S 怪提供 Wiki 专属技能菜单；可搜索并单次播放动作。/hms combo 演示布弗鲁方向连招，/hms stop 停止。仅本机演示，不产生真实伤害。",
+  "Changelog": "0.1.0.7：按各怪灰机 Wiki 整理全部 47 只常规 S 怪的 300 项技能资料，新增专属菜单和 Wiki 入口。254 项提供直接动作按钮；34 项同名版本需试播，12 项暂无独立释放动作并禁用。区分动作记录与资源映射，兼容三项旧译名，名称或时间轴不符时停止使用该映射。保留布弗鲁方向连招、敌对怪名牌、隐藏预览血条、自由体型与逐只隐藏。其他 S 怪为单次动画演示，最终效果待游戏内确认。",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 15,
-  "Tags": ["hunt", "model", "npc"],
+  "Tags": [
+    "hunt",
+    "model",
+    "npc"
+  ],
   "LoadRequiredState": 0,
   "LoadSync": false
 }
