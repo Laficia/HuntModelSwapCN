@@ -152,6 +152,16 @@ ModelVisibility 增加独立 HideAllMonsters 状态。仅开关启用时枚举�
 
 Release 编译无警告，1494 项离线检查通过。新增批量新入范围、逐只恢复不再隐藏、关闭批量保留逐只状态、重新开启清除例外、对象变为演示对象后恢复、对象槽复用、重绘等待以及全部恢复/场景清理检查。最终游戏内批量隐藏效果仍需确认。
 
+## 0.1.0.10 动画暂停与级别全选
+
+本机 FFXIVClientStructs 7.57.0.9602 的 TimelineContainer.OverallSpeed（0x2c8）、TimelineSequencer.TimelineSpeeds（14 槽）及 OwnerObject/Parent 关系已通过反射核验。上游接口说明见 [TimelineContainer](https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/Character/TimelineContainer.cs) 与 [ActionTimelineSequencer](https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/Control/ActionTimelineSequencer.cs)。只读扫描本机客户端文件确认 CalculateAndApplyOverallSpeed 和 SetSlotSpeed 的安装版特征码各匹配一次；插件使用 FFCS 已解析地址，不硬编码分析地址。
+
+AnimationPause 保存完整对象身份、预期模型与原有整体/各槽速度。所有权、会话和模型校验通过后，将整体与各槽速度设为零。NativeAnimationPause 在第一次明确暂停请求时创建两个速度接口钩子，针对已暂停且仍有效的对象保持零速；其他对象原样调用原函数。两个回调委托以实例 readonly 字段强引用保留至钩子释放，边界校验异常放行原生路径并仅记录一次。初始化或打开窗口不创建原生钩子。
+
+恢复先移除拦截标记再写回捕获的各槽速度，避免恢复值被自身钩子改为零；重复暂停不覆盖初始快照。部分失败保留恢复快照；冻结失败不每帧反复重试，恢复失败可再次操作。换模、移除和恢复前释放对应暂停，卸载释放全部并销毁钩子；对象消失、模型或 nonce 变更不向旧槽写回。调整体型不解除暂停。BufruSequence 在暂停时保存阶段计时位置，跳过转向和动作调度，恢复时平移截止时间，保留余下时长。
+
+狩猎级别使用既有 rankFilter=0 全部条件，默认改为全部并加直接的全选按钮，保留版本与名称筛选。Release 编译无警告，1522 项离线检查通过，新增所有槽速度恢复、重复暂停、部分失败、多个对象、所有权/槽位失效及连招咏唱/停留暂停等回归检查。离线特征码匹配不等于游戏运行验证；本版原生钩子的暂停效果和物理/特效限制仍需游戏内确认。不会停止服务器移动、战斗伤害或全局游戏时间。
+
 ## 主要参考
 
 - [Glamourer 模型编辑入口](https://github.com/Ottermandias/Glamourer/blob/e165910345b17b99d9aa35990005b5e0f73ae65b/Glamourer/State/StateEditor.cs)

@@ -12,6 +12,8 @@
     <Compile Include="../../src/HuntModelSwapCN/Core/DisplayName.cs" Link="DisplayName.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/PreviewCommand.cs" Link="PreviewCommand.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/ActionPreview.cs" Link="ActionPreview.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Core/AnimationPause.cs" Link="AnimationPause.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Game/NativeAnimationClockCodec.cs" Link="NativeAnimationClockCodec.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/BufruSequence.cs" Link="BufruSequence.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/LocalPreview.cs" Link="LocalPreview.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/ModelVisibility.cs" Link="ModelVisibility.cs" />

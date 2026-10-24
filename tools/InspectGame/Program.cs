@@ -2,6 +2,30 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length is 2 or 3 && args[1] == "--animation-pause")
+{
+    foreach (var type in new[] { typeof(TimelineContainer), typeof(FFXIVClientStructs.FFXIV.Client.Game.Control.ActionTimelineSequencer) })
+    {
+        Console.WriteLine(type.FullName);
+        foreach (var f in type.GetFields().Where(f => !f.IsStatic && (f.Name.Contains("Speed") || f.Name.Contains("Parent") || f.Name.Contains("Owner"))))
+            Console.WriteLine($"{f.Name}: {f.FieldType} offset={System.Runtime.InteropServices.Marshal.OffsetOf(type, f.Name):X}");
+        foreach (var m in type.GetMethods().Where(m => m.DeclaringType == type && m.Name.Contains("Speed")))
+            Console.WriteLine($"{m}: {string.Join("; ", m.GetCustomAttributesData())}");
+        Console.WriteLine("Addresses: " + string.Join(",", type.GetNestedType("Addresses")?.GetFields().Select(f => f.Name) ?? []));
+    }
+    if (args.Length == 3)
+    {
+        var methods = new[] { typeof(TimelineContainer).GetMethod("CalculateAndApplyOverallSpeed")!,
+            typeof(FFXIVClientStructs.FFXIV.Client.Game.Control.ActionTimelineSequencer).GetMethod("SetSlotSpeed")! };
+        File.WriteAllText(args[2], System.Text.Json.JsonSerializer.Serialize(methods.Select(m => new
+        {
+            m.Name,
+            Signature = m.GetCustomAttributesData().Single(a => a.AttributeType.Name == "MemberFunctionAttribute").ConstructorArguments[0].Value,
+        })));
+    }
+    return;
+}
+
 if (args.Length == 2 && args[1] == "--nameplate-height")
 {
     var objectType = typeof(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject);

@@ -391,6 +391,129 @@ comboSession.Tick();
 try { combo.Start(actor, comboSkills, comboDirections, 1000, 700000); throw new Exception("Wrong model combo accepted."); }
 catch (InvalidOperationException) { Check(comboAnimation.Calls.Count == callsBeforeInvalid, "Only a completed Bufru appearance may start its combo."); }
 
+var pauseActors = new FakeAccess();
+pauseActors.Actors[actor] = original;
+pauseActors.Actors[other] = original;
+var pauseSession = new SwapSession(pauseActors);
+var pauseAccess = new FakePauseAccess(pauseActors);
+var clock = new AnimationClockState(0.8f, Enumerable.Range(0, 14).Select(i => 0.5f + i * 0.1f).ToArray());
+pauseAccess.Clocks[actor] = clock;
+pauseAccess.Clocks[other] = clock with { OverallSpeed = 1.25f };
+var pauseEligible = true;
+var pause = new AnimationPause(pauseSession, pauseAccess, _ => pauseEligible);
+try { pause.Pause(actor); throw new Exception("Untracked pause accepted."); } catch (InvalidOperationException) { tests++; }
+pauseSession.Apply(actor, "小怪", "布弗鲁", State(3315, 3));
+try { pause.Pause(actor); throw new Exception("Redrawing pause accepted."); } catch (InvalidOperationException) { tests++; }
+pauseSession.Tick();
+pause.Pause(actor);
+Check(pause.IsPaused(actor) && pause.IsPausedAddress(actor.Address) && !pause.IsPausedAddress(other.Address)
+    && pauseAccess.Clocks[actor].OverallSpeed == 0 && pauseAccess.Clocks[actor].SlotSpeeds.All(s => s == 0),
+    "Pause must freeze all fourteen slots and overall speed only for the tracked actor.");
+pause.Pause(actor);
+pauseAccess.Clocks[actor] = clock;
+pause.Tick();
+Check(pauseAccess.Clocks[actor].OverallSpeed == 0 && pauseAccess.Clocks[actor].SlotSpeeds.All(s => s == 0),
+    "Game speed refreshes must not release a still-paused actor.");
+Check(pause.Resume(actor) && !pause.IsPaused(actor) && pauseAccess.Clocks[actor].OverallSpeed == clock.OverallSpeed
+    && pauseAccess.Clocks[actor].SlotSpeeds.SequenceEqual(clock.SlotSpeeds),
+    "Resume must restore the first snapshot's distinct speeds instead of replacing them with 1 or repeated-pause zeros.");
+Check(!pause.Resume(actor), "Resuming a non-paused actor must be a no-op.");
+pauseSession.Apply(other, "另一只", "布弗鲁", State(3315, 3));
+pauseSession.Tick();
+pause.Pause(actor); pause.Pause(other);
+pauseAccess.FailRestore = actor;
+try { pause.Reset(); throw new Exception("Expected pause restoration failure."); } catch (AggregateException) { tests++; }
+Check(pause.Actors.SequenceEqual(new[] { actor }) && pauseAccess.Clocks[other].OverallSpeed == 1.25f,
+    "One restore failure must preserve its retry snapshot while allowing other actors to resume.");
+pauseAccess.FailRestore = null;
+pause.Reset();
+Check(pause.Actors.Count == 0 && pauseAccess.Clocks[actor].SlotSpeeds.SequenceEqual(clock.SlotSpeeds),
+    "Saved animation speeds must be recoverable after a transient restore failure.");
+pauseAccess.FailFreeze = true;
+try { pause.Pause(actor); throw new Exception("Expected partial freeze failure."); } catch (InvalidOperationException) { tests++; }
+var partialFreezeWrites = pauseAccess.Writes;
+pause.Tick(); pause.Tick();
+Check(pauseAccess.Writes == partialFreezeWrites, "A failed native freeze must not be retried and logged every frame before the user resumes.");
+Check(pause.IsPaused(actor) && pause.Resume(actor) && pauseAccess.Clocks[actor].OverallSpeed == 0.8f,
+    "A partially failed pause must retain the original speeds so it can be resumed.");
+pauseAccess.FailFreeze = false;
+pause.Pause(actor);
+pauseSession.Resize(actor, 5);
+Check(pause.IsPaused(actor), "Resizing a model without redrawing it must preserve its paused state.");
+pause.Resume(actor);
+pause.Pause(actor);
+pauseEligible = false;
+var pauseWrites = pauseAccess.Writes;
+Check(!pause.IsPausedAddress(actor.Address), "A lost local ownership marker must immediately stop native speed interception.");
+pause.Tick();
+Check(pause.Actors.Count == 0 && pauseAccess.Writes == pauseWrites,
+    "Lost ownership must discard pause state without restoring into an unrelated actor.");
+pauseEligible = true;
+pauseAccess.Clocks[actor] = clock;
+pause.Pause(actor);
+pauseActors.Actors.Remove(actor);
+pauseActors.Actors[reused] = original;
+pauseWrites = pauseAccess.Writes;
+pause.Tick();
+Check(!pause.IsPausedAddress(reused.Address) && pause.Actors.Count == 0 && pauseAccess.Writes == pauseWrites,
+    "Object-table slot reuse must not inherit paused animation speed or an old restoration.");
+pauseActors.Actors[actor] = State(3315, 3);
+pauseAccess.Clocks[actor] = clock;
+pause.Pause(actor);
+pauseWrites = pauseAccess.Writes;
+pause.ForgetScene();
+pause.Tick();
+Check(pause.Actors.Count == 0 && pauseAccess.Writes == pauseWrites,
+    "Scene cleanup must forget native animation leases without touching old scene memory.");
+pauseAccess.Clocks[actor] = clock with { SlotSpeeds = new float[13] };
+try { pause.Pause(actor); throw new Exception("Invalid clock accepted."); } catch (InvalidOperationException) { tests++; }
+Check(pause.Actors.Count == 0 && pauseAccess.Writes == pauseWrites, "Invalid speed data must be rejected before any freeze write.");
+unsafe
+{
+    NativeCharacter clockNative = default;
+    clockNative.NameId = 321;
+    clockNative.GameObject.Position = new(1, 2, 3);
+    NativeAnimationClockCodec.Write(&clockNative, clock);
+    var capturedClock = NativeAnimationClockCodec.Capture(&clockNative);
+    NativeAnimationClockCodec.Write(&clockNative, new(0, new float[14]));
+    Check(clockNative.Timeline.OverallSpeed == 0 && clockNative.Timeline.TimelineSequencer.TimelineSpeeds.ToArray().All(s => s == 0),
+        "Native clock writes must cover every animation slot.");
+    NativeAnimationClockCodec.Write(&clockNative, capturedClock);
+    Check(clockNative.Timeline.OverallSpeed == 0.8f
+        && clockNative.Timeline.TimelineSequencer.TimelineSpeeds.ToArray().SequenceEqual(clock.SlotSpeeds)
+        && clockNative.NameId == 321 && clockNative.GameObject.Position.Y == 2,
+        "Clock capture/restore must round-trip exact speeds without changing identity or world position.");
+    try { NativeAnimationClockCodec.Write(&clockNative, new(float.NaN, new float[14])); throw new Exception("Invalid clock write."); }
+    catch (InvalidOperationException) { Check(clockNative.Timeline.OverallSpeed == 0.8f, "Invalid clock data must not partially overwrite the native state."); }
+}
+var pausedComboActors = new FakeAccess();
+pausedComboActors.Actors[actor] = original;
+var pausedComboSession = new SwapSession(pausedComboActors);
+pausedComboSession.Apply(actor, "小怪", "布弗鲁", State(3315, 3)); pausedComboSession.Tick();
+var pausedComboAnimations = new FakeAnimationAccess();
+var pausedComboPlayback = new ActionPreview(pausedComboSession, pausedComboAnimations);
+var isComboPaused = false;
+var pausedCombo = new BufruSequence(pausedComboSession, pausedComboPlayback, pausedComboAnimations, isPaused: _ => isComboPaused);
+pausedCombo.Start(actor, comboSkills, comboDirections, 1000, 0);
+isComboPaused = true; pausedCombo.Tick(1000);
+var beforePausedFacing = pausedComboAnimations.FacingWrites;
+pausedCombo.Tick(11000);
+Check(pausedCombo.RemainingSeconds(11000) == 3 && pausedComboAnimations.Calls.Count == 0
+    && pausedComboAnimations.FacingWrites == beforePausedFacing,
+    "Pausing a combo must freeze cast countdowns, facing and skill scheduling.");
+isComboPaused = false; pausedCombo.Tick(11000); pausedCombo.Tick(13999);
+Check(pausedComboAnimations.Calls.Count == 0, "Resume must preserve the remaining cast rather than catch up missed steps.");
+pausedCombo.Tick(14000);
+Check(pausedComboAnimations.Calls.Count == 1, "The paused cast must release only after its original remaining duration.");
+isComboPaused = true; pausedCombo.Tick(14500); pausedCombo.Tick(24500);
+Check(pausedCombo.RemainingSeconds(24500) == 0.5f && pausedComboAnimations.Calls.Count == 1,
+    "Animation hold timing must pause as well as casting.");
+isComboPaused = false; pausedCombo.Tick(24500); pausedCombo.Tick(25000); pausedCombo.Tick(25300);
+Check(pausedComboAnimations.Calls.Count == 2, "The combo must continue the next recorded direction after resuming its hold.");
+isComboPaused = true; pausedCombo.Tick(25400); pausedComboSession.ForgetDespawned();
+pausedCombo.Tick(30000);
+Check(!pausedCombo.Running, "Paused combos must still notice invalidated actor sessions and cancel.");
+
 var resizeAccess = new FakeAccess();
 resizeAccess.Actors.Add(actor, original);
 var resizeSession = new SwapSession(resizeAccess);
@@ -852,6 +975,26 @@ sealed class FakeLocalAccess(FakeAccess access) : ILocalActorAccess
         leases.Remove(lease);
         access.Actors.Remove(lease.Actor);
         access.Hidden.Remove(lease.Actor);
+    }
+}
+
+sealed class FakePauseAccess(FakeAccess actors) : IAnimationPauseAccess
+{
+    public Dictionary<ActorIdentity, AnimationClockState> Clocks { get; } = [];
+    public int Writes { get; private set; }
+    public bool FailFreeze { get; set; }
+    public ActorIdentity? FailRestore { get; set; }
+    public bool IsCurrent(ActorIdentity actor, int modelId) => actors.Actors.TryGetValue(actor, out var state) && state.ModelId == modelId;
+    public AnimationClockState Capture(ActorIdentity actor, int modelId) => Clocks[actor];
+    public void Write(ActorIdentity actor, int modelId, AnimationClockState state)
+    {
+        if (FailRestore == actor) throw new InvalidOperationException("Simulated restore failure.");
+        Clocks[actor] = state with { SlotSpeeds = state.SlotSpeeds.ToArray() }; Writes++;
+    }
+    public void Freeze(ActorIdentity actor, int modelId)
+    {
+        Clocks[actor] = new(0, new float[14]); Writes++;
+        if (FailFreeze) throw new InvalidOperationException("Simulated partial freeze failure.");
     }
 }
 

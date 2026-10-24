@@ -10,7 +10,7 @@ public interface IDirectionalAnimationAccess
 
 // One framework-driven local animation sequence. No game actions, packets or combat effects.
 public sealed class BufruSequence(SwapSession session, ActionPreview playback, IDirectionalAnimationAccess access,
-    Func<ActorIdentity, bool>? isEligible = null)
+    Func<ActorIdentity, bool>? isEligible = null, Func<ActorIdentity, bool>? isPaused = null)
 {
     public const int ModelId = 3315;
     private static readonly string[] DirectionNames = ["前", "右", "后", "左"];
@@ -24,6 +24,7 @@ public sealed class BufruSequence(SwapSession session, ActionPreview playback, I
         public int Step;
         public bool Holding;
         public long Deadline;
+        public long? PausedAt;
         public float Facing => MathF.IEEERemainder(OriginalRotation + Directions[Step % 5] * MathF.PI / 2, MathF.Tau);
         public SkillAnimation Skill => Skills[Step < 5 ? Step == 0 ? 0 : 1 : Step == 5 ? 2 : 3];
     }
@@ -31,7 +32,7 @@ public sealed class BufruSequence(SwapSession session, ActionPreview playback, I
     public bool Running => run is not null;
     public string Status { get; private set; } = "尚未开始连招。";
     public string DirectionOrder { get; private set; } = "";
-    public float RemainingSeconds(long now) => run is { } r ? Math.Max(0, r.Deadline - now) / 1000f : 0;
+    public float RemainingSeconds(long now) => run is { } r ? Math.Max(0, r.Deadline - (r.PausedAt ?? now)) / 1000f : 0;
 
     private bool Valid(ActorIdentity actor) => session.Entries.Any(e => e.Actor == actor
         && e.Applied.ModelId == ModelId && e.ReplacementName == "布弗鲁" && !e.WaitingForDraw && !e.Restoring)
@@ -70,6 +71,8 @@ public sealed class BufruSequence(SwapSession session, ActionPreview playback, I
         try
         {
             if (!Valid(r.Actor)) { Stop("连招已取消：演示对象已变化、恢复或正在重绘。"); return; }
+            if (isPaused?.Invoke(r.Actor) ?? false) { r.PausedAt ??= now; return; }
+            if (r.PausedAt is { } pausedAt) { r.Deadline += Math.Max(0, now - pausedAt); r.PausedAt = null; }
             access.Face(r.Actor, ModelId, r.Facing);
             if (now < r.Deadline) return;
             if (!r.Holding)
