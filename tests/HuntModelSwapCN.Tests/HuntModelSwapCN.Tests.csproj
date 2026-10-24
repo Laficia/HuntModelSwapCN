@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/HuntModelSwapCN/Core/SwapSession.cs" Link="SwapSession.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Core/DisplayName.cs" Link="DisplayName.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Catalog/HuntCatalog.cs" Link="HuntCatalog.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Game/NativeAppearanceCodec.cs" Link="NativeAppearanceCodec.cs" />
+    <Reference Include="FFXIVClientStructs"><HintPath>$(DALAMUD_HOME)/FFXIVClientStructs.dll</HintPath></Reference>
+    <Reference Include="InteropGenerator.Runtime"><HintPath>$(DALAMUD_HOME)/InteropGenerator.Runtime.dll</HintPath></Reference>
+    <Reference Include="Lumina"><HintPath>$(DALAMUD_HOME)/Lumina.dll</HintPath></Reference>
+    <Reference Include="Lumina.Excel"><HintPath>$(DALAMUD_HOME)/Lumina.Excel.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>
