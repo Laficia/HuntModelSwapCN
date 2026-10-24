@@ -3,7 +3,7 @@
     "Author": "Laficia",
     "Name": "狩猎模型替换",
     "InternalName": "HuntModelSwapCN",
-    "AssemblyVersion": "0.1.0.7",
+    "AssemblyVersion": "0.1.0.8",
     "Description": "独立于 HHT。/hms 打开，替换小怪为 S/A/B 狩猎外观，或在面前生成本地预览。支持自由体型、逐只隐藏、敌对怪名牌与预览隐藏血条。全部 47 只常规 S 怪提供 Wiki 专属技能菜单；可搜索并单次播放动作。/hms combo 演示布弗鲁方向连招，/hms stop 停止。仅本机演示，不产生真实伤害。",
     "ApplicableVersion": "any",
     "Tags": [
@@ -17,14 +17,14 @@
     "CanUnloadAsync": false,
     "LoadPriority": 0,
     "Punchline": "将小怪模型、名称和等级显示为指定 S/A/B 狩猎怪物",
-    "Changelog": "0.1.0.7：按各怪灰机 Wiki 整理全部 47 只常规 S 怪的 300 项技能资料，新增专属菜单和 Wiki 入口。254 项提供直接动作按钮；34 项同名版本需试播，12 项暂无独立释放动作并禁用。区分动作记录与资源映射，兼容三项旧译名，名称或时间轴不符时停止使用该映射。保留布弗鲁方向连招、敌对怪名牌、隐藏预览血条、自由体型与逐只隐藏。其他 S 怪为单次动画演示，最终效果待游戏内确认。",
+    "Changelog": "0.1.0.8：修复本地生成对象的头顶名字、等级和精英标记高度不随体型变化，使用当前模型名牌挂点和实际绘制缩放重新计算位置，避免累计旧高度。缩放变化时同步使绘制变换失效。逐只隐藏不再要求 IsHostile，支持蜜蜂云、跳蜥幼体等被动战斗小怪；仍可单独恢复。保留 47 只 S 怪技能菜单、布弗鲁连招、隐藏预览血条与自由体型。最终画面待游戏内测试。",
     "AcceptsFeedback": true,
-    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.7/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.7/latest.zip",
     "IsTestingExclusive": false,
-    "IsHide": false,
+    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.8/latest.zip",
+    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.8/latest.zip",
     "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN",
-    "LastUpdate": 1792874158,
-    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.7/latest.zip"
+    "LastUpdate": 1792875139,
+    "IsHide": false,
+    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.8/latest.zip"
   }
 ]
