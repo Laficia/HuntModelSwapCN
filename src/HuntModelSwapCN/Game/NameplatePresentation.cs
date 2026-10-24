@@ -11,14 +11,35 @@ public sealed class NameplatePresentation : IDisposable
 {
     private readonly INamePlateGui nameplates;
     private readonly SwapSession session;
+    private readonly LocalPreview localPreview;
     private readonly IPluginLog log;
     private bool disposed;
-    public NameplatePresentation(INamePlateGui nameplates, SwapSession session, IPluginLog log)
+    public NameplatePresentation(INamePlateGui nameplates, SwapSession session, LocalPreview localPreview, IPluginLog log)
     {
         this.nameplates = nameplates;
         this.session = session;
+        this.localPreview = localPreview;
         this.log = log;
+        nameplates.OnDataUpdate += UpdateLocalVisibility;
         nameplates.OnNamePlateUpdate += Update;
+    }
+
+    private void UpdateLocalVisibility(INamePlateUpdateContext context, IReadOnlyList<INamePlateUpdateHandler> handlers)
+    {
+        if (disposed || localPreview.Actor is not { } lease) return;
+        try
+        {
+            foreach (var handler in handlers)
+            {
+                // Only resolve the owned preview, not every nameplate in the scene each frame.
+                if (handler.GameObjectId != lease.Actor.ObjectId
+                    || handler.GameObject is not IBattleNpc npc || !npc.IsValid()) continue;
+                var flags = handler.VisibilityFlags;
+                var visible = localPreview.NameplateVisibility(NativeActorAccess.Identity(npc), flags);
+                if (visible != flags) handler.VisibilityFlags = visible;
+            }
+        }
+        catch (Exception ex) { log.Error(ex, "隐藏本地预览头顶血条失败"); }
     }
 
     private void Update(INamePlateUpdateContext context, IReadOnlyList<INamePlateUpdateHandler> handlers)
@@ -39,6 +60,7 @@ public sealed class NameplatePresentation : IDisposable
     public void Dispose()
     {
         disposed = true;
+        nameplates.OnDataUpdate -= UpdateLocalVisibility;
         nameplates.OnNamePlateUpdate -= Update;
         nameplates.RequestRedraw();
     }

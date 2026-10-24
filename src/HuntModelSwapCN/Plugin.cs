@@ -46,6 +46,7 @@ public sealed class Plugin : IDalamudPlugin
     private int expansionFilter = -1;
     private int selected = -1;
     private float scale = 1;
+    private bool useCustomScale;
     private float spawnDistance = 8;
     private string status = "就绪";
     private long epoch;
@@ -84,7 +85,7 @@ public sealed class Plugin : IDalamudPlugin
         var models = data.GetExcelSheet<ModelChara>();
         modelFamilies = catalog.Select(h => h.ModelId).Distinct().ToDictionary(id => id,
             id => SkillCatalog.ModelFamily(models.GetRow((uint)id)));
-        nameplatePresentation = new(nameplates, session, log);
+        nameplatePresentation = new(nameplates, session, localPreview, log);
         commands.AddHandler("/hms", new CommandInfo(OnCommand)
             { HelpMessage = "打开狩猎模型替换；/hms show 恢复模型显示；/hms restore 恢复全部；/hms play 技能ID 播放本地动作（实验）。" });
         pluginInterface.UiBuilder.Draw += Draw;
@@ -93,7 +94,7 @@ public sealed class Plugin : IDalamudPlugin
         client.TerritoryChanged += OnTerritoryChanged;
         client.Logout += OnLogout;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.2 initialized. No appearance writes or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.3 initialized. No appearance writes or animation playback have been requested.");
     }
 
     private void Open()
@@ -276,7 +277,8 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     private void Enqueue(string action, ActorIdentity? actor = null)
-        => requests.Enqueue(new(Interlocked.Read(ref epoch), action, actor, selected, scale, Distance: spawnDistance));
+        => requests.Enqueue(new(Interlocked.Read(ref epoch), action, actor, selected,
+            useCustomScale ? scale : 1, Distance: spawnDistance));
 
     private void Draw()
     {
@@ -332,6 +334,7 @@ public sealed class Plugin : IDalamudPlugin
                     {
                         selected = i;
                         scale = 1;
+                        useCustomScale = false;
                     }
                 }
             }
@@ -339,10 +342,16 @@ public sealed class Plugin : IDalamudPlugin
             if (selected >= 0)
                 ImGui.TextWrapped($"已选择：Lv.{catalog[selected].Level} {catalog[selected].RankName} 怪「{catalog[selected].Name}」");
             else ImGui.TextUnformatted("请从上方选择一个外观。");
-            ImGui.SetNextItemWidth(240);
-            ImGui.SliderFloat("体型倍率（1.00 = 真实大小）", ref scale, 0.1f, 3f, "%.2f");
-            if (ImGui.Button("设为真实体型（1.00 倍）")) scale = 1;
-            ImGui.TextWrapped("默认使用所选怪物原版大小。调整后点击「替换当前目标」应用。");
+            if (!useCustomScale)
+                ImGui.TextWrapped(selected >= 0 ? $"体型：使用「{catalog[selected].Name}」的原版大小。" : "体型：使用目标怪物原版大小。");
+            ImGui.Checkbox("手动调整体型", ref useCustomScale);
+            if (useCustomScale)
+            {
+                ImGui.SetNextItemWidth(240);
+                ImGui.SliderFloat("相对目标原版大小", ref scale, 0.1f, 3f, "%.2f");
+                if (ImGui.Button("恢复目标原版大小")) { useCustomScale = false; scale = 1; }
+                ImGui.TextWrapped("手动调整只以所选怪物的原版体型为基准。再次生成或替换后应用。");
+            }
             ImGui.SetNextItemWidth(240);
             ImGui.SliderFloat("前方生成距离（米）", ref spawnDistance, 2, 30, "%.1f");
             ImGui.BeginDisabled(Loading || selected < 0);
@@ -353,6 +362,7 @@ public sealed class Plugin : IDalamudPlugin
             if (ImGui.Button("移除预览")) Enqueue("remove-local");
             ImGui.EndDisabled();
             ImGui.TextWrapped("无需选中小怪。只保留一只本地生成对象；再次生成会替换它。技能演示优先控制此对象。");
+            ImGui.TextWrapped("本地预览隐藏头顶血条，保留所选怪物的名字、等级和原版名牌标记。");
             var reason = Loading ? "请等待角色进入场景。" : view.CannotApply;
             ImGui.BeginDisabled(reason is not null || selected < 0);
             if (ImGui.Button("替换当前目标")) Enqueue("apply", view.Target);

@@ -187,6 +187,12 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
 var firstLocal = localPreview.Spawn(sampleHunt, 1, 8);
 Check(localPreview.Owns(firstLocal) && localSession.Entries.Count == 1 && firstLocal.DataId == 0 && firstLocal.NameId == 0,
     "A local preview must be tracked independently and have no live hunt identity.");
+Check(localPreview.NameplateVisibility(firstLocal, 0x107) == 0x105,
+    "Local preview nameplates must hide only the HP gauge, preserving name text and unrelated visibility bits.");
+Check(localPreview.NameplateVisibility(actor, 0x107) == 0x107,
+    "Real monsters, including replaced ones, must retain their HP gauge settings.");
+Check(localPreview.NameplateVisibility(firstLocal, 0x104) == 0x104,
+    "Hiding preview HP must not force previously hidden name text visible.");
 var changedLocal = localPreview.PreserveOwnership(firstLocal, State(235, 2));
 Check(LocalPreviewName.Matches(changedLocal.NameBytes, localPreview.Actor!.Token),
     "Replacing an owned local actor must retain its ownership marker.");
@@ -201,8 +207,12 @@ localFactory.FailDelete = false;
 localPreview.Clear();
 Check(localFactory.Deleted.Count == 2 && localPreview.Actor is null && localSession.Entries.Count == 0,
     "Removing a preview must clear native ownership and its swap session.");
+Check(localPreview.NameplateVisibility(secondLocal, 0x107) == 0x107,
+    "Removing a preview must stop overriding its old nameplate immediately.");
 var recycledLocal = localPreview.Spawn(sampleHunt, 1, 8);
 localAccess.Actors[recycledLocal] = State(12, 1); // Same slot/address/IDs, but a different owner.
+Check(localPreview.NameplateVisibility(recycledLocal, 0x107) == 0x107,
+    "A reused slot must retain its gauge even before the next ownership cleanup tick.");
 localPreview.Tick();
 localPreview.Clear();
 Check(localFactory.Deleted.Count == 2 && localAccess.Actors[recycledLocal].ModelId == 12 && localSession.Entries.Count == 0,

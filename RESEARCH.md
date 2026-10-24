@@ -78,6 +78,16 @@ if (!oldIsHuman)
 
 当前共 297 项离线检查通过，含隐藏/恢复、所有权丢失、槽位复用、部分失败清理、位置计算、名牌原名和类别恢复，以及 201 种中文名称的所有权标记空间。没有将编译/离线结果视为游戏内生成、动画或名牌效果已经通过。
 
+## 0.1.0.3 原版大小与本地预览名牌
+
+默认关闭「手动调整体型」，替换和生成均传入目标原版倍率 1，始终使用所选 `BNpcBase.Scale`，不按原小怪缩放折算。选择其他怪物时关闭自定义并重置倍率，界面直接显示目标原版大小。
+
+本地生成对象在 `INamePlateGui.OnDataUpdate` 中仅清除 `handler.VisibilityFlags` 的 `0x2` 血条位，保留 `0x1` 名字文字及其他位。该事件覆盖每次名牌数据更新，不依赖只有重要变更才触发的名称事件，也不每帧请求全局重绘。先按对象 ID 筛选，再验证完整对象身份和原生所有权标记；不遍历解析所有名牌对象。真实怪物、已移除的预览和所有权丢失的复用槽位不应用此修改。
+
+中文名字继续通过原有名称更新事件设置；等级与名牌类别继续由目标外观维护，保留游戏的等级前缀与图标绘制。没有把 HP 设为 0，没有删除 UI 节点，也没有修改游戏的全局名牌配置。名字/等级是否显示仍遵循游戏设置。血条位含义参考 [FFXIVClientStructs NamePlateNumberArray](https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/UI/Arrays/NamePlateNumberArray.cs)，事件及属性参考 [Dalamud INamePlateGui](https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Plugin/Services/INamePlateGui.cs) 与 [NamePlateUpdateHandler](https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/NamePlate/NamePlateUpdateHandler.cs)。
+
+302 项离线检查通过，新增检查覆盖血条位、文字/其他位保留、真实对象隔离、移除后停止覆盖，以及同身份但所有权标记丢失的槽位保护。未将离线结果视为游戏内名牌画面已验证。
+
 ## 主要参考
 
 - [Glamourer 模型编辑入口](https://github.com/Ottermandias/Glamourer/blob/e165910345b17b99d9aa35990005b5e0f73ae65b/Glamourer/State/StateEditor.cs)
