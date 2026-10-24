@@ -178,13 +178,56 @@ foreach (var command in new[] { "play", "play 0", "play -1", "play 1.2", "play 4
 Check(testSkill.Matches("27316") && testSkill.Matches("碎颈") && testSkill.Family == "[SKL_ID]",
     "Search and dynamic skeleton resources must retain their meaning.");
 
+var resizeAccess = new FakeAccess();
+resizeAccess.Actors.Add(actor, original);
+var resizeSession = new SwapSession(resizeAccess);
+try { resizeSession.Resize(actor, 2); throw new Exception("Untracked resize accepted."); }
+catch (InvalidOperationException) { tests++; }
+resizeSession.Apply(actor, "小怪", "布弗鲁", State(3315, 3));
+try { resizeSession.Resize(actor, 2); throw new Exception("Pending redraw resize accepted."); }
+catch (InvalidOperationException) { tests++; }
+resizeSession.Tick();
+resizeSession.Resize(actor, 12.75f);
+Check(resizeAccess.Actors[actor].ModelScale == 12.75f && resizeAccess.Actors[actor].ObjectScale == 12.75f
+    && resizeAccess.Actors[actor].DrawScale == new System.Numerics.Vector3(12.75f),
+    "Free sizing must use the entered absolute scale without multiplying by the hunt scale or clamping to three.");
+resizeSession.Tick();
+Check(resizeAccess.Actors[actor].ModelScale == 12.75f && resizeSession.Entries.Single().Original == original,
+    "A resized preview must retain its new size on refresh and preserve the first original snapshot.");
+foreach (var invalidScale in new[] { 0f, -1f, float.NaN, float.PositiveInfinity })
+{
+    try { resizeSession.Resize(actor, invalidScale); throw new Exception("Invalid resize accepted."); }
+    catch (InvalidOperationException) { Check(resizeSession.Entries.Single().Applied.ModelScale == 12.75f,
+        "Invalid sizes must not replace the last valid state."); }
+}
+resizeSession.Resize(actor, 0.025f);
+Check(resizeAccess.Actors[actor].ModelScale == 0.025f && resizeAccess.Actors[actor].ModelId == 3315
+    && resizeAccess.Actors[actor].NameBytes.SequenceEqual(State(3315, 3).NameBytes),
+    "Small positive scales must be accepted without changing the selected model or name.");
+resizeSession.Restore(actor);
+try { resizeSession.Resize(actor, 2); throw new Exception("Restoring resize accepted."); }
+catch (InvalidOperationException) { tests++; }
+resizeSession.Tick();
+Check(resizeAccess.Actors[actor] == original, "Restoring after free resizing must restore the full original appearance and scale.");
+resizeSession.Apply(actor, "小怪", "布弗鲁", State(3315, 3));
+resizeSession.Tick();
+resizeAccess.Actors.Remove(actor);
+resizeAccess.Actors.Add(reused, original);
+try { resizeSession.Resize(actor, 2); throw new Exception("Stale resize accepted."); }
+catch (InvalidOperationException) { Check(resizeAccess.Actors[reused] == original, "Free resizing must reject recycled identities."); }
+
 var localAccess = new FakeAccess();
 var localSession = new SwapSession(localAccess);
 var localFactory = new FakeLocalAccess(localAccess);
 var localPreview = new LocalPreview(localSession, localFactory);
 var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", "厄尔庇斯", 3, 3,
     new byte[26], new ulong[10], 0, 0, false);
-var firstLocal = localPreview.Spawn(sampleHunt, 1, 8);
+var firstLocal = localPreview.Spawn(sampleHunt, sampleHunt.Scale, 8);
+Check(localSession.Entries.Single().Applied.ModelScale == sampleHunt.Scale,
+    "The selected hunt's own native scale must be usable directly as the default spawn size.");
+try { localPreview.Spawn(sampleHunt, float.NaN, 8); throw new Exception("Invalid spawn scale accepted."); }
+catch (InvalidOperationException) { Check(localPreview.Owns(firstLocal) && localFactory.Deleted.Count == 0,
+    "An invalid spawn scale must be refused before removing an existing preview."); }
 Check(localPreview.Owns(firstLocal) && localSession.Entries.Count == 1 && firstLocal.DataId == 0 && firstLocal.NameId == 0,
     "A local preview must be tracked independently and have no live hunt identity.");
 Check(localPreview.NameplateVisibility(firstLocal, 0x107) == 0x105,
@@ -242,47 +285,72 @@ visibilityAccess.Flags.Add(actor, false);
 visibilityAccess.Flags.Add(other, false);
 visibilityAccess.Flags.Add(reused, true); // Already hidden before this plugin acts.
 var visibility = new ModelVisibility(visibilityAccess);
-var candidates = new[] { new VisibilityCandidate(actor, true, false), new VisibilityCandidate(other, false, true),
-    new VisibilityCandidate(reused, false, true) };
-var unprotected = new HashSet<ActorIdentity>();
-visibility.SetOptions(true, false);
-visibility.Tick(candidates, unprotected);
+var notRedrawing = new HashSet<ActorIdentity>();
+visibility.SetHideSelf(true);
+visibility.Tick(actor, notRedrawing);
 Check(visibilityAccess.Flags[actor] && !visibilityAccess.Flags[other] && visibility.Count == 1,
     "The self-only switch must not hide unrelated monsters.");
-visibility.SetOptions(true, true);
-visibility.Tick(candidates, new HashSet<ActorIdentity> { other });
-Check(!visibilityAccess.Flags[other] && visibilityAccess.Flags[reused] && visibility.Count == 2,
-    "Generated or replaced preview actors must remain visible while other monsters are hidden.");
-visibilityAccess.Flags[actor] = false;
-visibility.Tick(candidates, unprotected);
-Check(visibilityAccess.Flags[actor] && visibilityAccess.Flags[other],
-    "Active hiding must survive game refreshes and include newly eligible actors.");
-visibility.Tick(candidates, new HashSet<ActorIdentity> { other });
-Check(!visibilityAccess.Flags[other], "An actor promoted to a preview must be released from the hide set.");
+visibility.Hide(other);
+visibility.Hide(other);
+visibility.Tick(actor, new HashSet<ActorIdentity> { other });
+Check(!visibilityAccess.Flags[other] && visibility.Count == 1,
+    "Hiding a selected monster must wait until its temporary model redraw finishes.");
+visibility.Tick(actor, notRedrawing);
+Check(visibilityAccess.Flags[other] && visibility.Count == 2,
+    "Only the selected monster and explicitly hidden self must become hidden.");
+visibility.SetHideSelf(false);
+visibility.Tick(actor, notRedrawing);
+Check(!visibilityAccess.Flags[actor] && visibilityAccess.Flags[other],
+    "Disabling self hiding must preserve individually hidden monsters.");
+visibilityAccess.Flags[other] = false;
+visibility.Tick(actor, notRedrawing);
+Check(visibilityAccess.Flags[other], "An individually hidden monster must stay hidden after a game refresh.");
+visibility.Hide(reused);
+visibility.Tick(actor, notRedrawing);
+Check(visibility.ManagedActors.Count() == 2, "Multiple selected monsters must be tracked without duplicate entries.");
+visibility.Show(other);
+visibility.Tick(actor, new HashSet<ActorIdentity> { other });
+Check(visibilityAccess.Flags[other] && visibility.Count == 2,
+    "Restoring a monster during a redraw must wait for redraw completion.");
+visibility.Tick(actor, notRedrawing);
+Check(!visibilityAccess.Flags[other] && visibilityAccess.Flags[reused] && visibility.Count == 1,
+    "Restoring one selected monster must leave other hidden monsters unchanged.");
 visibility.Reset();
 Check(!visibilityAccess.Flags[actor] && !visibilityAccess.Flags[other] && visibilityAccess.Flags[reused] && visibility.Count == 0
-    && !visibility.Active, "Reset must preserve objects that were hidden before the plugin and disable both switches.");
-visibility.SetOptions(true, true);
-visibility.Tick(candidates, unprotected);
-visibilityAccess.Flags.Remove(actor);
-var newOwner = actor with { ObjectId = 777, NameId = 0 };
-visibilityAccess.Flags.Add(newOwner, true);
-visibility.Reset();
-Check(visibilityAccess.Flags[newOwner], "Restoring visibility must never change a reused object's visibility.");
-visibility.SetOptions(false, true);
-visibility.Tick(candidates, unprotected);
+    && !visibility.Active && !visibility.ManagedActors.Any(),
+    "Reset must preserve pre-existing hidden state and clear individual selections.");
+visibility.Hide(other);
+visibility.Tick(actor, notRedrawing);
+visibilityAccess.Flags.Remove(other);
+var newOwner = other with { ObjectId = 777, NameId = 0 };
+visibilityAccess.Flags.Add(newOwner, false);
+var beforeReused = visibilityAccess.Writes;
+visibility.Tick(actor, notRedrawing);
+Check(!visibility.Active && !visibility.ManagedActors.Any() && !visibilityAccess.Flags[newOwner]
+    && visibilityAccess.Writes == beforeReused,
+    "A disappeared monster must be forgotten without hiding a new owner of the same slot.");
+visibility.Hide(other); // A queued request for the old identity.
+visibility.Tick(actor, notRedrawing);
+Check(!visibilityAccess.Flags[newOwner] && !visibility.Active,
+    "A stale individual hide request must not affect a recycled identity.");
+visibilityAccess.Flags.Add(other, false);
+visibility.Hide(other);
+visibility.Tick(actor, notRedrawing);
 visibilityAccess.FailShowFor = other;
 try { visibility.Reset(); throw new Exception("Expected visibility restore failure."); } catch (AggregateException) { }
-Check(visibility.Count == 1 && !visibility.Active, "A failed restore must retain only the failing actor for retry.");
+Check(visibility.Count == 1 && !visibility.Active && visibility.ManagedActors.Contains(other),
+    "A failed restore must retain the failing actor in the list for retry.");
 visibilityAccess.FailShowFor = null;
-visibility.Reset();
-Check(visibility.Count == 0 && !visibilityAccess.Flags[other], "Visibility cleanup must be retryable.");
-visibility.SetOptions(false, true);
-visibility.Tick(candidates, unprotected);
+visibility.Tick(actor, notRedrawing);
+Check(visibility.Count == 0 && !visibilityAccess.Flags[other], "Visibility cleanup must be retryable on the next update.");
+visibility.Hide(other);
+visibility.Tick(actor, notRedrawing);
+visibility.Hide(actor); // Pending hide, not written yet.
 var writeCount = visibilityAccess.Writes;
 visibility.ForgetScene();
-Check(!visibility.Active && visibility.Count == 0 && visibilityAccess.Writes == writeCount,
-    "Discarding old-scene visibility leases must not write into a new scene.");
+visibility.Tick(actor, notRedrawing);
+Check(!visibility.Active && visibility.Count == 0 && !visibility.ManagedActors.Any() && visibilityAccess.Writes == writeCount,
+    "Discarding an old scene must clear pending selections without writing into a new scene.");
 unsafe
 {
     FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject native = default;
@@ -395,14 +463,14 @@ sealed class FakeLocalAccess(FakeAccess access) : ILocalActorAccess
     public List<LocalActorLease> Deleted { get; } = [];
     public bool FailDelete { get; set; }
     public bool FailDraw { get; set; }
-    public LocalSpawn Create(HuntAppearance hunt, float multiplier, float distance)
+    public LocalSpawn Create(HuntAppearance hunt, float scale, float distance)
     {
         var index = next++;
         var actor = new ActorIdentity(index, (2UL << 32) | index, 0, 0, 0x10000 + index);
         var lease = new LocalActorLease((ushort)(index - 200), 0x5000, actor, index);
-        var state = new VisualState(hunt.ModelId, -1, hunt.Scale * multiplier, hunt.Customize, hunt.Equipment,
+        var state = ModelSize.Apply(new VisualState(hunt.ModelId, -1, hunt.Scale, hunt.Customize, hunt.Equipment,
             [0, 0, 0], 0, 0, LocalPreviewName.Stamp(DisplayName.Encode(hunt.Name), lease.Token), hunt.Level,
-            hunt.Scale * multiplier, new System.Numerics.Vector3(hunt.Scale * multiplier));
+            hunt.Scale, new System.Numerics.Vector3(hunt.Scale)), scale);
         access.Actors.Add(actor, state);
         if (FailDraw) access.FailBeginFor = actor;
         leases.Add(lease, 0);

@@ -1,6 +1,5 @@
 namespace HuntModelSwapCN.Core;
 
-public readonly record struct VisibilityCandidate(ActorIdentity Actor, bool IsSelf, bool IsMonster);
 public interface IModelVisibilityAccess
 {
     bool Exists(ActorIdentity actor);
@@ -11,25 +10,31 @@ public interface IModelVisibilityAccess
 public sealed class ModelVisibility(IModelVisibilityAccess access)
 {
     private readonly Dictionary<ActorIdentity, bool> originals = [];
+    private readonly HashSet<ActorIdentity> selected = [];
     public bool HideSelf { get; private set; }
-    public bool HideMonsters { get; private set; }
-    public bool Active => HideSelf || HideMonsters;
+    public bool Active => HideSelf || selected.Count > 0;
     public int Count => originals.Count;
+    public IEnumerable<ActorIdentity> ManagedActors => selected.Union(originals.Keys);
 
-    public void SetOptions(bool self, bool monsters) { HideSelf = self; HideMonsters = monsters; }
+    public void SetHideSelf(bool self) => HideSelf = self;
+    public void Hide(ActorIdentity actor) => selected.Add(actor);
+    public void Show(ActorIdentity actor) => selected.Remove(actor);
 
-    public void Tick(IEnumerable<VisibilityCandidate> candidates, IReadOnlySet<ActorIdentity> protectedActors)
+    public void Tick(ActorIdentity? self, IReadOnlySet<ActorIdentity> redrawingActors)
     {
-        var wanted = candidates.Where(c => (c.IsSelf && HideSelf || c.IsMonster && HideMonsters)
-            && !protectedActors.Contains(c.Actor)).Select(c => c.Actor).ToHashSet();
+        if (!Active && originals.Count == 0) return;
+        selected.RemoveWhere(actor => !access.Exists(actor));
+        var wanted = selected.ToHashSet();
+        if (HideSelf && self is { } player) wanted.Add(player);
         foreach (var actor in originals.Keys.ToArray())
         {
             if (!access.Exists(actor)) { originals.Remove(actor); continue; }
-            if (!wanted.Contains(actor)) Restore(actor);
+            if (!wanted.Contains(actor) && !redrawingActors.Contains(actor)) Restore(actor);
         }
         foreach (var actor in wanted)
         {
-            if (!access.Exists(actor)) continue;
+            // DisableDraw during a swap is temporary, not the object's original hidden state.
+            if (redrawingActors.Contains(actor) || !access.Exists(actor)) continue;
             if (!originals.ContainsKey(actor)) originals.Add(actor, access.IsHidden(actor));
             access.SetHidden(actor, true);
         }
@@ -43,7 +48,8 @@ public sealed class ModelVisibility(IModelVisibilityAccess access)
 
     public void Reset()
     {
-        SetOptions(false, false);
+        HideSelf = false;
+        selected.Clear();
         List<Exception> failures = [];
         foreach (var actor in originals.Keys.ToArray())
             try { Restore(actor); } catch (Exception ex) { failures.Add(ex); }
@@ -51,5 +57,5 @@ public sealed class ModelVisibility(IModelVisibilityAccess access)
     }
 
     // The old scene's objects no longer belong to this session.
-    public void ForgetScene() { originals.Clear(); SetOptions(false, false); }
+    public void ForgetScene() { originals.Clear(); selected.Clear(); HideSelf = false; }
 }

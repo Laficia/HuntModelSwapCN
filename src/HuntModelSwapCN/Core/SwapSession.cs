@@ -5,6 +5,21 @@ public readonly record struct ActorIdentity(ushort Index, ulong ObjectId, uint D
 public sealed record VisualState(int ModelId, int SecondaryModelId, float ModelScale,
     byte[] Customize, ulong[] Equipment, ulong[] Weapons, byte Flags1, byte Flags2,
     byte[] NameBytes, byte Level, float ObjectScale, System.Numerics.Vector3 DrawScale, byte NameplateIcon = 0);
+public static class ModelSize
+{
+    public static void Validate(float scale)
+    {
+        if (!float.IsFinite(scale) || scale <= 0)
+            throw new InvalidOperationException("体型倍率必须是大于 0 的有限数值。");
+    }
+
+    // This is the model's actual scale, not a multiplier applied to the source or target NPC.
+    public static VisualState Apply(VisualState state, float scale)
+    {
+        Validate(scale);
+        return state with { ModelScale = scale, ObjectScale = scale, DrawScale = new(scale) };
+    }
+}
 public interface IActorAccess
 {
     bool Exists(ActorIdentity actor);
@@ -40,6 +55,18 @@ public sealed class SwapSession(IActorAccess access)
         entries[actor] = entry with { WaitingForDraw = true, Restoring = true };
         access.BeginRedraw(actor, entry.Original);
         return true;
+    }
+
+    public void Resize(ActorIdentity actor, float scale)
+    {
+        ModelSize.Validate(scale);
+        if (!entries.TryGetValue(actor, out var entry) || !access.Exists(actor))
+            throw new InvalidOperationException("请先生成预览或替换当前目标。");
+        if (entry.WaitingForDraw || entry.Restoring)
+            throw new InvalidOperationException("请等待对象完成重绘后再调整体型。");
+        var state = ModelSize.Apply(entry.Applied, scale);
+        entries[actor] = entry with { Applied = state };
+        access.RefreshPresentation(actor, state);
     }
 
     public void Tick()

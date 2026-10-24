@@ -9,7 +9,7 @@ public sealed record LocalActorLease(ushort ClientIndex, nint Manager, ActorIden
 public sealed record LocalSpawn(LocalActorLease Lease, VisualState State);
 public interface ILocalActorAccess
 {
-    LocalSpawn Create(HuntAppearance appearance, float multiplier, float distance);
+    LocalSpawn Create(HuntAppearance appearance, float scale, float distance);
     bool Exists(LocalActorLease lease);
     void Delete(LocalActorLease lease);
 }
@@ -53,10 +53,11 @@ public sealed class LocalPreview(SwapSession session, ILocalActorAccess access)
     public int NameplateVisibility(ActorIdentity actor, int flags)
         => Actor is { } lease && lease.Actor == actor && access.Exists(lease) ? flags & ~0x2 : flags;
 
-    public ActorIdentity Spawn(HuntAppearance appearance, float multiplier, float distance)
+    public ActorIdentity Spawn(HuntAppearance appearance, float scale, float distance)
     {
+        ModelSize.Validate(scale);
         Clear();
-        var created = access.Create(appearance, multiplier, distance);
+        var created = access.Create(appearance, scale, distance);
         Actor = created.Lease;
         try
         {

@@ -58,13 +58,10 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
     }
 
     public static VisualState Replacement(VisualState current, HuntAppearance appearance, float scale)
-        => current with
+        => ModelSize.Apply(current with
         {
             ModelId = appearance.ModelId,
             SecondaryModelId = -1,
-            ModelScale = appearance.Scale * Math.Clamp(scale, 0.1f, 3f),
-            ObjectScale = appearance.Scale * Math.Clamp(scale, 0.1f, 3f),
-            DrawScale = new System.Numerics.Vector3(appearance.Scale * Math.Clamp(scale, 0.1f, 3f)),
             Customize = appearance.Customize.ToArray(),
             Equipment = appearance.Equipment.ToArray(),
             Weapons = [appearance.MainHand, appearance.OffHand, 0],
@@ -74,7 +71,7 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
             NameplateIcon = appearance.NameplateIcon,
             Level = appearance.Level > 0 ? appearance.Level
                 : throw new InvalidOperationException("尚未配置此版本的狩猎怪等级。"),
-        };
+        }, scale);
 
     public void BeginRedraw(ActorIdentity actor, VisualState state)
     {

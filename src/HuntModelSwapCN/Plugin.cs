@@ -46,7 +46,6 @@ public sealed class Plugin : IDalamudPlugin
     private int expansionFilter = -1;
     private int selected = -1;
     private float scale = 1;
-    private bool useCustomScale;
     private float spawnDistance = 8;
     private string status = "就绪";
     private long epoch;
@@ -56,10 +55,11 @@ public sealed class Plugin : IDalamudPlugin
     private string? lastSkillFilter;
     private SkillAnimation[] skillMatches = [];
     private record Request(long Epoch, string Action, ActorIdentity? Actor, int Selection = -1, float Scale = 1,
-        uint SkillId = 0, bool ChatFeedback = false, float Distance = 8, bool HideSelf = false, bool HideMonsters = false);
+        uint SkillId = 0, bool ChatFeedback = false, float Distance = 8, bool HideSelf = false);
+    private sealed record HiddenTarget(ActorIdentity Actor, string Name);
     private sealed record UiSnapshot(ActorIdentity? Target, string TargetName, string? CannotApply,
         SwapEntry[] Entries, string Status, ActorIdentity? LocalActor = null,
-        bool HideSelf = false, bool HideMonsters = false, int HiddenCount = 0);
+        bool HideSelf = false, int HiddenCount = 0, string? CannotHide = null, HiddenTarget[]? HiddenTargets = null);
 
     public Plugin(IDalamudPluginInterface pluginInterface, IFramework framework, ICommandManager commands,
         IClientState client, ICondition condition, IObjectTable objects, IDataManager data,
@@ -94,7 +94,7 @@ public sealed class Plugin : IDalamudPlugin
         client.TerritoryChanged += OnTerritoryChanged;
         client.Logout += OnLogout;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.3 initialized. No appearance writes or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.4 initialized. No appearance writes or animation playback have been requested.");
     }
 
     private void Open()
@@ -172,15 +172,17 @@ public sealed class Plugin : IDalamudPlugin
             }
             var npc = targets.Target as IBattleNpc;
             var entries = session.Entries.ToArray();
-            // Include pending restores: their temporary redraw-hidden bit is not an original visibility state.
-            var protectedActors = entries.Select(e => e.Actor).ToHashSet();
-            if (localPreview.Actor is { } local) protectedActors.Add(local.Actor);
-            modelVisibility.Tick(modelVisibility.Active ? visibilityAccess.Candidates() : [], protectedActors);
+            // Wait for redraw before recording/restoring a selected object's model visibility.
+            var redrawingActors = entries.Where(e => e.WaitingForDraw || e.Restoring).Select(e => e.Actor).ToHashSet();
+            modelVisibility.Tick(visibilityAccess.Self, redrawingActors);
             ActorIdentity? identity = npc is { } && npc.IsValid() ? NativeActorAccess.Identity(npc) : null;
             snapshot = new(identity, npc?.Name.ToString() ?? "未选中小怪",
                 identity.HasValue ? actors.CanApply(identity.Value) : "请先选中一只普通小怪。",
                 entries, status, localPreview.Actor?.Actor,
-                modelVisibility.HideSelf, modelVisibility.HideMonsters, modelVisibility.Count);
+                modelVisibility.HideSelf, modelVisibility.Count,
+                identity.HasValue ? visibilityAccess.CanHide(identity.Value) : "请先选中一只敌对小怪。",
+                modelVisibility.ManagedActors.Where(a => a != visibilityAccess.Self)
+                    .Select(a => new HiddenTarget(a, visibilityAccess.Name(a))).ToArray());
         }
         catch (Exception ex)
         {
@@ -193,8 +195,8 @@ public sealed class Plugin : IDalamudPlugin
     {
         if (request.Action == "visibility")
         {
-            modelVisibility.SetOptions(request.HideSelf, request.HideMonsters);
-            status = "已更新模型显示开关；本插件的预览和替换对象保持可见。";
+            modelVisibility.SetHideSelf(request.HideSelf);
+            status = request.HideSelf ? "已隐藏自己的模型。" : "已恢复自己的模型显示状态。";
             return;
         }
         if (request.Action == "show-all")
@@ -233,6 +235,26 @@ public sealed class Plugin : IDalamudPlugin
             return;
         }
         if (request.Actor is not { } actor) throw new InvalidOperationException("请先选中一只普通小怪。");
+        if (request.Action == "hide-target")
+        {
+            if (visibilityAccess.CanHide(actor) is { } hideReason) throw new InvalidOperationException(hideReason);
+            modelVisibility.Hide(actor);
+            status = $"已请求隐藏「{visibilityAccess.Name(actor)}」的模型，可在隐藏列表中恢复。";
+            return;
+        }
+        if (request.Action == "show-target")
+        {
+            modelVisibility.Show(actor);
+            status = "已请求恢复该小怪原有的模型显示状态。";
+            return;
+        }
+        if (request.Action == "resize")
+        {
+            if (actors.CanApply(actor) is { } resizeReason) throw new InvalidOperationException(resizeReason);
+            session.Resize(actor, request.Scale);
+            status = $"已将演示对象的体型倍率设为 {request.Scale:G}。";
+            return;
+        }
         if (request.Action == "play")
         {
             LoadSkills();
@@ -278,7 +300,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void Enqueue(string action, ActorIdentity? actor = null)
         => requests.Enqueue(new(Interlocked.Read(ref epoch), action, actor, selected,
-            useCustomScale ? scale : 1, Distance: spawnDistance));
+            scale, Distance: spawnDistance));
 
     private void Draw()
     {
@@ -289,20 +311,35 @@ public sealed class Plugin : IDalamudPlugin
         {
             ImGui.TextWrapped("选择狩猎怪物后，可在面前生成本地预览，或替换当前小怪的外观。只影响本机显示。");
             var hideSelf = view.HideSelf;
-            var hideMonsters = view.HideMonsters;
             ImGui.BeginDisabled(Loading);
-            var visibilityChanged = ImGui.Checkbox("隐藏自己模型", ref hideSelf);
-            ImGui.SameLine();
-            visibilityChanged |= ImGui.Checkbox("隐藏其他小怪模型", ref hideMonsters);
-            if (visibilityChanged)
-                requests.Enqueue(new(Interlocked.Read(ref epoch), "visibility", null, HideSelf: hideSelf, HideMonsters: hideMonsters));
+            if (ImGui.Checkbox("隐藏自己模型", ref hideSelf))
+                requests.Enqueue(new(Interlocked.Read(ref epoch), "visibility", null, HideSelf: hideSelf));
             ImGui.EndDisabled();
+            ImGui.TextUnformatted($"当前目标：{view.TargetName}");
+            var hiddenTargets = view.HiddenTargets ?? [];
+            var targetHidden = view.Target.HasValue && hiddenTargets.Any(t => t.Actor == view.Target);
+            ImGui.BeginDisabled(Loading || !view.Target.HasValue || view.CannotHide is not null || targetHidden);
+            if (ImGui.Button("隐藏当前目标")) Enqueue("hide-target", view.Target);
+            ImGui.EndDisabled();
+            ImGui.SameLine();
+            ImGui.BeginDisabled(Loading || !targetHidden);
+            if (ImGui.Button("恢复当前目标显示")) Enqueue("show-target", view.Target);
+            ImGui.EndDisabled();
+            if (view.CannotHide is { } hideReason) ImGui.TextWrapped(hideReason);
             if (ImGui.Button("恢复全部显示 /hms show")) Enqueue("show-all");
             ImGui.SameLine();
             ImGui.TextUnformatted($"已管理隐藏对象：{view.HiddenCount}");
-            ImGui.TextWrapped("保留本插件预览和已替换对象；关闭开关恢复原显示状态。切图、登出自动关闭。仅隐藏模型，名牌和独立技能特效仍可能显示。");
+            ImGui.TextWrapped("先选中一只敌对小怪，再点击隐藏。可逐只隐藏；隐藏后从下方列表恢复，无需再次点中模型。切图、登出自动恢复。仅隐藏模型，名牌和独立技能特效仍可能显示。");
+            if (hiddenTargets.Length > 0 && ImGui.CollapsingHeader($"单独隐藏的小怪 ({hiddenTargets.Length})", ImGuiTreeNodeFlags.DefaultOpen))
+                foreach (var hidden in hiddenTargets)
+                {
+                    ImGui.PushID($"hidden-{hidden.Actor.Index}-{hidden.Actor.ObjectId}");
+                    if (ImGui.SmallButton("恢复显示")) Enqueue("show-target", hidden.Actor);
+                    ImGui.SameLine();
+                    ImGui.TextUnformatted($"{hidden.Name}（对象 {hidden.Actor.Index}）");
+                    ImGui.PopID();
+                }
             ImGui.Separator();
-            ImGui.TextUnformatted($"当前目标：{view.TargetName}");
             ImGui.SetNextItemWidth(120);
             if (ImGui.BeginCombo("狩猎级别", rankFilter == 0 ? "全部" : rankFilter switch { 1 => "B", 2 => "A", _ => "S" }))
             {
@@ -333,8 +370,7 @@ public sealed class Plugin : IDalamudPlugin
                     if (ImGui.Selectable($"{hunt.VersionName} {hunt.RankName}  Lv.{hunt.Level} {hunt.Name}  ·  {hunt.Territory}##{i}", selected == i))
                     {
                         selected = i;
-                        scale = 1;
-                        useCustomScale = false;
+                        scale = hunt.Scale;
                     }
                 }
             }
@@ -342,19 +378,24 @@ public sealed class Plugin : IDalamudPlugin
             if (selected >= 0)
                 ImGui.TextWrapped($"已选择：Lv.{catalog[selected].Level} {catalog[selected].RankName} 怪「{catalog[selected].Name}」");
             else ImGui.TextUnformatted("请从上方选择一个外观。");
-            if (!useCustomScale)
-                ImGui.TextWrapped(selected >= 0 ? $"体型：使用「{catalog[selected].Name}」的原版大小。" : "体型：使用目标怪物原版大小。");
-            ImGui.Checkbox("手动调整体型", ref useCustomScale);
-            if (useCustomScale)
-            {
-                ImGui.SetNextItemWidth(240);
-                ImGui.SliderFloat("相对目标原版大小", ref scale, 0.1f, 3f, "%.2f");
-                if (ImGui.Button("恢复目标原版大小")) { useCustomScale = false; scale = 1; }
-                ImGui.TextWrapped("手动调整只以所选怪物的原版体型为基准。再次生成或替换后应用。");
-            }
+            ImGui.BeginDisabled(selected < 0);
+            ImGui.SetNextItemWidth(240);
+            ImGui.InputFloat("体型倍率", ref scale, 0.1f, 1f, "%.3f");
+            ImGui.SameLine();
+            if (ImGui.Button("恢复所选怪物原版倍率") && selected >= 0) scale = catalog[selected].Scale;
+            ImGui.EndDisabled();
+            if (selected >= 0) ImGui.TextWrapped($"「{catalog[selected].Name}」原版倍率：{catalog[selected].Scale:G}。输入值直接作为模型倍率，不再额外乘原版体型。");
+            var sizeValid = float.IsFinite(scale) && scale > 0;
+            if (!sizeValid) ImGui.TextWrapped("请输入大于 0 的有限倍率。");
+            var resizeActor = view.LocalActor ?? view.Target;
+            var resizeEntry = view.Entries.FirstOrDefault(e => e.Actor == resizeActor);
+            ImGui.BeginDisabled(Loading || !sizeValid || resizeEntry is null || resizeEntry.WaitingForDraw || resizeEntry.Restoring);
+            if (ImGui.Button("应用体型到演示对象")) Enqueue("resize", resizeActor);
+            ImGui.EndDisabled();
+            if (resizeEntry is not null) ImGui.TextWrapped($"体型调整对象：{resizeEntry.ReplacementName}，当前倍率 {resizeEntry.Applied.ModelScale:G}。有本地预览时优先调整它。");
             ImGui.SetNextItemWidth(240);
             ImGui.SliderFloat("前方生成距离（米）", ref spawnDistance, 2, 30, "%.1f");
-            ImGui.BeginDisabled(Loading || selected < 0);
+            ImGui.BeginDisabled(Loading || selected < 0 || !sizeValid);
             if (ImGui.Button("在我面前生成（本地预览）")) Enqueue("spawn");
             ImGui.EndDisabled();
             ImGui.SameLine();
@@ -364,7 +405,7 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.TextWrapped("无需选中小怪。只保留一只本地生成对象；再次生成会替换它。技能演示优先控制此对象。");
             ImGui.TextWrapped("本地预览隐藏头顶血条，保留所选怪物的名字、等级和原版名牌标记。");
             var reason = Loading ? "请等待角色进入场景。" : view.CannotApply;
-            ImGui.BeginDisabled(reason is not null || selected < 0);
+            ImGui.BeginDisabled(reason is not null || selected < 0 || !sizeValid);
             if (ImGui.Button("替换当前目标")) Enqueue("apply", view.Target);
             ImGui.EndDisabled();
             ImGui.SameLine();
@@ -372,7 +413,7 @@ public sealed class Plugin : IDalamudPlugin
             if (ImGui.Button("恢复当前目标")) Enqueue("restore", view.Target);
             ImGui.EndDisabled();
             ImGui.SameLine();
-            ImGui.BeginDisabled(view.Entries.Length == 0 && !view.HideSelf && !view.HideMonsters && view.HiddenCount == 0);
+            ImGui.BeginDisabled(view.Entries.Length == 0 && !view.HideSelf && view.HiddenCount == 0 && hiddenTargets.Length == 0);
             if (ImGui.Button("恢复全部")) Enqueue("all");
             ImGui.EndDisabled();
             if (reason is not null) ImGui.TextWrapped(reason);

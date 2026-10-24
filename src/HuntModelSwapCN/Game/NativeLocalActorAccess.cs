@@ -11,8 +11,9 @@ namespace HuntModelSwapCN.Game;
 public sealed unsafe class NativeLocalActorAccess(IObjectTable objects, ITargetManager targets,
     NativeActorAccess actors, INamePlateGui nameplates) : ILocalActorAccess
 {
-    public LocalSpawn Create(HuntAppearance appearance, float multiplier, float distance)
+    public LocalSpawn Create(HuntAppearance appearance, float scale, float distance)
     {
+        ModelSize.Validate(scale);
         if (objects.LocalPlayer is not { } player || !player.IsValid())
             throw new InvalidOperationException("请先进入游戏场景。");
         var position = SpawnPlacement.InFront(player.Position, player.Rotation, distance);
@@ -45,7 +46,7 @@ public sealed unsafe class NativeLocalActorAccess(IObjectTable objects, ITargetM
             c->GameObject.SetRotation(player.Rotation + MathF.PI);
             c->GameObject.TargetableStatus |= ObjectTargetableFlags.IsTargetable;
             c->GameObject.SetReadyToDraw();
-            var state = NativeActorAccess.Replacement(NativeAppearanceCodec.Capture(c), appearance, multiplier)
+            var state = NativeActorAccess.Replacement(NativeAppearanceCodec.Capture(c), appearance, scale)
                 with { NameBytes = name };
             NativeAppearanceCodec.Write(c, state);
             if (objects.CreateObjectReference((nint)c) is not IBattleNpc npc)
