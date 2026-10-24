@@ -42,6 +42,7 @@ public sealed unsafe class NativeLocalActorAccess(IObjectTable objects, ITargetM
             c->NameId = 0;
             c->GameObject.OwnerId = 0xe0000000;
             c->Health = c->MaxHealth = 1;
+            NativeLocalPresentationCodec.Write(c, appearance.Battalion);
             c->GameObject.SetPosition(position.X, position.Y, position.Z);
             c->GameObject.SetRotation(player.Rotation + MathF.PI);
             c->GameObject.TargetableStatus |= ObjectTargetableFlags.IsTargetable;
@@ -51,7 +52,7 @@ public sealed unsafe class NativeLocalActorAccess(IObjectTable objects, ITargetM
             NativeAppearanceCodec.Write(c, state);
             if (objects.CreateObjectReference((nint)c) is not IBattleNpc npc)
                 throw new InvalidOperationException("无法解析新生成的预览怪物。");
-            var lease = new LocalActorLease(slot, (nint)manager, NativeActorAccess.Identity(npc), token);
+            var lease = new LocalActorLease(slot, (nint)manager, NativeActorAccess.Identity(npc), token, appearance.Battalion);
             return new(lease, state);
         }
         catch
@@ -69,6 +70,13 @@ public sealed unsafe class NativeLocalActorAccess(IObjectTable objects, ITargetM
         var c = manager->GetObjectByIndex(lease.ClientIndex);
         return c != null && (nint)c == lease.Actor.Address && c->GameObject.ObjectIndex is >= 200 and <= 448
             && actors.Exists(lease.Actor) && LocalPreviewName.Matches(c->GameObject.Name, lease.Token);
+    }
+
+    public void RefreshPresentation(LocalActorLease lease)
+    {
+        if (!Exists(lease)) return;
+        var c = ClientObjectManager.Instance()->GetObjectByIndex(lease.ClientIndex);
+        if (NativeLocalPresentationCodec.Write(c, lease.Battalion)) nameplates.RequestRedraw();
     }
 
     public void Delete(LocalActorLease lease)

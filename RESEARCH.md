@@ -100,6 +100,18 @@ if (!oldIsHuman)
 
 321 项离线检查通过，新增指定隐藏、多对象恢复、重绘等待、槽位复用与失败重试，以及绝对倍率、大/小正数、非法数值、原外观恢复和过期身份拒绝。最终显示效果仍需游戏内验证。
 
+## 0.1.0.5 本地预览敌对名牌
+
+用户截图中真实小怪换模后的左侧名牌使用黄色敌对怪样式，右侧本地生成对象虽然名称/等级正确，却使用绿色友方样式并缺少精英标记。生成代码只设置战斗 NPC 类型、外观与图标类别，遗漏敌对显示关系。
+
+`BNpcBase.Battalion` 是阵营数据，角色的 `Battalion` 参与友敌关系判断，`CharacterData.IsHostile` 是独立标志。本机 201 种常规狩猎外观均读取到阵营 4。对本机客户端 `GetNamePlateColorType` 的静态核对也确认其战斗 NPC 分支先检查友敌关系，再选择 NPC/未交战敌人等颜色类别。不能只把绿色文字改成固定黄色。
+
+新增 `NativeLocalPresentationCodec`，在本地分配且经过范围验证的生成对象上设置目标阵营与敌对位，名称、等级、精英图标继续由游戏原生名牌路径处理。框架更新仅对完整身份和所有权 nonce 仍匹配的租约维护这些字段；只有字段变化时才标记名称更新和请求名牌刷新。保留 HP、真实名称/基础 ID 为 0、其他角色标志和外观字段；不应用于真实小怪。原有头顶血条屏蔽继续生效。
+
+330 项离线检查通过，新增阵营数据、敌对位及其他位保留、原生结构字段隔离、无变化不刷新、客户端刷新后重新维护、丢失所有权后不写入的回归检查。没有在运行中的游戏里调用测试，也未将此结果视为截图样式已经通过实测。更新后需移除旧本地预览并重新生成。
+
+参考：[CharacterData](https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/Character/CharacterData.cs)、[GameObject.GetNamePlateColorType](https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/Object/GameObject.cs)、[BNpcBase 数据结构](https://github.com/xivdev/EXDSchema/blob/latest/BNpcBase.yml)、[Battalion 数据结构](https://github.com/xivdev/EXDSchema/blob/latest/Battalion.yml)。
+
 ## 主要参考
 
 - [Glamourer 模型编辑入口](https://github.com/Ottermandias/Glamourer/blob/e165910345b17b99d9aa35990005b5e0f73ae65b/Glamourer/State/StateEditor.cs)

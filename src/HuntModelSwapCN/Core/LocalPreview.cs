@@ -5,12 +5,13 @@ using HuntModelSwapCN.Catalog;
 
 namespace HuntModelSwapCN.Core;
 
-public sealed record LocalActorLease(ushort ClientIndex, nint Manager, ActorIdentity Actor, ulong Token);
+public sealed record LocalActorLease(ushort ClientIndex, nint Manager, ActorIdentity Actor, ulong Token, byte Battalion = 0);
 public sealed record LocalSpawn(LocalActorLease Lease, VisualState State);
 public interface ILocalActorAccess
 {
     LocalSpawn Create(HuntAppearance appearance, float scale, float distance);
     bool Exists(LocalActorLease lease);
+    void RefreshPresentation(LocalActorLease lease);
     void Delete(LocalActorLease lease);
 }
 
@@ -72,7 +73,8 @@ public sealed class LocalPreview(SwapSession session, ILocalActorAccess access)
 
     public void Tick()
     {
-        if (Actor is not { } lease || access.Exists(lease)) return;
+        if (Actor is not { } lease) return;
+        if (access.Exists(lease)) { access.RefreshPresentation(lease); return; }
         session.Forget(lease.Actor);
         Actor = null;
     }

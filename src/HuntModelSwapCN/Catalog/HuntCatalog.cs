@@ -5,7 +5,8 @@ namespace HuntModelSwapCN.Catalog;
 
 public sealed record HuntAppearance(uint NameId, uint BaseId, int ModelId, byte Rank, uint Expansion,
     uint TerritoryId, string Name, string Territory, float Scale, byte ModelType,
-    byte[] Customize, ulong[] Equipment, ulong MainHand, ulong OffHand, bool Visor, byte NameplateIcon = 1)
+    byte[] Customize, ulong[] Equipment, ulong MainHand, ulong OffHand, bool Visor, byte NameplateIcon = 1,
+    byte Battalion = 0)
 {
     public string RankName => Rank switch { 1 => "B", 2 => "A", 3 => "S", _ => "?" };
     public string VersionName => $"{Expansion + 2}.0";
@@ -62,7 +63,7 @@ public static class HuntCatalog
                     territory.RowId, name, zone, npc.Scale, model.Value.Type, customize, armor,
                     Weapon(equipment.ModelMainHand, equipment.DyeMainHand.RowId, equipment.Dye2MainHand.RowId),
                     Weapon(equipment.ModelOffHand, equipment.DyeOffHand.RowId, equipment.Dye2OffHand.RowId),
-                    equipment.VisorToggled, npc.Rank));
+                    equipment.VisorToggled, npc.Rank, checked((byte)npc.Battalion.RowId)));
             }
         }
         return result.Values.OrderByDescending(h => h.Expansion).ThenByDescending(h => h.Rank)

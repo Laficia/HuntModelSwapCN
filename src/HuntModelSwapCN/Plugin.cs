@@ -94,7 +94,7 @@ public sealed class Plugin : IDalamudPlugin
         client.TerritoryChanged += OnTerritoryChanged;
         client.Logout += OnLogout;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.4 initialized. No appearance writes or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.5 initialized. No appearance writes or animation playback have been requested.");
     }
 
     private void Open()
@@ -403,7 +403,7 @@ public sealed class Plugin : IDalamudPlugin
             if (ImGui.Button("移除预览")) Enqueue("remove-local");
             ImGui.EndDisabled();
             ImGui.TextWrapped("无需选中小怪。只保留一只本地生成对象；再次生成会替换它。技能演示优先控制此对象。");
-            ImGui.TextWrapped("本地预览隐藏头顶血条，保留所选怪物的名字、等级和原版名牌标记。");
+            ImGui.TextWrapped("本地预览隐藏头顶血条，名字、等级和精英头标使用原生敌对怪名牌样式。");
             var reason = Loading ? "请等待角色进入场景。" : view.CannotApply;
             ImGui.BeginDisabled(reason is not null || selected < 0 || !sizeValid);
             if (ImGui.Button("替换当前目标")) Enqueue("apply", view.Target);

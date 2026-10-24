@@ -2,6 +2,23 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 2 && args[1] == "--local-nameplate")
+{
+    Console.WriteLine($"Character.IsHostile writable={typeof(Character).GetProperty("IsHostile")?.CanWrite}");
+    foreach (var field in new[] { "Flags", "Battalion", "Icon", "Level" })
+        Console.WriteLine($"Character.{field} offset={System.Runtime.InteropServices.Marshal.OffsetOf<Character>(field)}");
+    foreach (var methodName in new[] { "GetNamePlateColorType", "GetNamePlateColors" })
+        Console.WriteLine($"{methodName}: {string.Join("; ", typeof(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject).GetMethod(methodName)!.GetCustomAttributesData().Select(a => a.ToString()))}");
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    var bases = probe.Excel.GetSheet<BNpcBase>()!;
+    foreach (var group in probe.Excel.GetSheet<NotoriousMonster>()!.Where(h => h.BNpcName.RowId > 0)
+        .GroupBy(h => bases.GetRow(h.BNpcBase.RowId).Battalion.RowId))
+        Console.WriteLine($"Hunt battalion={group.Key}, count={group.Count()}");
+    foreach (var battalion in probe.Excel.GetSheet<Battalion>()!.Take(6))
+        Console.WriteLine($"Battalion {battalion.RowId}: {string.Join(",", battalion.IsEnemyTo)}");
+    return;
+}
+
 if (args.Length == 2 && args[1] == "--presentation")
 {
     Console.WriteLine("Character.Icon offset=" + System.Runtime.InteropServices.Marshal.OffsetOf<Character>("Icon"));

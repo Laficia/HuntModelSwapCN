@@ -133,6 +133,41 @@ unsafe
 try { DisplayName.Encode(new string('蛇', 22)); throw new Exception("An overlong UTF-8 name was accepted."); }
 catch (InvalidOperationException) { tests++; }
 
+// Regression: spawned actors used friendly green nameplates despite the correct name/level/icon data.
+unsafe
+{
+    NativeCharacter localNative = default;
+    localNative.Flags = 0xa0;
+    localNative.Battalion = 0;
+    localNative.NameId = 0;
+    localNative.GameObject.BaseId = 0;
+    localNative.Health = localNative.MaxHealth = 1;
+    localNative.Level = 90;
+    localNative.Icon = 1;
+    localNative.ModelScale = 3;
+    localNative.GameObject.Position = new(1, 2, 3);
+    localNative.GameObject.UpdateFlags = FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Unk2;
+    Check(NativeLocalPresentationCodec.Write(&localNative, 4) && localNative.IsHostile && localNative.Battalion == 4,
+        "Owned previews must be classified as enemies using the selected hunt's battalion.");
+    Check(localNative.Flags == 0xa1 && !localNative.InCombat,
+        "Enemy presentation must preserve unrelated character flags and must not enter combat.");
+    Check(localNative.NameId == 0 && localNative.GameObject.BaseId == 0 && localNative.Health == 1
+        && localNative.MaxHealth == 1 && localNative.Level == 90 && localNative.Icon == 1
+        && localNative.ModelScale == 3 && localNative.GameObject.Position.Y == 2,
+        "Enemy styling must preserve client-only identity, health, level, elite icon, scale and placement.");
+    Check(localNative.GameObject.UpdateFlags.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Name)
+        && localNative.GameObject.UpdateFlags.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Unk2),
+        "Changing preview classification must refresh its nameplate without clearing unrelated update flags.");
+    localNative.GameObject.UpdateFlags = FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Unk2;
+    Check(!NativeLocalPresentationCodec.Write(&localNative, 4)
+        && !localNative.GameObject.UpdateFlags.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Name),
+        "Unchanged enemy presentation must not dirty or request a nameplate redraw every frame.");
+    localNative.IsHostile = false;
+    localNative.Battalion = 1;
+    Check(NativeLocalPresentationCodec.Write(&localNative, 4) && localNative.IsHostile && localNative.Battalion == 4,
+        "A client refresh must not permanently turn an owned preview back into a friendly green NPC.");
+}
+
 // Preview must never reach native playback for a stale, untracked or redrawing target.
 var animationAccess = new FakeAnimationAccess();
 var previewAccess = new FakeAccess();
@@ -221,7 +256,7 @@ var localSession = new SwapSession(localAccess);
 var localFactory = new FakeLocalAccess(localAccess);
 var localPreview = new LocalPreview(localSession, localFactory);
 var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", "厄尔庇斯", 3, 3,
-    new byte[26], new ulong[10], 0, 0, false);
+    new byte[26], new ulong[10], 0, 0, false, Battalion: 4);
 var firstLocal = localPreview.Spawn(sampleHunt, sampleHunt.Scale, 8);
 Check(localSession.Entries.Single().Applied.ModelScale == sampleHunt.Scale,
     "The selected hunt's own native scale must be usable directly as the default spawn size.");
@@ -230,6 +265,9 @@ catch (InvalidOperationException) { Check(localPreview.Owns(firstLocal) && local
     "An invalid spawn scale must be refused before removing an existing preview."); }
 Check(localPreview.Owns(firstLocal) && localSession.Entries.Count == 1 && firstLocal.DataId == 0 && firstLocal.NameId == 0,
     "A local preview must be tracked independently and have no live hunt identity.");
+localPreview.Tick();
+Check(localFactory.Refreshed.Single().Battalion == 4,
+    "A live owned preview must maintain the selected hunt's enemy presentation relationship.");
 Check(localPreview.NameplateVisibility(firstLocal, 0x107) == 0x105,
     "Local preview nameplates must hide only the HP gauge, preserving name text and unrelated visibility bits.");
 Check(localPreview.NameplateVisibility(actor, 0x107) == 0x107,
@@ -254,9 +292,12 @@ Check(localPreview.NameplateVisibility(secondLocal, 0x107) == 0x107,
     "Removing a preview must stop overriding its old nameplate immediately.");
 var recycledLocal = localPreview.Spawn(sampleHunt, 1, 8);
 localAccess.Actors[recycledLocal] = State(12, 1); // Same slot/address/IDs, but a different owner.
+var refreshCount = localFactory.Refreshed.Count;
 Check(localPreview.NameplateVisibility(recycledLocal, 0x107) == 0x107,
     "A reused slot must retain its gauge even before the next ownership cleanup tick.");
 localPreview.Tick();
+Check(localFactory.Refreshed.Count == refreshCount,
+    "A lost ownership marker must stop enemy-presentation writes before touching a recycled actor.");
 localPreview.Clear();
 Check(localFactory.Deleted.Count == 2 && localAccess.Actors[recycledLocal].ModelId == 12 && localSession.Entries.Count == 0,
     "Losing the native ownership marker must never delete a recycled local actor.");
@@ -385,6 +426,7 @@ if (args.Length == 1)
     Check(catalog.All(h => DisplayName.Encode(h.Name).Length == DisplayName.Capacity),
         "Every catalog name must fit in a complete, null-terminated native UTF-8 name buffer.");
     Check(catalog.All(h => h.NameplateIcon == 1), "Current S/A/B hunts must all use the data's elite nameplate category.");
+    Check(catalog.All(h => h.Battalion == 4), "Regular hunt previews must use the enemy battalion read from their own BNpcBase records.");
     Check(catalog.All(h => LocalPreviewName.Matches(LocalPreviewName.Stamp(DisplayName.Encode(h.Name), 1), 1)),
         "Every current hunt name must leave room for local-preview ownership validation.");
     foreach (var hunt in catalog)
@@ -461,13 +503,14 @@ sealed class FakeLocalAccess(FakeAccess access) : ILocalActorAccess
     private ushort next = 300;
     private readonly Dictionary<LocalActorLease, byte> leases = [];
     public List<LocalActorLease> Deleted { get; } = [];
+    public List<LocalActorLease> Refreshed { get; } = [];
     public bool FailDelete { get; set; }
     public bool FailDraw { get; set; }
     public LocalSpawn Create(HuntAppearance hunt, float scale, float distance)
     {
         var index = next++;
         var actor = new ActorIdentity(index, (2UL << 32) | index, 0, 0, 0x10000 + index);
-        var lease = new LocalActorLease((ushort)(index - 200), 0x5000, actor, index);
+        var lease = new LocalActorLease((ushort)(index - 200), 0x5000, actor, index, hunt.Battalion);
         var state = ModelSize.Apply(new VisualState(hunt.ModelId, -1, hunt.Scale, hunt.Customize, hunt.Equipment,
             [0, 0, 0], 0, 0, LocalPreviewName.Stamp(DisplayName.Encode(hunt.Name), lease.Token), hunt.Level,
             hunt.Scale, new System.Numerics.Vector3(hunt.Scale)), scale);
@@ -478,6 +521,11 @@ sealed class FakeLocalAccess(FakeAccess access) : ILocalActorAccess
     }
     public bool Exists(LocalActorLease lease) => leases.ContainsKey(lease) && access.Actors.TryGetValue(lease.Actor, out var state)
         && LocalPreviewName.Matches(state.NameBytes, lease.Token);
+    public void RefreshPresentation(LocalActorLease lease)
+    {
+        if (!Exists(lease)) throw new Exception("Attempt to update an unowned actor.");
+        Refreshed.Add(lease);
+    }
     public void Delete(LocalActorLease lease)
     {
         if (FailDelete) throw new InvalidOperationException("Simulated delete failure.");
