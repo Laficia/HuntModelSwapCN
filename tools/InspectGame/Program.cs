@@ -2,6 +2,27 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length is 2 or 3 && args[1] == "--target-api")
+{
+    if (args.Length == 3)
+        File.WriteAllText(args[2], System.Text.Json.JsonSerializer.Serialize(
+            new[] { "SetHardTarget", "SetSoftTarget" }.Select(name => {
+                var method = typeof(FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem).GetMethod(name)!;
+                return new { Name = name, Signature = method.GetCustomAttributesData()
+                    .Single(a => a.AttributeType.Name == "MemberFunctionAttribute").ConstructorArguments[0].Value };
+            })));
+    foreach (var t in new[] { typeof(FFXIVClientStructs.FFXIV.Client.Game.Control.TargetSystem),
+        typeof(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject) })
+    {
+        foreach (var m in t.GetMethods().Where(m => m.DeclaringType == t && (m.Name.Contains("Target") || m.Name.Contains("Highlight"))
+            && !m.Name.StartsWith("get_") && !m.Name.StartsWith("set_")))
+            Console.WriteLine($"{m}: {string.Join(";", m.GetCustomAttributesData())}");
+        foreach (var f in t.GetFields().Where(f => f.Name.Contains("Target") && !f.IsStatic))
+            Console.WriteLine($"{f.Name}: {f.FieldType} offset={System.Runtime.InteropServices.Marshal.OffsetOf(t, f.Name):X}");
+    }
+    return;
+}
+
 if (args.Length == 2 && args[1] == "--striking-dummies")
 {
     using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });

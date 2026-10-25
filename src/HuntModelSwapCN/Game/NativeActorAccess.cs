@@ -100,7 +100,7 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
         var c = (NativeCharacter*)npc.Address;
         return text + $"，NameId={npc.NameId}，OwnerId={npc.OwnerId:X8}，HP={npc.CurrentHp}/{npc.MaxHp}"
             + $"，Model={c->ModelContainer.ModelCharaId}，Draw={(c->GameObject.DrawObject == null ? "无" : c->GameObject.DrawObject->LoadState.ToString())}"
-            + $"，Layout={(c->GameObject.SharedGroupLayoutInstance == null ? "无" : "有")}，Render={c->GameObject.RenderFlags}"
+            + $"，Layout={(c->GameObject.SharedGroupLayoutInstance == null ? "无" : "有")}，Render={c->GameObject.RenderFlags}，Targetable={c->GameObject.TargetableStatus}"
             + $"，Transform={c->TransformationId}，Scale={c->ModelScale:G}/{c->GameObject.Scale:G}";
     }
 

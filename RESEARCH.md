@@ -270,3 +270,14 @@ NativeActorAccess.FinishRedraw 对活跃原位关联的真实源对象保持隐�
 ILocalActorAccess 增加 CreateAt，LocalPlacement 先验证有限位置／朝向后再移除旧预览。旧前方生成路径不改位置规则。UsesLayoutModel 根据原始 NameId 和 BNpcBase 对应的 ModelChara.Type 区分源，不能根据替换后 Character.ModelCharaId 推断。诊断新增 Layout／Render 及原位替身自己的 Draw。
 
 4908 项离线检查通过，编译零警告。新增针对原位位置及不可选中、真实源快照、代理 NameId/BaseId=0、正常还原、同帧重复换模、原本隐藏、删除失败重试、5 秒加载超时、来源消失、来源槽位复用、代理 nonce 丢失和场景切换的回归检查。未在运行中的游戏验证本实现，发布为开发测试版。
+
+
+## 0.1.0.19 庭具原位模型的点击选中
+
+用户确认 0.1.0.18 可见替换成功，但不能点选新模型。原因是上一版 LocalPlacement.Targetable=false，同时原庭具及名牌被隐藏，缺少点击入口。
+
+- 原位代理改为可选中。新增 LinkedDummyTarget，只有候选指针等于当前 Visual.Address，且 LocalPreview.OwnsLive 验证完整身份／nonce 通过时，才把这次选中映射为仍存在的 Source.Address。不解引用来自调用方的任意候选指针。真实来源已消失则返回空目标；代理 nonce 丢失／被其他对象复用时放行外部对象，不把它重新映射到旧木人。清空、其他对象、普通前方预览和已解除关联的旧地址均原样返回。
+- NativeLinkedDummyTarget 在显式替换庭具前懒加载 SetHardTarget 与 SetSoftTarget Hook，使用当前安装 FFCS 声明的准确参数（含 this、两个 bool 和 int），保留原始参数并只调用一次 Original。两个 detour 以 readonly 字段强引用，卸载与安装失败路径保证清理。插件加载／仅打开窗口不安装它们。不 Hook 行动管理器，不自动施放技能。
+- 本机当前游戏程序离线核对两处签名唯一匹配：SetHardTarget 调用 RVA 0x61DDA5、函数 RVA 0x61DFF0；SetSoftTarget 调用 RVA 0x621A21、函数 RVA 0x61DD10。运行时使用 FFCS 解析地址，不硬编码这些 RVA。上述核对说明接口可定位，不证明实际游戏点选已通过。
+- 原位对齐时只向已确认本地代理复制真实木人的 CurrentTargetStatus 显示标记。原木人的 TargetableStatus、身份、OwnerId、HP 和实际目标系统引用不被替身数据覆盖。主界面增加仅在关联存在时显示的「选中木人」按钮及 /hms target，走合法的目标管理器 setter，并验证返回目标身份；不依赖每帧事后改回目标来处理点击。
+- 4916 项离线检查通过，编译零警告。覆盖当前代理到真实木人的映射、清空及普通对象不变、无来源不落到复用槽位、代理 nonce 丢失不映射外部对象、解除关联／切图不残留、普通前方预览行为不变及重复换模仅映射当前代理。用户已确认上版可见替换，本版选中效果仍需游戏内验证。

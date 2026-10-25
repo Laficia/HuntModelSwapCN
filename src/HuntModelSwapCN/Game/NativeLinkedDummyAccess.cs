@@ -57,6 +57,8 @@ public sealed unsafe class NativeLinkedDummyAccess(NativeActorAccess actors, Nat
         var c = Character(visual.Actor);
         if ((System.Numerics.Vector3)c->GameObject.Position != (System.Numerics.Vector3)position)
             c->GameObject.SetPosition(position.X, position.Y, position.Z);
+        var targetStatus = Character(source)->GameObject.CurrentTargetStatus;
+        if (c->GameObject.CurrentTargetStatus != targetStatus) c->GameObject.SetTargetStatus(targetStatus);
     }
     public bool IsReady(LocalActorLease visual)
     {

@@ -31,6 +31,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ActionPreview preview;
     private readonly LocalPreview localPreview;
     private readonly LinkedDummyPreview linkedDummy;
+    private readonly NativeLinkedDummyTarget linkedTarget;
     private readonly BufruSequence sequence;
     private readonly NativeAnimationPause pauseAccess;
     private readonly AnimationPause animationPause;
@@ -115,6 +116,7 @@ public sealed class Plugin : IDalamudPlugin
         localPreview = new(session, localActors, entry =>
             catalog.FirstOrDefault(h => h.ModelId == entry.Applied.ModelId && h.Name == entry.ReplacementName)?.IsAggressive);
         linkedDummy = new(session, localPreview, actors, new NativeLinkedDummyAccess(actors, localActors));
+        linkedTarget = new(interop, log, new LinkedDummyTarget(linkedDummy, localPreview, actors));
         actors.KeepHidden = linkedDummy.Replaces;
         pauseAccess = new(actors, interop, log);
         animationPause = new(session, pauseAccess, actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor));
@@ -142,7 +144,7 @@ public sealed class Plugin : IDalamudPlugin
             id => SkillCatalog.ModelFamily(models.GetRow((uint)id)));
         nameplatePresentation = new(nameplates, session, localPreview, log, catalog, linkedDummy.Replaces);
         commands.AddHandler("/hms", new CommandInfo(OnCommand)
-            { HelpMessage = "打开狩猎模型替换；/hms controls 悬浮控制；/hms pause 暂停；/hms resume 恢复；/hms rotate 角度 水平旋转；/hms show 恢复显示；/hms restore 恢复全部；/hms play 技能ID；/hms combo 布弗鲁连招；/hms stop 停止连招；/hms talk 阿提卡斯四句气泡；/hms stoptalk 停止台词。" });
+            { HelpMessage = "打开狩猎模型替换；/hms controls 悬浮控制；/hms target 选中原位木人；/hms pause 暂停；/hms resume 恢复；/hms rotate 角度 水平旋转；/hms show 恢复显示；/hms restore 恢复全部；/hms play 技能ID；/hms combo 布弗鲁连招；/hms stop 停止连招；/hms talk 阿提卡斯四句气泡；/hms stoptalk 停止台词。" });
         pluginInterface.UiBuilder.Draw += Draw;
         pluginInterface.UiBuilder.OpenMainUi += Open;
         pluginInterface.UiBuilder.OpenConfigUi += Open;
@@ -150,7 +152,7 @@ public sealed class Plugin : IDalamudPlugin
         client.Logout += OnLogout;
         chat.ChatMessage += OnNpcDialogue;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.18 initialized. No appearance writes, native bubbles or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.19 initialized. No appearance writes, native bubbles or animation playback have been requested.");
     }
 
     private void Open()
@@ -182,8 +184,10 @@ public sealed class Plugin : IDalamudPlugin
         else if (arguments.Trim().Equals("resume", StringComparison.OrdinalIgnoreCase))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "resume", ControlActor(snapshot), ChatFeedback: true));
         else if (arguments.Trim().Equals("controls", StringComparison.OrdinalIgnoreCase)) floatingControls = !floatingControls;
+        else if (arguments.Trim().Equals("target", StringComparison.OrdinalIgnoreCase))
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "target-source", snapshot.LinkedSource, ChatFeedback: true));
         else if (arguments.Trim().Equals("diagnose", StringComparison.OrdinalIgnoreCase))
-            chat.Print($"[狩猎模型替换 0.1.0.18] {snapshot.TargetDiagnostics}；替换条件：{snapshot.CannotApply ?? "目标可替换，请选择外观"}");
+            chat.Print($"[狩猎模型替换 0.1.0.19] {snapshot.TargetDiagnostics}；替换条件：{snapshot.CannotApply ?? "目标可替换，请选择外观"}");
         else if (arguments.Trim().Equals("talk", StringComparison.OrdinalIgnoreCase))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "dialogue-sequence", ControlActor(snapshot), ChatFeedback: true));
         else if (arguments.Trim().Equals("stoptalk", StringComparison.OrdinalIgnoreCase))
@@ -345,6 +349,16 @@ public sealed class Plugin : IDalamudPlugin
 
     private void Execute(Request request)
     {
+        if (request.Action == "target-source")
+        {
+            if (linkedDummy.Source is not { } source || !linkedDummy.Replaces(source) || actors.Resolve(source) is not { } npc)
+                throw new InvalidOperationException("当前没有可选中的原位木人，请先替换庭具木人。");
+            targets.Target = npc;
+            if (targets.Target is not IBattleNpc selectedTarget || NativeActorAccess.Identity(selectedTarget) != source)
+                throw new InvalidOperationException("游戏未接受原木人的选中请求，请复制目标诊断。");
+            status = "已请求选中原木人，战斗目标与血量仍属于真实木人。";
+            return;
+        }
         if (request.Action == "apply" && request.Actor is { } changed && linkedDummy.Contains(changed))
             request = request with { Actor = linkedDummy.Source };
         var restoreLinked = request.Action == "restore" && request.Actor is { } restored && linkedDummy.Contains(restored);
@@ -354,6 +368,7 @@ public sealed class Plugin : IDalamudPlugin
             if (request.Selection < 0 || request.Selection >= catalog.Count) throw new InvalidOperationException("请先选择怪物外观。");
             ModelSize.Validate(request.Scale);
             if (actors.CanApply(request.Actor!.Value) is { } layoutReason) throw new InvalidOperationException(layoutReason);
+            linkedTarget.EnsureEnabled();
             PrepareLocalPreviewForRemoval();
         }
         if (restoreLinked || replaceLayout || request.Action is "spawn" or "remove-local" or "all") ClearLinkedDummy();
@@ -623,7 +638,7 @@ public sealed class Plugin : IDalamudPlugin
         ImGui.SetNextWindowSize(new Vector2(700, 640), ImGuiCond.FirstUseEver);
         if (ImGui.Begin("狩猎模型替换 /hms###HuntModelSwapCN", ref visible))
         {
-            ImGui.TextDisabled("0.1.0.18 · 本机外观与动作演示");
+            ImGui.TextDisabled("0.1.0.19 · 本机外观与动作演示");
             ImGui.SameLine();
             ImGui.Checkbox("显示悬浮控制窗 /hms controls", ref floatingControls);
             var hideSelf = view.HideSelf;
@@ -641,6 +656,11 @@ public sealed class Plugin : IDalamudPlugin
             if (view.HideAllMonsters && !lastHideAllMonsters) collapseHiddenList = true;
             lastHideAllMonsters = view.HideAllMonsters;
             ImGui.TextUnformatted($"当前目标：{view.TargetName}");
+            if (view.LinkedSource.HasValue)
+            {
+                ImGui.SameLine();
+                if (ImGui.SmallButton("选中木人 /hms target")) Enqueue("target-source", view.LinkedSource);
+            }
             var hiddenTargets = view.HiddenTargets ?? [];
             ImGui.Separator();
             ImGui.SetNextItemWidth(120);
@@ -762,10 +782,10 @@ public sealed class Plugin : IDalamudPlugin
                 ImGui.TextWrapped("生成无需选中目标，只保留一只本地预览，头顶血条隐藏。替换可用于战斗小怪或可攻击木人；名字、等级、头标使用所选怪物，体型默认原版倍率，可自由调整。");
                 ImGui.TextWrapped("B 为蓝色被动精英头标，A/S/SS 与 SS 随从为对应主动头标。仅改变本机显示，不改变真实怪物的行动、血量和伤害。切图结束临时替换，卸载时恢复仍存在的对象。");
                 ImGui.TextWrapped("隐藏所有小怪会保留演示对象，单独恢复的对象在本次开启期间保持显示。重新开启批量隐藏时重置例外。仅隐藏模型，名牌和独立技能特效仍可能显示。");
-                ImGui.TextWrapped("庭具木人使用原位本地模型，原木人保留为真实战斗目标，替身不可选中。它与前方生成共用一个本地模型；再次生成、移除预览或恢复时会还原庭具。木人歼灭战等有角色绘制对象的木人沿用直接替换。");
+                ImGui.TextWrapped("庭具木人使用原位本地模型，点击模型或名牌时将选择转交给真实木人；也可点「选中木人」或输入 /hms target。它与前方生成共用一个本地模型；再次生成、移除预览或恢复时会还原庭具。木人歼灭战等有角色绘制对象的木人沿用直接替换。");
                 ImGui.TextWrapped(view.TargetDiagnostics);
                 if (ImGui.SmallButton("复制目标诊断"))
-                    ImGui.SetClipboardText($"狩猎模型替换 0.1.0.18\n{view.TargetDiagnostics}\n替换条件：{reason ?? "可替换"}");
+                    ImGui.SetClipboardText($"狩猎模型替换 0.1.0.19\n{view.TargetDiagnostics}\n替换条件：{reason ?? "可替换"}");
                 ImGui.SameLine();
                 ImGui.TextDisabled("或输入 /hms diagnose");
             }
@@ -1042,21 +1062,28 @@ public sealed class Plugin : IDalamudPlugin
         {
             void Shutdown()
             {
-                sequence.Stop("插件卸载，连招已取消。");
-                modelRotation.Clear();
-                try { dialoguePreview.Reset(); }
-                catch (Exception ex) { log.Error(ex, "卸载时关闭演示气泡失败"); }
-                try { animationPause.Reset(); }
-                finally
+                try
                 {
-                    pauseAccess.Dispose();
-                    try { modelVisibility.Reset(); }
+                    sequence.Stop("插件卸载，连招已取消。");
+                    modelRotation.Clear();
+                    try { dialoguePreview.Reset(); }
+                    catch (Exception ex) { log.Error(ex, "卸载时关闭演示气泡失败"); }
+                    try { animationPause.Reset(); }
                     finally
                     {
-                        try { ClearLinkedDummy(); localPreview.Clear(); }
-                        finally { session.Shutdown(); linkedDummy.FinishRestores(); }
+                        try { pauseAccess.Dispose(); }
+                        finally
+                        {
+                            try { modelVisibility.Reset(); }
+                            finally
+                            {
+                                try { ClearLinkedDummy(); localPreview.Clear(); }
+                                finally { session.Shutdown(); linkedDummy.FinishRestores(); }
+                            }
+                        }
                     }
                 }
+                finally { linkedTarget.Dispose(); }
             }
             if (framework.IsInFrameworkUpdateThread) Shutdown();
             else framework.RunOnFrameworkThread(Shutdown).GetAwaiter().GetResult();

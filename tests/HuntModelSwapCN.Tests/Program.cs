@@ -740,15 +740,23 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
     var f = Setup();
     f.Link.Start(source, "木人", sampleHunt, sampleHunt.Scale, 0);
     var visual = f.Link.Visual!.Value;
-    Check(f.Factory.Placements.Single() == new LocalPlacement(new(10, 20, 30), 1.25f, false),
-        "A furnishing replacement must spawn at the exact target position/rotation and remain untargetable.");
+    Check(f.Factory.Placements.Single() == new LocalPlacement(new(10, 20, 30), 1.25f, true),
+        "A furnishing replacement must spawn at the exact target position/rotation and be selectable for source redirection.");
     Check(f.Link.Replaces(source) && f.Preview.OwnsLive(visual) && visual.NameId == 0 && visual.DataId == 0
         && f.Session.Entries.Single(e => e.Actor == source).Original == dummyState,
         "The linked visual must retain nonce ownership and no real hunt identity, while saving the original training target.");
+    var selection = new LinkedDummyTarget(f.Link, f.Preview, f.Actors);
+    Check(selection.Redirect(visual.Address) == source.Address,
+        "Selecting the actual owned furnishing visual must immediately resolve to the real training target.");
+    Check(selection.Redirect(0) == 0 && selection.Redirect(source.Address) == source.Address
+        && selection.Redirect(other.Address) == other.Address,
+        "Clear-target, direct source selection and unrelated actor selection must remain unchanged.");
     f.Session.Tick(); f.Link.Tick(1);
     Check(f.Source.IsHidden(source) && f.Source.Aligned.Single() == (visual, source),
         "A live linked visual must conceal the original source and follow its position without changing the training identity.");
     f.Link.Clear();
+    Check(selection.Redirect(visual.Address) == visual.Address,
+        "Clearing a furnishing link must immediately stop redirecting its previous visual address.");
     Check(f.Factory.Deleted.Count == 1 && f.Link.Source is null && f.Source.Restores.Count == 0,
         "Removing a linked model must delete its owned visual and defer original visibility restoration until redraw finishes.");
     f.Session.Tick(); f.Link.Tick(2);
@@ -790,7 +798,10 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
     f = Setup();
     f.Link.Start(source, "木人", sampleHunt, 3, 0); f.Session.Tick();
     var recycledSource = source with { ObjectId = source.ObjectId + 1 };
+    var sourceLostSelection = new LinkedDummyTarget(f.Link, f.Preview, f.Actors);
     f.Actors.Actors.Remove(source); f.Actors.Actors.Add(recycledSource, original);
+    Check(sourceLostSelection.Redirect(f.Link.Visual!.Value.Address) == 0,
+        "An owned visual with a missing/recycled real source must not select the foreign actor at the old source address.");
     f.Link.Tick(1); f.Session.Tick(); f.Link.FinishRestores();
     Check(f.Preview.Actor is null && f.Actors.Actors[recycledSource] == original && f.Source.Restores.Count == 0,
         "A despawned source must remove the local visual without restoring anything into a recycled target slot.");
@@ -799,6 +810,9 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
     f.Link.Start(source, "木人", sampleHunt, 3, 0); f.Session.Tick();
     var oldVisual = f.Link.Visual!.Value;
     f.Actors.Actors[oldVisual] = original; // Same identity/address, different native ownership marker.
+    var nonceLostSelection = new LinkedDummyTarget(f.Link, f.Preview, f.Actors);
+    Check(nonceLostSelection.Redirect(oldVisual.Address) == oldVisual.Address,
+        "A foreign object reusing the visual's identity/address must never be redirected after its nonce changes.");
     f.Link.Tick(1); f.Session.Tick(); f.Link.FinishRestores();
     Check(f.Factory.Deleted.Count == 0 && f.Actors.Actors[oldVisual] == original && !f.Source.IsHidden(source),
         "A lost proxy nonce must restore the source but must never delete or rewrite the foreign object.");
@@ -808,6 +822,21 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
     f.Link.ForgetScene(); f.Preview.ForgetScene(); f.Session.ForgetDespawned(); f.Link.Tick(1);
     Check(f.Actors.Writes.Count == linkedWriteCount && f.Factory.Deleted.Count == 0 && f.Source.Forgotten,
         "A territory change must discard the link without touching native objects from the prior scene.");
+    Check(new LinkedDummyTarget(f.Link, f.Preview, f.Actors).Redirect(source.Address) == source.Address,
+        "A scene change must leave future unrelated targeting requests unmodified.");
+
+    f = Setup();
+    var ordinaryPreview = f.Preview.Spawn(sampleHunt, 3, 8);
+    Check(new LinkedDummyTarget(f.Link, f.Preview, f.Actors).Redirect(ordinaryPreview.Address) == ordinaryPreview.Address,
+        "An ordinary front-of-player preview must retain its original selection behavior without a furnishing association.");
+    f.Preview.Clear();
+    f.Link.Start(source, "木人", sampleHunt, 3, 0);
+    var previousVisual = f.Link.Visual!.Value;
+    var repeatSelection = new LinkedDummyTarget(f.Link, f.Preview, f.Actors);
+    f.Link.Clear(); f.Link.Start(source, "木人", sampleHunt, 3, 1);
+    Check(repeatSelection.Redirect(previousVisual.Address) == previousVisual.Address
+        && repeatSelection.Redirect(f.Link.Visual!.Value.Address) == source.Address,
+        "Repeated furnishing replacements must redirect only the current owned visual, never an old one.");
 }
 {
     HuntAppearance[] iconCatalog = [sampleHunt, sampleHunt with { Rank = 1, Name = "B怪" },

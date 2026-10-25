@@ -27,6 +27,7 @@
     <Compile Include="../../src/HuntModelSwapCN/Core/BufruSequence.cs" Link="BufruSequence.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/LocalPreview.cs" Link="LocalPreview.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/LinkedDummyPreview.cs" Link="LinkedDummyPreview.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Core/LinkedDummyTarget.cs" Link="LinkedDummyTarget.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/ModelVisibility.cs" Link="ModelVisibility.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Catalog/HuntCatalog.cs" Link="HuntCatalog.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Catalog/SkillCatalog.cs" Link="SkillCatalog.cs" />

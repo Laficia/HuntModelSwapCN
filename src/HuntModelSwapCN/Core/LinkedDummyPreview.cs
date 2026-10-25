@@ -32,7 +32,7 @@ public sealed class LinkedDummyPreview(SwapSession session, LocalPreview preview
     {
         if (Source.HasValue) throw new InvalidOperationException("请先恢复已有的庭具木人替换。");
         if (!access.Exists(source)) throw new InvalidOperationException("木人已离开加载范围。");
-        var placement = access.Placement(source) with { Targetable = false };
+        var placement = access.Placement(source) with { Targetable = true };
         placement.Validate(); ModelSize.Validate(scale);
         var current = actors.Read(source);
         var applied = HuntAppearanceReplacement.Create(current, appearance, scale);
