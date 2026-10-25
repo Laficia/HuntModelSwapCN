@@ -3,8 +3,8 @@
     "Author": "Laficia",
     "Name": "狩猎模型替换",
     "InternalName": "HuntModelSwapCN",
-    "AssemblyVersion": "0.1.0.17",
-    "Description": "独立于 HHT。/hms 打开，可替换战斗小怪或可攻击木人的外观，也可在面前生成本地预览。207 种外观，各有对应技能库，共 802 项技能。名字、显示等级、原版头标按所选怪物设置，默认使用其原版体型。支持木人重置后外观维护、地图筛选、自由体型、隐藏、暂停恢复、旋转与 S 怪台词气泡。仅本机演示，不产生真实伤害。",
+    "AssemblyVersion": "0.1.0.18",
+    "Description": "独立于 HHT。/hms 打开，替换战斗小怪或木人外观，也可在面前生成本地预览。庭具木人使用原位本地模型，真实木人保留为训练目标；与前方生成共用一个预览位置。207 种外观、802 项对应技能。支持名字、显示等级、原版头标、原版体型及自由调整、地图筛选、隐藏、暂停恢复、旋转和 S 怪台词气泡。仅本机演示，不产生真实伤害。",
     "ApplicableVersion": "any",
     "Tags": [
       "hunt",
@@ -17,14 +17,14 @@
     "CanUnloadAsync": false,
     "LoadPriority": 0,
     "Punchline": "狩猎外观、名字、等级、头标与对应技能演示，支持 SS 及随从",
-    "Changelog": "0.1.0.17：修复木人因子类型或绘制对象未建立而无法点击替换的问题，已确认木人使用独立入口，不放宽其他 NPC 限制。界面精简；隐藏列表默认折叠，开启隐藏所有小怪时自动收起一次，数量变化保留展开状态，列表限高滚动。新增复制目标诊断与 /hms diagnose。保留原有外观、等级、头标、体型和对应技能功能。",
+    "Changelog": "0.1.0.18：针对庭具木人 BaseId 901 的 Type=0／无 DrawObject 情况加入原位本地模型方案，隐藏原庭具和重复名牌，保留真实战斗目标；正常角色模型木人继续直接替换。替身不可选中，支持技能、暂停、旋转和体型控制，共用一个本地预览位置。增加加载超时回滚、关联恢复、消失和槽位复用保护；诊断附加替身实际绘制状态。保留简洁界面和原有功能。",
     "AcceptsFeedback": true,
-    "IsTestingExclusive": false,
-    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.17/latest.zip",
-    "LastUpdate": 1792928724,
-    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.17/latest.zip",
-    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.17/latest.zip",
+    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.18/latest.zip",
     "IsHide": false,
-    "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN"
+    "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN",
+    "IsTestingExclusive": false,
+    "LastUpdate": 1792937245,
+    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.18/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.18/latest.zip"
   }
 ]
