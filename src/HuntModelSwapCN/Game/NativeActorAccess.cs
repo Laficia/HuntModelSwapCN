@@ -59,6 +59,33 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
         c->Timeline.TimelineSequencer.PlayTimeline(timelineId);
     }
 
+    public bool IsAnimationActive(ActorIdentity actor, int expectedModelId, ushort timelineId)
+    {
+        if (Resolve(actor) is not { } npc) return false;
+        var c = (NativeCharacter*)npc.Address;
+        if (c->ModelContainer.ModelCharaId != expectedModelId || c->GameObject.DrawObject == null
+            || c->GameObject.DrawObject->LoadState != 3) return false;
+        for (uint slot = 0; slot < 14; slot++)
+            if (c->Timeline.TimelineSequencer.TimelineIds[(int)slot] == timelineId
+                && c->Timeline.TimelineSequencer.GetSchedulerTimeline(slot) != null) return true;
+        return false;
+    }
+
+    public void StopAnimation(ActorIdentity actor, int expectedModelId, ushort timelineId)
+    {
+        var c = AnimationCharacter(actor, expectedModelId);
+        for (uint slot = 0; slot < 14; slot++)
+            if (c->Timeline.TimelineSequencer.TimelineIds[(int)slot] == timelineId)
+                c->Timeline.TimelineSequencer.SetSlotTimeline(slot, 0);
+    }
+
+    public void ResetIdle(ActorIdentity actor, int expectedModelId)
+    {
+        var c = AnimationCharacter(actor, expectedModelId);
+        c->Timeline.TimelineSequencer.PlayTimeline(c->InCombat || c->IsWeaponDrawn
+            ? NativeCombatPresentationCodec.BattleIdle : NativeCombatPresentationCodec.NormalIdle);
+    }
+
     public void OpenBubble(ActorIdentity actor, int modelId, string text, float seconds)
     {
         var c = AnimationCharacter(actor, modelId);
@@ -100,7 +127,8 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
         return text + $"，NameId={npc.NameId}，OwnerId={npc.OwnerId:X8}，HP={npc.CurrentHp}/{npc.MaxHp}"
             + $"，Model={c->ModelContainer.ModelCharaId}，Draw={(c->GameObject.DrawObject == null ? "无" : c->GameObject.DrawObject->LoadState.ToString())}"
             + $"，Layout={(c->GameObject.SharedGroupLayoutInstance == null ? "无" : "有")}，Render={c->GameObject.RenderFlags}，Targetable={c->GameObject.TargetableStatus}，可选中={c->GameObject.GetIsTargetable()}"
-            + $"，Transform={c->TransformationId}，Scale={c->ModelScale:G}/{c->GameObject.Scale:G}";
+            + $"，Transform={c->TransformationId}，Scale={c->ModelScale:G}/{c->GameObject.Scale:G}"
+            + $"，战斗={c->InCombat}，拔刀={c->IsWeaponDrawn}，基础动作={c->Timeline.TimelineSequencer.TimelineIds[0]}";
     }
 
     private NativeCharacter* Character(ActorIdentity actor)

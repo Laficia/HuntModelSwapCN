@@ -98,7 +98,7 @@ public sealed class LocalPreview(SwapSession session, ILocalActorAccess access, 
         if (access.Exists(lease))
         {
             // Replacing an already spawned B with A/S (or the reverse) must update the icon too.
-            var entry = session.Entries.FirstOrDefault(e => e.Actor == lease.Actor);
+            var entry = session.EntryFor(lease.Actor);
             if (entry is not null && !entry.Restoring && aggressionFor?.Invoke(entry) is { } aggressive
                 && aggressive != lease.IsAggressive)
                 Actor = lease = lease with { IsAggressive = aggressive };

@@ -27,6 +27,10 @@
     <Compile Include="../../src/HuntModelSwapCN/Core/BufruSequence.cs" Link="BufruSequence.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/LocalPreview.cs" Link="LocalPreview.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/LinkedDummyPreview.cs" Link="LinkedDummyPreview.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Core/CombatPose.cs" Link="CombatPose.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Core/DemoDefaults.cs" Link="DemoDefaults.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Core/UserPreferences.cs" Link="UserPreferences.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Core/RefreshGate.cs" Link="RefreshGate.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/LinkedDummyTarget.cs" Link="LinkedDummyTarget.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/ModelVisibility.cs" Link="ModelVisibility.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Catalog/HuntCatalog.cs" Link="HuntCatalog.cs" />
@@ -34,6 +38,7 @@
     <Compile Include="../../src/HuntModelSwapCN/Catalog/HuntSkillPresets.cs" Link="HuntSkillPresets.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Game/NativeAppearanceCodec.cs" Link="NativeAppearanceCodec.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Game/NativeLocalPresentationCodec.cs" Link="NativeLocalPresentationCodec.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Game/NativeCombatPresentationCodec.cs" Link="NativeCombatPresentationCodec.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Game/NativeLocalNameplateCodec.cs" Link="NativeLocalNameplateCodec.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Game/ModelVisibilityCodec.cs" Link="ModelVisibilityCodec.cs" />
     <Reference Include="FFXIVClientStructs"><HintPath>$(DALAMUD_HOME)/FFXIVClientStructs.dll</HintPath></Reference>

@@ -2,6 +2,11 @@ using HuntModelSwapCN.Catalog;
 
 namespace HuntModelSwapCN.Core;
 
+public readonly record struct CombatPresentation(bool InCombat, bool WeaponDrawn)
+{
+    public static CombatPresentation From(bool inCombat, bool weaponDrawn) => new(inCombat, inCombat || weaponDrawn);
+}
+
 public interface ILinkedDummyAccess
 {
     bool Exists(ActorIdentity source);
@@ -11,18 +16,22 @@ public interface ILinkedDummyAccess
     void RestoreVisibility(ActorIdentity source, bool hidden);
     void Align(LocalActorLease visual, ActorIdentity source);
     bool IsReady(LocalActorLease visual);
+    CombatPresentation ReadCombat(ActorIdentity source);
+    void SyncCombat(LocalActorLease visual, CombatPresentation combat, bool changePose);
     void ForgetScene() { }
 }
 
 // A Type=0 furnishing has layout graphics, not a CharacterBase. Reuse the one
 // client-only preview at its position while preserving the real training target.
-public sealed class LinkedDummyPreview(SwapSession session, LocalPreview preview, IActorAccess actors, ILinkedDummyAccess access)
+public sealed class LinkedDummyPreview(SwapSession session, LocalPreview preview, IActorAccess actors, ILinkedDummyAccess access,
+    Func<ActorIdentity, bool>? deferCombat = null)
 {
     public ActorIdentity? Source { get; private set; }
     public ActorIdentity? Visual { get; private set; }
     private bool originalHidden;
     private long startedAt;
     private bool ready;
+    public CombatPose Pose { get; } = new();
     private readonly Dictionary<ActorIdentity, bool> pendingVisibility = [];
 
     public bool Contains(ActorIdentity actor) => Source == actor || Visual == actor;
@@ -45,7 +54,7 @@ public sealed class LinkedDummyPreview(SwapSession session, LocalPreview preview
         try { visual = preview.SpawnAt(appearance, scale, placement); }
         catch { access.RestoreVisibility(source, wasHidden); throw; }
         pendingVisibility.Remove(source);
-        Source = source; Visual = visual; originalHidden = wasHidden; startedAt = now; ready = false;
+        Source = source; Visual = visual; originalHidden = wasHidden; startedAt = now; ready = false; Pose.Forget();
         try
         {
             session.Apply(source, originalName, appearance.Name, applied, presentationOnly: true);
@@ -57,10 +66,15 @@ public sealed class LinkedDummyPreview(SwapSession session, LocalPreview preview
     public void Tick(long now)
     {
         FinishRestores();
-        if (Source is not { } source || Visual is not { } visual) return;
+        if (Source is not { } source || Visual is not { } visual)
+        {
+            SyncPose(default);
+            return;
+        }
         if (!access.Exists(source) || !preview.OwnsLive(visual)) { Clear(); return; }
         var lease = preview.Actor!;
-        ready |= access.IsReady(lease);
+        var loaded = access.IsReady(lease);
+        ready |= loaded;
         if (!ready && now - startedAt >= 5000)
         {
             Clear();
@@ -68,6 +82,16 @@ public sealed class LinkedDummyPreview(SwapSession session, LocalPreview preview
         }
         access.Hide(source);
         access.Align(lease, source);
+        SyncPose(access.ReadCombat(source));
+    }
+
+    private void SyncPose(CombatPresentation source)
+    {
+        if (preview.Actor is not { } lease || !preview.OwnsLive(lease.Actor)) { Pose.Forget(); return; }
+        var entry = session.EntryFor(lease.Actor);
+        if (entry is null || entry.Restoring) { Pose.Forget(); return; }
+        Pose.Tick(lease, entry.Applied.ModelId, source, !entry.WaitingForDraw && access.IsReady(lease),
+            deferCombat?.Invoke(lease.Actor) ?? false, access.SyncCombat);
     }
 
     public void Clear()
@@ -75,7 +99,7 @@ public sealed class LinkedDummyPreview(SwapSession session, LocalPreview preview
         if (Source is not { } source) return;
         // A failed delete retains the link for retry instead of losing ownership.
         if (Visual is { } visual && preview.Owns(visual)) preview.Clear();
-        Source = null; Visual = null;
+        Source = null; Visual = null; Pose.Forget();
         pendingVisibility[source] = originalHidden;
         session.Restore(source);
     }
@@ -84,11 +108,11 @@ public sealed class LinkedDummyPreview(SwapSession session, LocalPreview preview
     {
         foreach (var (source, hidden) in pendingVisibility.ToArray())
         {
-            if (session.Entries.Any(e => e.Actor == source && e.Restoring)) continue;
+            if (session.EntryFor(source) is { Restoring: true }) continue;
             if (access.Exists(source)) access.RestoreVisibility(source, hidden);
             pendingVisibility.Remove(source);
         }
     }
 
-    public void ForgetScene() { Source = null; Visual = null; pendingVisibility.Clear(); access.ForgetScene(); }
+    public void ForgetScene() { Source = null; Visual = null; Pose.Forget(); pendingVisibility.Clear(); access.ForgetScene(); }
 }

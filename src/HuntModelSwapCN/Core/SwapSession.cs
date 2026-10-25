@@ -36,6 +36,11 @@ public sealed class SwapSession(IActorAccess access)
 {
     private readonly Dictionary<ActorIdentity, SwapEntry> entries = new();
     public IReadOnlyCollection<SwapEntry> Entries => entries.Values;
+    private SwapEntry[]? snapshot;
+    public long Revision { get; private set; }
+    public SwapEntry[] Snapshot => snapshot ??= entries.Values.ToArray();
+    public SwapEntry? EntryFor(ActorIdentity actor) => entries.GetValueOrDefault(actor);
+    private void Changed() { Revision++; snapshot = null; }
 
     public string? NameFor(ActorIdentity actor) => entries.TryGetValue(actor, out var entry)
         ? entry.Restoring ? entry.OriginalName : entry.ReplacementName : null;
@@ -46,6 +51,7 @@ public sealed class SwapSession(IActorAccess access)
         var original = entries.TryGetValue(actor, out var previous) ? previous.Original : access.Read(actor);
         // Register before writing so a partial failure can still be restored.
         entries[actor] = new(actor, previous?.OriginalName ?? originalName, replacementName, original, state, true, false, presentationOnly);
+        Changed();
         if (presentationOnly) access.RefreshPresentation(actor, state);
         else access.BeginRedraw(actor, state);
     }
@@ -53,8 +59,9 @@ public sealed class SwapSession(IActorAccess access)
     public bool Restore(ActorIdentity actor)
     {
         if (!entries.TryGetValue(actor, out var entry)) return false;
-        if (!access.Exists(actor)) { entries.Remove(actor); return false; }
+        if (!access.Exists(actor)) { entries.Remove(actor); Changed(); return false; }
         entries[actor] = entry with { WaitingForDraw = true, Restoring = true };
+        Changed();
         if (entry.PresentationOnly) access.RefreshPresentation(actor, entry.Original);
         else access.BeginRedraw(actor, entry.Original);
         return true;
@@ -71,25 +78,28 @@ public sealed class SwapSession(IActorAccess access)
             throw new InvalidOperationException("请等待对象完成重绘后再调整体型。");
         var state = ModelSize.Apply(entry.Applied, scale);
         entries[actor] = entry with { Applied = state };
+        Changed();
         access.RefreshPresentation(actor, state);
     }
 
     public void Tick()
     {
-        foreach (var entry in entries.Values.ToArray())
+        foreach (var entry in Snapshot)
         {
-            if (!access.Exists(entry.Actor)) { entries.Remove(entry.Actor); continue; }
+            if (!access.Exists(entry.Actor)) { entries.Remove(entry.Actor); Changed(); continue; }
             if (entry.WaitingForDraw)
             {
                 if (!entry.PresentationOnly) access.FinishRedraw(entry.Actor);
-                if (entry.Restoring) { entries.Remove(entry.Actor); continue; }
+                if (entry.Restoring) { entries.Remove(entry.Actor); Changed(); continue; }
                 entries[entry.Actor] = entry with { WaitingForDraw = false };
+                Changed();
             }
             // A real dummy can be reset without leaving its object-table slot.
             // Reuse the two-frame redraw, keeping the first original snapshot.
             if (!entry.PresentationOnly && access.NeedsRedraw(entry.Actor, entry.Applied))
             {
                 entries[entry.Actor] = entry with { WaitingForDraw = true };
+                Changed();
                 access.BeginRedraw(entry.Actor, entry.Applied);
                 continue;
             }
@@ -103,14 +113,14 @@ public sealed class SwapSession(IActorAccess access)
     }
 
     // Used only after the game has discarded the territory's actors.
-    public void ForgetDespawned() => entries.Clear();
+    public void ForgetDespawned() { if (entries.Count == 0) return; entries.Clear(); Changed(); }
 
-    public void Forget(ActorIdentity actor) => entries.Remove(actor);
+    public void Forget(ActorIdentity actor) { if (entries.Remove(actor)) Changed(); }
 
     public void Shutdown()
     {
         List<Exception> failures = [];
-        foreach (var entry in entries.Values.ToArray())
+        foreach (var entry in Snapshot)
         {
             if (!access.Exists(entry.Actor)) continue;
             if (entry.PresentationOnly)
@@ -128,6 +138,7 @@ public sealed class SwapSession(IActorAccess access)
             }
         }
         entries.Clear();
+        Changed();
         if (failures.Count != 0) throw new AggregateException("部分对象恢复失败。", failures);
     }
 }

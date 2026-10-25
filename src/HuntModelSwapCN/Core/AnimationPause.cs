@@ -23,8 +23,8 @@ public sealed class AnimationPause(SwapSession session, IAnimationPauseAccess ac
     private sealed record Entry(ActorIdentity Actor, int ModelId, AnimationClockState Original, bool FreezeFailed = false);
     private readonly Dictionary<ActorIdentity, Entry> entries = [];
     public IReadOnlyCollection<ActorIdentity> Actors => entries.Keys;
-    private bool Valid(Entry entry) => session.Entries.Any(s => s.Actor == entry.Actor
-        && s.Applied.ModelId == entry.ModelId && !s.WaitingForDraw && !s.Restoring)
+    private bool Valid(Entry entry) => session.EntryFor(entry.Actor) is { WaitingForDraw: false, Restoring: false } swap
+        && swap.Applied.ModelId == entry.ModelId
         && (isEligible?.Invoke(entry.Actor) ?? true) && access.IsCurrent(entry.Actor, entry.ModelId);
     public bool IsPaused(ActorIdentity actor) => entries.TryGetValue(actor, out var entry) && Valid(entry);
     public bool IsPausedAddress(nint address) => entries.Values.Any(e => e.Actor.Address == address && Valid(e));
@@ -32,7 +32,7 @@ public sealed class AnimationPause(SwapSession session, IAnimationPauseAccess ac
     public void Pause(ActorIdentity actor)
     {
         if (IsPaused(actor)) return;
-        var applied = session.Entries.FirstOrDefault(e => e.Actor == actor)
+        var applied = session.EntryFor(actor)
             ?? throw new InvalidOperationException("请先生成预览或替换目标模型。");
         var entry = new Entry(actor, applied.Applied.ModelId, new(0, []));
         if (!Valid(entry)) throw new InvalidOperationException("请等待演示对象完成加载，或重新生成预览。");
@@ -49,7 +49,7 @@ public sealed class AnimationPause(SwapSession session, IAnimationPauseAccess ac
         if (!entries.Remove(actor, out var entry))
         {
             if (!repairIfNotPaused) return false;
-            var applied = session.Entries.FirstOrDefault(e => e.Actor == actor)
+            var applied = session.EntryFor(actor)
                 ?? throw new InvalidOperationException("请先生成预览或替换目标模型。");
             entry = new(actor, applied.Applied.ModelId, new(0, []));
             if (!Valid(entry)) throw new InvalidOperationException("演示对象不可用，请等待模型完成加载。");

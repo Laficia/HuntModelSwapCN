@@ -65,5 +65,21 @@ public sealed unsafe class NativeLinkedDummyAccess(NativeActorAccess actors, Nat
         var draw = Character(visual.Actor)->GameObject.DrawObject;
         return draw != null && draw->LoadState == 3;
     }
+    public CombatPresentation ReadCombat(ActorIdentity source)
+    {
+        var c = Character(source);
+        return CombatPresentation.From(c->InCombat, c->IsWeaponDrawn);
+    }
+    public void SyncCombat(LocalActorLease visual, CombatPresentation combat, bool changePose)
+    {
+        if (!local.Exists(visual)) return;
+        var c = Character(visual.Actor);
+        if (c->GameObject.DrawObject == null || c->GameObject.DrawObject->LoadState != 3) return;
+        NativeCombatPresentationCodec.Write(c, combat);
+        // Only enter/leave battle idle on a transition. Never restart the base
+        // timeline every frame or copy a furnishing's incompatible animation IDs.
+        if (changePose) c->Timeline.TimelineSequencer.PlayTimeline(combat.WeaponDrawn
+            ? NativeCombatPresentationCodec.BattleIdle : NativeCombatPresentationCodec.NormalIdle);
+    }
     public void ForgetScene() => layouts.Clear();
 }

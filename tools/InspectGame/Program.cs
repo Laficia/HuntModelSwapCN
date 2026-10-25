@@ -2,6 +2,25 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length is 2 or 3 && args[1] == "--combat-api")
+{
+    foreach (var t in new[] { typeof(Character), typeof(CharacterData), typeof(TimelineContainer),
+        typeof(FFXIVClientStructs.FFXIV.Client.Game.Control.ActionTimelineSequencer) })
+    {
+        Console.WriteLine(t.FullName);
+        foreach (var p in t.GetProperties().Where(p => p.Name.Contains("Combat") || p.Name.Contains("Weapon")))
+            Console.WriteLine($"property {p.Name} get={p.CanRead} set={p.CanWrite}");
+        foreach (var f in t.GetFields().Where(f => !f.IsStatic && new[] { "Flags", "State", "Timeline", "Target", "Override" }.Any(s => f.Name.Contains(s))))
+            Console.WriteLine($"field {f.Name}:{f.FieldType.Name} offset={System.Runtime.InteropServices.Marshal.OffsetOf(t, f.Name):X}");
+        foreach (var m in t.GetMethods().Where(m => m.DeclaringType == t && new[] { "Combat", "Weapon", "Timeline", "Target" }.Any(s => m.Name.Contains(s)) && !m.IsSpecialName))
+            Console.WriteLine($"method {m}: {string.Join(";", m.GetCustomAttributesData())}");
+    }
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    foreach (var t in probe.Excel.GetSheet<ActionTimeline>()!.Where(t => t.RowId < 100 || t.Key.ToString().Contains("battle") || t.Key.ToString().Contains("idle")).Take(130))
+        Console.WriteLine($"Timeline {t.RowId}: {t.Key} slot={t.Slot} loop={t.IsLoop}");
+    return;
+}
+
 if (args.Length == 2 && args[1] == "--target-visibility-api")
 {
     foreach (var flag in Enum.GetValues<FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectTargetableFlags>())

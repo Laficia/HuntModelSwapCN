@@ -364,6 +364,47 @@ previewAccess.Actors.Add(actor, original);
 var previewSession = new SwapSession(previewAccess);
 var preview = new ActionPreview(previewSession, animationAccess);
 var testSkill = new SkillAnimation(27316, "巨魔碎颈臂", 3205, "mon_sp/[SKL_ID]/mon_sp005", 1);
+{
+    var a = new FakeAccess(); a.Actors[actor] = original;
+    var s = new SwapSession(a); s.Apply(actor, "小怪", "布弗鲁", State(3315, 3)); s.Tick();
+    var anim = new FakeAnimationAccess();
+    var playback = new ActionPreview(s, anim);
+    var paused = false; var owned = true;
+    playback.IsPaused = _ => paused; playback.IsEligible = _ => owned;
+    playback.Play(actor, testSkill, 0);
+    Check(playback.IsBusy(actor, 749), "A manual animation must protect its startup frames from automatic stance changes.");
+    anim.Active = true;
+    Check(playback.IsBusy(actor, 20000), "A still-active native animation must retain priority beyond any fixed short timeout.");
+    paused = true; playback.Tick(30000);
+    Check(playback.IsBusy(actor, 100000), "Pause must retain an active manual animation's priority.");
+    paused = false; playback.Tick(100001); anim.Active = false;
+    Check(!playback.IsBusy(actor, 100002), "Once the native animation ends, automatic stance changes must be allowed again.");
+    paused = true;
+    var before = anim.Calls.Count;
+    try { playback.Play(actor, testSkill, 101000); throw new Exception("Paused skill accepted."); }
+    catch (InvalidOperationException) { Check(anim.Calls.Count == before, "A direct manual skill request must never replace a frozen pose."); }
+    paused = false; playback.Play(actor, testSkill, 102000); playback.Tick(102100);
+    paused = true; playback.Tick(102200); playback.Tick(200000);
+    paused = false; playback.Tick(200001);
+    Check(playback.IsBusy(actor, 200002), "Pause must preserve the startup grace period rather than consuming it in wall time.");
+    anim.Active = true; playback.Stop(actor);
+    Check(anim.Stopped.Single() == (actor, 3315, (ushort)3205) && !playback.IsBusy(actor, 200003),
+        "Explicit reset must stop only the tracked manual timeline and release its priority.");
+    playback.Play(actor, testSkill, 201000); owned = false;
+    Check(!playback.IsBusy(actor, 201001), "A failed ownership check must discard manual priority without following a recycled actor.");
+    playback.Stop(actor);
+    Check(anim.Stopped.Count == 1, "A lost lease must not receive native stop calls.");
+    owned = true; playback.Play(actor, testSkill, 202000);
+    s.Apply(actor, "小怪", "另一模型", State(235, 1)); s.Tick();
+    Check(!playback.IsBusy(actor, 202001), "A model change must not inherit the previous model's active skill lease.");
+    playback.Clear();
+    Check(!playback.IsBusy(actor, 202002), "Scene clearing must drop all animation priority state.");
+    s.Apply(actor, "小怪", "布弗鲁", State(3315, 3)); s.Tick();
+    playback.Play(actor, testSkill, 203000); anim.Active = true;
+    playback.Forget(actor);
+    Check(!playback.IsBusy(actor, 203001) && anim.Stopped.Count == 1,
+        "Deleting an owned visual must drop its manual priority before the same identity can be reused, without stopping a new actor.");
+}
 void RefusePreview(ActorIdentity target, long time, string message)
 {
     var calls = animationAccess.Calls.Count;
@@ -728,6 +769,7 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
 {
     var source = actor with { NameId = 541, DataId = 901 };
     var dummyState = State(2449, 1) with { NameBytes = DisplayName.Encode("木人"), Level = 1 };
+    var deferCombat = false;
     (FakeAccess Actors, FakeLocalAccess Factory, SwapSession Session, LocalPreview Preview, FakeLinkedAccess Source, LinkedDummyPreview Link) Setup()
     {
         var a = new FakeAccess(); a.Actors.Add(source, dummyState);
@@ -735,7 +777,7 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
         var swaps = new SwapSession(a);
         var p = new LocalPreview(swaps, factory);
         var sourceAccess = new FakeLinkedAccess(a);
-        return (a, factory, swaps, p, sourceAccess, new LinkedDummyPreview(swaps, p, a, sourceAccess));
+        return (a, factory, swaps, p, sourceAccess, new LinkedDummyPreview(swaps, p, a, sourceAccess, _ => deferCombat));
     }
     var f = Setup();
     f.Link.Start(source, "木人", sampleHunt, sampleHunt.Scale, 0);
@@ -863,6 +905,200 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
     Check(repeatSelection.Redirect(previousVisual.Address) == previousVisual.Address
         && repeatSelection.Redirect(f.Link.Visual!.Value.Address) == source.Address,
         "Repeated furnishing replacements must redirect only the current owned visual, never an old one.");
+
+    f = Setup(); f.Link.Start(source, "木人", sampleHunt, 3, 0); f.Session.Tick();
+    f.Link.Tick(1);
+    Check(f.Source.CombatWrites.Single().Combat == CombatPresentation.From(false, false)
+        && !f.Source.CombatWrites.Single().ChangePose,
+        "A fresh idle proxy must not receive a needless animation restart.");
+    f.Source.Combat = CombatPresentation.From(true, false); // A furnishing need not itself have a drawn weapon.
+    f.Link.Tick(2);
+    Check(f.Source.CombatWrites[^1].Combat == new CombatPresentation(true, true)
+        && f.Source.CombatWrites[^1].ChangePose && f.Source.CombatWrites[^1].Visual == f.Preview.Actor,
+        "A real source entering combat must put its current owned visual into battle stance even without a weapon or HP delta.");
+    f.Link.Tick(3);
+    Check(!f.Source.CombatWrites[^1].ChangePose && f.Source.CombatWrites.Count(w => w.ChangePose) == 1,
+        "Steady combat must maintain flags without replaying idle every frame and interrupting actions.");
+    f.Source.Combat = CombatPresentation.From(false, false); f.Link.Tick(4);
+    Check(f.Source.CombatWrites[^1].ChangePose && !f.Source.CombatWrites[^1].Combat.WeaponDrawn,
+        "Source disengagement must return the visual to normal idle once.");
+    deferCombat = true;
+    var deferredCount = f.Source.CombatWrites.Count;
+    f.Source.Combat = CombatPresentation.From(true, false); f.Link.Tick(5);
+    Check(f.Source.CombatWrites.Count == deferredCount,
+        "Paused models and a running manual combo must defer combat flag writes and pose transitions entirely.");
+    deferCombat = false; f.Link.Tick(6);
+    Check(f.Source.CombatWrites[^1].ChangePose && f.Source.CombatWrites[^1].Combat.InCombat,
+        "Resume must apply the latest battle state without replaying a backlog.");
+    deferCombat = true;
+    deferredCount = f.Source.CombatWrites.Count;
+    f.Source.Combat = CombatPresentation.From(false, false); f.Link.Tick(7);
+    f.Source.Combat = CombatPresentation.From(true, false); f.Link.Tick(8);
+    deferCombat = false; f.Link.Tick(9);
+    Check(f.Source.CombatWrites.Count == deferredCount + 1 && !f.Source.CombatWrites[^1].ChangePose,
+        "A transient disengage/reengage while paused must not unnecessarily replace the saved pose on resume.");
+    f.Source.Ready = false; deferredCount = f.Source.CombatWrites.Count; f.Link.Tick(10);
+    Check(f.Source.CombatWrites.Count == deferredCount,
+        "An unloaded or rebuilding model must not receive timeline calls.");
+    f.Source.Ready = true; f.Link.Tick(11);
+    Check(f.Source.CombatWrites[^1].ChangePose && f.Source.CombatWrites[^1].Combat.InCombat,
+        "After model reload the visual must regain its current battle pose.");
+    f.Link.Clear(); deferredCount = f.Source.CombatWrites.Count; f.Session.Tick(); f.Link.Tick(12);
+    Check(f.Source.CombatWrites.Count == deferredCount,
+        "Restoring a furnishing must stop writing combat state into the deleted local actor.");
+    f.Link.Start(source, "木人", sampleHunt, 3, 13); f.Session.Tick(); f.Link.Tick(14);
+    Check(f.Source.CombatWrites[^1].ChangePose,
+        "Reapplying while already in combat must initialize the new model's stance.");
+    deferredCount = f.Source.CombatWrites.Count;
+    f.Actors.Actors[f.Link.Visual!.Value] = original; f.Link.Tick(15);
+    Check(f.Source.CombatWrites.Count == deferredCount,
+        "A lost nonce must prevent every combat-state and animation write to a recycled visual.");
+
+    f = Setup();
+    var front = f.Preview.Spawn(sampleHunt, 2, 8); f.Session.Tick();
+    f.Link.Pose.SetMode(ModelStance.Battle); f.Link.Tick(1);
+    Check(f.Link.Source is null && f.Source.CombatWrites.Single().Visual.Actor == front
+        && f.Source.CombatWrites.Single().Combat == new CombatPresentation(true, true),
+        "Forced battle stance must also work for an ordinary front preview with no training source.");
+    f.Link.Pose.SetMode(ModelStance.Idle); deferCombat = true; f.Link.Tick(2);
+    Check(f.Source.CombatWrites.Count == 1, "Changing the stance choice while paused must not replace the frozen animation.");
+    deferCombat = false; f.Link.Tick(3);
+    Check(f.Source.CombatWrites[^1].ChangePose && f.Source.CombatWrites[^1].Combat == default,
+        "Resuming must apply the latest selected normal stance to the same local actor.");
+    f.Link.Pose.Reset(); f.Link.Tick(4);
+    Check(f.Preview.Actor!.Actor == front && f.Link.Pose.Mode == ModelStance.Automatic && f.Source.CombatWrites[^1].ChangePose,
+        "Resetting stance must preserve the actor and reapply automatic idle exactly once.");
+    f.Preview.Clear(); deferredCount = f.Source.CombatWrites.Count; f.Link.Tick(5);
+    Check(f.Source.CombatWrites.Count == deferredCount, "Removing a front preview must stop all stance writes.");
+}
+
+{
+    var pose = new CombatPose();
+    var lease = new LocalActorLease(100, 0x5000, actor, 1);
+    var writes = new List<(CombatPresentation Combat, bool Change)>();
+    void Write(LocalActorLease _, CombatPresentation combat, bool change) => writes.Add((combat, change));
+    pose.Tick(lease, 3315, default, true, false, Write);
+    pose.SetMode(ModelStance.Battle); pose.Tick(lease, 3315, default, true, false, Write);
+    pose.Tick(lease, 3315, default, true, false, Write);
+    Check(writes[1] == (new CombatPresentation(true, true), true) && !writes[2].Change,
+        "Forced combat must ignore an idle source and must not restart the pose during stable frames.");
+    pose.SetMode(ModelStance.Idle); pose.Tick(lease, 3315, new(true, true), true, false, Write);
+    Check(writes[^1] == (default(CombatPresentation), true), "Forced idle must override a fighting source without changing that source.");
+    pose.SetMode(ModelStance.Automatic); pose.Tick(lease, 3315, new(true, true), true, true, Write);
+    var count = writes.Count;
+    pose.Tick(lease, 3315, new(false, false), true, false, Write);
+    Check(writes.Count == count + 1 && !writes[^1].Combat.WeaponDrawn,
+        "Automatic mode must sample the latest source after a priority delay, ignoring obsolete intermediate states.");
+    pose.SetMode(ModelStance.Battle); count = writes.Count;
+    pose.Tick(lease, 3315, default, false, false, Write);
+    Check(writes.Count == count, "Loading must defer explicit stance requests too.");
+    pose.Tick(lease, 3315, default, true, false, Write);
+    pose.Tick(lease with { Token = 2 }, 3315, default, true, false, Write);
+    Check(writes[^1].Change, "A new ownership lease must initialize its own pose rather than inherit the old cache.");
+    pose.Tick(lease with { Token = 2 }, 235, default, true, false, Write);
+    Check(writes[^1].Change, "A new model sharing the same owned actor must initialize its new pose.");
+    try { pose.SetMode((ModelStance)99); throw new Exception("Invalid stance accepted."); }
+    catch (InvalidOperationException) { Check(pose.Mode == ModelStance.Battle, "Invalid saved stance choices must not replace the last valid mode."); }
+    pose.SetMode(ModelStance.Idle);
+    try { pose.Tick(lease, 235, default, true, false, (_, _, _) => throw new InvalidOperationException("Write failed")); }
+    catch (InvalidOperationException) { }
+    pose.Tick(lease, 235, default, true, false, Write);
+    Check(writes[^1].Change, "A failed native pose write must retain the pending transition for retry.");
+}
+
+{
+    var defaults = new DemoDefaults();
+    defaults.Remember(actor, 3315, 45, 3);
+    defaults.Remember(actor, 3315, 180, 2.5f);
+    Check(defaults.For(actor, 3315) == new DemoDefault(3315, 45, 2.5f),
+        "Reset defaults must retain the initial heading but update native scale when another appearance shares the model.");
+    Check(defaults.For(reused, 3315) is null && defaults.For(actor, 235) is null,
+        "Recycled actors and different models must not receive another model's reset defaults.");
+    defaults.Remember(actor, 235, 90, 0.5f);
+    Check(defaults.For(actor, 235) == new DemoDefault(235, 90, 0.5f), "A changed model must establish its own reset defaults.");
+    defaults.Prune([new SwapEntry(actor, "original", "demo", original, State(235, 2), false, true)]);
+    Check(defaults.For(actor, 235) is null, "Restoring actors must lose their reset defaults.");
+    defaults.Remember(actor, 235, 90, 0.5f); defaults.Clear();
+    Check(defaults.For(actor, 235) is null, "Scene changes must forget reset defaults without native writes.");
+    defaults.Remember(actor, 235, 90, 0.5f); defaults.Forget(actor); defaults.Remember(actor, 235, 270, 0.5f);
+    Check(defaults.For(actor, 235)!.Heading == 270,
+        "A new local lease reusing the exact identity and model must get its new initial heading after deletion cleanup.");
+}
+
+{
+    var raw = new UserPreferences { SelectedNameId = 10617, SelectedBaseId = 13834, Rank = 999, Expansion = -99,
+        Search = new string('测', 200), SpawnDistance = float.NaN, Stance = (ModelStance)99,
+        Scales = new() { ["10617:13834"] = 12.75f, ["bad"] = 5, ["1:2"] = float.PositiveInfinity, ["3:4"] = -1 },
+        Sections = new() { ["modelControls"] = true, ["hiddenTargets"] = false, ["unknown"] = true } };
+    var safe = raw.Normalize();
+    Check(safe.Rank == 0 && safe.Expansion == -1 && safe.Search.Length == 128 && safe.SpawnDistance == 8
+        && safe.Stance == ModelStance.Automatic, "Invalid persisted choices must fall back to usable defaults.");
+    Check(safe.Scales.Count == 1 && safe.Scales[UserPreferences.HuntKey(10617, 13834)] == 12.75f,
+        "Per-hunt preferences must preserve free valid scales and discard malformed IDs or invalid floats.");
+    Check(safe.Sections.Count == 2 && safe.Sections["modelControls"] && !safe.Sections["hiddenTargets"],
+        "Remembered sections must retain known collapse states and reject unknown keys.");
+    var json = System.Text.Json.JsonSerializer.Serialize(safe);
+    var restoredPreferences = System.Text.Json.JsonSerializer.Deserialize<UserPreferences>(json)!.Normalize();
+    Check(restoredPreferences.SelectedNameId == 10617 && restoredPreferences.SelectedBaseId == 13834
+        && restoredPreferences.Scales["10617:13834"] == 12.75f && restoredPreferences.Sections["modelControls"],
+        "Settings must round-trip through actual JSON using stable hunt IDs rather than catalog indices.");
+    var legacy = System.Text.Json.JsonSerializer.Deserialize<UserPreferences>("{}")!.Normalize();
+    Check(legacy.SpawnDistance == 8 && legacy.Expansion == -1 && legacy.Scales.Count == 0,
+        "Existing configurations without the new preference fields must load safely.");
+    var nullCollections = System.Text.Json.JsonSerializer.Deserialize<UserPreferences>("{\"Search\":null,\"Scales\":null,\"Sections\":null}")!.Normalize();
+    Check(nullCollections.Search == "" && nullCollections.Scales.Count == 0 && nullCollections.Sections.Count == 0,
+        "Explicit null values from damaged or edited JSON must normalize safely.");
+    Check(!json.Contains("Address") && !json.Contains("ActorIdentity") && !json.Contains("Token"),
+        "Preference persistence must not retain scene actors, native pointers or ownership nonces.");
+}
+
+{
+    var gate = new RefreshGate(250);
+    Check(gate.Due(1000, 1) && !gate.Due(1001, 1) && !gate.Due(1249, 1) && gate.Due(1250, 1),
+        "Stable bulk scans must be throttled while preserving the documented refresh boundary.");
+    Check(gate.Due(1251, 2), "A replacement membership change must immediately invalidate bulk candidates.");
+    gate.Reset(); Check(gate.Due(1252, 2), "A scene or mode change must force an immediate fresh scan.");
+    var a = new FakeAccess(); a.Actors[actor] = original;
+    var s = new SwapSession(a); var empty = s.Snapshot;
+    Check(ReferenceEquals(empty, s.Snapshot), "An unchanged empty session must reuse its snapshot.");
+    s.Apply(actor, "original", "demo", State(3315, 3)); var first = s.Snapshot; s.Tick();
+    var drawn = s.Snapshot;
+    Check(!ReferenceEquals(first, drawn) && !drawn[0].WaitingForDraw,
+        "Completing redraw must publish a new entry snapshot.");
+    var revision = s.Revision; s.Tick();
+    Check(ReferenceEquals(drawn, s.Snapshot) && s.Revision == revision,
+        "Ordinary presentation upkeep must not rebuild the session snapshot every frame.");
+    s.Resize(actor, 5);
+    Check(!ReferenceEquals(drawn, s.Snapshot) && s.Snapshot[0].Applied.ModelScale == 5 && drawn[0].Applied.ModelScale == 3,
+        "A resize must invalidate the cache without mutating snapshots already read by the UI.");
+    s.Restore(actor); Check(s.Snapshot[0].Restoring, "A restore request must immediately invalidate cached row state.");
+    s.Tick(); Check(s.Snapshot.Length == 0, "Finishing restore must remove cached entries.");
+    s.Apply(actor, "original", "demo", State(3315, 3)); a.Actors.Remove(actor); s.Tick();
+    Check(s.Snapshot.Length == 0, "Losing an actor must invalidate the snapshot even without a UI request.");
+}
+
+unsafe
+{
+    NativeCharacter combatVisual = default;
+    combatVisual.Flags = 0xA1;
+    combatVisual.Timeline.Flags3 = 0x95;
+    combatVisual.NameId = 101; combatVisual.GameObject.BaseId = 202;
+    combatVisual.GameObject.OwnerId = 303; combatVisual.Health = 44; combatVisual.MaxHealth = 44;
+    combatVisual.Battalion = 4; combatVisual.Timeline.BaseOverride = 321;
+    NativeCombatPresentationCodec.Write(&combatVisual, CombatPresentation.From(true, false));
+    Check(combatVisual.InCombat && combatVisual.Timeline.IsWeaponDrawn && combatVisual.Flags == 0xA3
+        && combatVisual.Timeline.Flags3 == 0xD5,
+        "Combat presentation must alter only the two documented combat/weapon bits, preserving all other flags.");
+    Check(combatVisual.NameId == 101 && combatVisual.GameObject.BaseId == 202 && combatVisual.GameObject.OwnerId == 303
+        && combatVisual.Health == 44 && combatVisual.MaxHealth == 44 && combatVisual.Battalion == 4
+        && combatVisual.Timeline.BaseOverride == 321,
+        "Battle stance must not change HP, real identity, ownership, aggression class or force an animation lock.");
+    NativeCombatPresentationCodec.Write(&combatVisual, CombatPresentation.From(false, false));
+    Check(!combatVisual.InCombat && !combatVisual.Timeline.IsWeaponDrawn && combatVisual.Flags == 0xA1
+        && combatVisual.Timeline.Flags3 == 0x95,
+        "Disengagement must clear only the combat/weapon bits and preserve unrelated native state.");
+    Check(CombatPresentation.From(false, true) == new CombatPresentation(false, true),
+        "An independently drawn source must retain battle stance without fabricating an InCombat state.");
 }
 {
     HuntAppearance[] iconCatalog = [sampleHunt, sampleHunt with { Rank = 1, Name = "B怪" },
@@ -1341,6 +1577,10 @@ if (args.Length == 1)
     }
     var actions = game.Excel.GetSheet<Lumina.Excel.Sheets.Action>(Language.ChineseSimplified);
     var timelines = game.Excel.GetSheet<ActionTimeline>();
+    Check(timelines.GetRow(NativeCombatPresentationCodec.NormalIdle).Key.ToString() == "normal/idle",
+        "The normal stance timeline must match the installed CN client's generic animation key.");
+    Check(timelines.GetRow(NativeCombatPresentationCodec.BattleIdle).Key.ToString() == "battle/idle",
+        "The battle stance timeline must match the installed CN client's generic animation key.");
     var skills = SkillCatalog.Load(actions, timelines);
     Check(new uint[] { 27307, 27308, 27309, 27310 }.Select(id => skills[id].CastTimeMs).SequenceEqual(new[] { 4000, 300, 5000, 300 }),
         "Bufru combo cast times must come from the CN action data, including the short repeat actions.");
@@ -1474,6 +1714,13 @@ sealed class FakeDialogueAccess : IDialogueAccess
 
 sealed class FakeAnimationAccess : IAnimationAccess, IDirectionalAnimationAccess
 {
+    public bool Active { get; set; }
+    public List<(ActorIdentity Actor, int Model, ushort Timeline)> Stopped { get; } = [];
+    public bool IsAnimationActive(ActorIdentity actor, int expectedModelId, ushort timelineId) => Active && !Unavailable;
+    public void StopAnimation(ActorIdentity actor, int expectedModelId, ushort timelineId)
+    {
+        Stopped.Add((actor, expectedModelId, timelineId)); Active = false;
+    }
     public List<(ActorIdentity Actor, int Model, ushort Timeline)> Calls { get; } = [];
     public Dictionary<ActorIdentity, float> Rotations { get; } = [];
     public List<(ActorIdentity Actor, ushort Timeline, float Rotation)> DirectionalPlays { get; } = [];
@@ -1544,6 +1791,11 @@ sealed class FakeLocalAccess(FakeAccess access) : ILocalActorAccess
 
 sealed class FakeLinkedAccess(FakeAccess actors) : ILinkedDummyAccess
 {
+    public CombatPresentation Combat { get; set; }
+    public List<(LocalActorLease Visual, CombatPresentation Combat, bool ChangePose)> CombatWrites { get; } = [];
+    public CombatPresentation ReadCombat(ActorIdentity source) => Combat;
+    public void SyncCombat(LocalActorLease visual, CombatPresentation combat, bool changePose)
+        => CombatWrites.Add((visual, combat, changePose));
     public HashSet<ActorIdentity> Hidden { get; } = [];
     public List<(ActorIdentity, ActorIdentity)> Aligned { get; } = [];
     public List<(ActorIdentity, bool)> Restores { get; } = [];

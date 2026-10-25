@@ -30,12 +30,13 @@ public sealed class BufruSequence(SwapSession session, ActionPreview playback, I
     }
     private Run? run;
     public bool Running => run is not null;
+    public ActorIdentity? Actor => run?.Actor;
     public string Status { get; private set; } = "尚未开始连招。";
     public string DirectionOrder { get; private set; } = "";
     public float RemainingSeconds(long now) => run is { } r ? Math.Max(0, r.Deadline - (r.PausedAt ?? now)) / 1000f : 0;
 
-    private bool Valid(ActorIdentity actor) => session.Entries.Any(e => e.Actor == actor
-        && e.Applied.ModelId == ModelId && e.ReplacementName == "布弗鲁" && !e.WaitingForDraw && !e.Restoring)
+    private bool Valid(ActorIdentity actor) => session.EntryFor(actor) is { WaitingForDraw: false, Restoring: false } swap
+        && swap.Applied.ModelId == ModelId && swap.ReplacementName == "布弗鲁"
         && (isEligible?.Invoke(actor) ?? true);
 
     public void Start(ActorIdentity actor, IReadOnlyDictionary<uint, SkillAnimation> skills,
