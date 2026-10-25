@@ -5,7 +5,8 @@ using HuntModelSwapCN.Catalog;
 
 namespace HuntModelSwapCN.Core;
 
-public sealed record LocalActorLease(ushort ClientIndex, nint Manager, ActorIdentity Actor, ulong Token, byte Battalion = 0);
+public sealed record LocalActorLease(ushort ClientIndex, nint Manager, ActorIdentity Actor, ulong Token, byte Battalion = 0,
+    bool IsAggressive = true);
 public sealed record LocalSpawn(LocalActorLease Lease, VisualState State);
 public interface ILocalActorAccess
 {
@@ -44,7 +45,7 @@ public static class LocalPreviewName
 }
 
 // One owned client-only actor. Never delete an arbitrary object-table slot or a networked actor.
-public sealed class LocalPreview(SwapSession session, ILocalActorAccess access)
+public sealed class LocalPreview(SwapSession session, ILocalActorAccess access, Func<SwapEntry, bool?>? aggressionFor = null)
 {
     public LocalActorLease? Actor { get; private set; }
     public bool Owns(ActorIdentity actor) => Actor?.Actor == actor;
@@ -75,7 +76,16 @@ public sealed class LocalPreview(SwapSession session, ILocalActorAccess access)
     public void Tick()
     {
         if (Actor is not { } lease) return;
-        if (access.Exists(lease)) { access.RefreshPresentation(lease); return; }
+        if (access.Exists(lease))
+        {
+            // Replacing an already spawned B with A/S (or the reverse) must update the icon too.
+            var entry = session.Entries.FirstOrDefault(e => e.Actor == lease.Actor);
+            if (entry is not null && !entry.Restoring && aggressionFor?.Invoke(entry) is { } aggressive
+                && aggressive != lease.IsAggressive)
+                Actor = lease = lease with { IsAggressive = aggressive };
+            access.RefreshPresentation(lease);
+            return;
+        }
         session.Forget(lease.Actor);
         Actor = null;
     }

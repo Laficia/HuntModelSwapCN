@@ -198,3 +198,18 @@ DialoguePreview 按框架时钟调度，长帧每次最多一步，不补播风�
 Release 编译无警告，1828 项离线检查通过，包括全部 61 条客户端原文匹配、改名数据拒绝、47 只 S 怪收集归属、去重与容量、换图/换模/nonce 失效、四句时序与延迟帧。原生气泡实际位置、骨骼缩放与聊天来源仍需游戏内验证。未声称对 47 只怪进行实际战斗测试。
 
 原生接口参考：https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/NpcYellBalloon.cs
+
+
+## 0.1.0.13 生成 B 怪的蓝色被动精英标记
+
+用户提供第十三个孩子的原版蓝色标记与本地生成红黄色标记对照。排查确认 NativeLocalPresentationCodec 在创建及每帧维护时统一设置 IsHostile=true，混淆了敌对阵营和主动攻击分类。BNpcBase.Rank=1 表示当前狩猎怪共有的精英图形类别，不决定红/蓝；狩猎 NotoriousMonster.Rank 才区分 B/A/S。
+
+根据官方 2.35 更新说明 B 级精英由主动改为被动，以及官方 UI 指南蓝色表示被动、红色表示主动的说明，HuntAppearance 增加常规狩猎显示规则 IsAggressive：B=false，A/S=true。仅本地生成对象将该值写入 IsHostile；Battalion 仍保持目标阵营 4，保留精英图形、黄色敌对名牌文字、HP 隐藏和本地身份。只读检查当前国服 GetNamePlateColorType 指令，确认敌对颜色路径按 Battalion 分类，未将 IsHostile 位当成友方/敌方开关。该观察不等于渲染实测。
+
+LocalActorLease 保存该显示分类，LocalPreview.Tick 按会话当前模型/名称重新解析；因此同一生成对象 B→S→B，即使模型编号相同也更新分类，不沿用最初生成外观。回指、索引、完整身份及 nonce 所有权检查保持。不会修改真实小怪的 IsHostile 或战斗行为。
+
+Release 编译无警告，1837 项离线检查通过。新增被动/主动切换、标记更新无变化不脏、保留其他标志位和敌对阵营、对象换外观和删除、77 个 B/124 个 A+S 分类及第十三个孩子专项检查。原版蓝色图标的实际渲染仍需游戏内确认。
+
+参考：
+- https://na.finalfantasyxiv.com/uiguide/battle/battle-np/battle_np_icon.html
+- https://na.finalfantasyxiv.com/lodestone/topics/detail/8bd64bf47da9032ed17891b220e0c3564e228182

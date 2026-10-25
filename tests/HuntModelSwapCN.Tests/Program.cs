@@ -233,7 +233,7 @@ unsafe
     localNative.ModelScale = 3;
     localNative.GameObject.Position = new(1, 2, 3);
     localNative.GameObject.UpdateFlags = FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Unk2;
-    Check(NativeLocalPresentationCodec.Write(&localNative, 4) && localNative.IsHostile && localNative.Battalion == 4,
+    Check(NativeLocalPresentationCodec.Write(&localNative, 4, true) && localNative.IsHostile && localNative.Battalion == 4,
         "Owned previews must be classified as enemies using the selected hunt's battalion.");
     Check(localNative.Flags == 0xa1 && !localNative.InCombat,
         "Enemy presentation must preserve unrelated character flags and must not enter combat.");
@@ -245,13 +245,24 @@ unsafe
         && localNative.GameObject.UpdateFlags.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Unk2),
         "Changing preview classification must refresh its nameplate without clearing unrelated update flags.");
     localNative.GameObject.UpdateFlags = FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Unk2;
-    Check(!NativeLocalPresentationCodec.Write(&localNative, 4)
+    Check(!NativeLocalPresentationCodec.Write(&localNative, 4, true)
         && !localNative.GameObject.UpdateFlags.HasFlag(FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Name),
         "Unchanged enemy presentation must not dirty or request a nameplate redraw every frame.");
     localNative.IsHostile = false;
     localNative.Battalion = 1;
-    Check(NativeLocalPresentationCodec.Write(&localNative, 4) && localNative.IsHostile && localNative.Battalion == 4,
+    Check(NativeLocalPresentationCodec.Write(&localNative, 4, true) && localNative.IsHostile && localNative.Battalion == 4,
         "A client refresh must not permanently turn an owned preview back into a friendly green NPC.");
+    localNative.Flags = 0xa3; // Preserve combat and other bits when changing just aggression.
+    Check(NativeLocalPresentationCodec.Write(&localNative, 4, false) && !localNative.IsHostile
+        && localNative.Battalion == 4 && localNative.Flags == 0xa2 && localNative.InCombat && localNative.Icon == 1,
+        "B previews must use passive blue elite icons while retaining enemy battalion, elite shape and other flags.");
+    localNative.GameObject.UpdateFlags = FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Unk2;
+    Check(!NativeLocalPresentationCodec.Write(&localNative, 4, false)
+        && localNative.GameObject.UpdateFlags == FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectUpdateFlags.Unk2,
+        "Maintaining a passive B preview must not dirty its nameplate every frame.");
+    Check(NativeLocalPresentationCodec.Write(&localNative, 4, true) && localNative.Flags == 0xa3
+        && localNative.NameId == 0 && localNative.GameObject.BaseId == 0 && localNative.Health == 1,
+        "B-to-A/S icon changes must preserve local identity and health.");
 }
 
 // Preview must never reach native playback for a stale, untracked or redrawing target.
@@ -622,6 +633,30 @@ var localFactory = new FakeLocalAccess(localAccess);
 var localPreview = new LocalPreview(localSession, localFactory);
 var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", "厄尔庇斯", 3, 3,
     new byte[26], new ulong[10], 0, 0, false, Battalion: 4);
+{
+    var passiveHunt = sampleHunt with { Rank = 1, Name = "被动B" };
+    HuntAppearance[] appearances = [sampleHunt, passiveHunt];
+    var iconAccess = new FakeAccess();
+    var iconSession = new SwapSession(iconAccess);
+    var iconFactory = new FakeLocalAccess(iconAccess);
+    var iconPreview = new LocalPreview(iconSession, iconFactory, e =>
+        appearances.FirstOrDefault(h => h.ModelId == e.Applied.ModelId && h.Name == e.ReplacementName)?.IsAggressive);
+    var iconActor = iconPreview.Spawn(passiveHunt, 1, 8);
+    iconSession.Tick(); iconPreview.Tick();
+    Check(!iconPreview.Actor!.IsAggressive && !iconFactory.Refreshed[^1].IsAggressive,
+        "A freshly spawned B preview must maintain passive classification on subsequent frames.");
+    iconSession.Apply(iconActor, "local", sampleHunt.Name, iconPreview.PreserveOwnership(iconActor, State(sampleHunt.ModelId, 1)));
+    iconSession.Tick(); iconPreview.Tick();
+    Check(iconPreview.Actor!.IsAggressive && iconFactory.Refreshed[^1].IsAggressive,
+        "Replacing a spawned B with S must switch the maintained icon classification.");
+    iconSession.Apply(iconActor, "local", passiveHunt.Name, iconPreview.PreserveOwnership(iconActor, State(passiveHunt.ModelId, 1)));
+    iconSession.Tick(); iconPreview.Tick();
+    Check(!iconPreview.Actor!.IsAggressive && !iconFactory.Refreshed[^1].IsAggressive,
+        "Replacing a spawned S with B must restore the blue passive classification even with an identical model ID.");
+    iconPreview.Clear();
+    Check(iconPreview.Actor is null && iconFactory.Deleted.Count == 1,
+        "Changing presentation metadata must preserve ownership checks and native actor deletion.");
+}
 var firstLocal = localPreview.Spawn(sampleHunt, sampleHunt.Scale, 8);
 Check(localSession.Entries.Single().Applied.ModelScale == sampleHunt.Scale,
     "The selected hunt's own native scale must be usable directly as the default spawn size.");
@@ -944,6 +979,10 @@ if (args.Length == 1)
         "Every catalog name must fit in a complete, null-terminated native UTF-8 name buffer.");
     Check(catalog.All(h => h.NameplateIcon == 1), "Current S/A/B hunts must all use the data's elite nameplate category.");
     Check(catalog.All(h => h.Battalion == 4), "Regular hunt previews must use the enemy battalion read from their own BNpcBase records.");
+    Check(catalog.Where(h => !h.IsAggressive).Count() == 77 && catalog.Where(h => h.IsAggressive).Count() == 124,
+        "All regular B previews must be passive while all regular A/S previews remain aggressive.");
+    Check(catalog.Single(h => h.Name == "第十三个孩子") is { Rank: 1, IsAggressive: false, Battalion: 4, NameplateIcon: 1 },
+        "The Thirteenth Child must retain its blue passive elite icon without becoming a friendly NPC.");
     Check(catalog.All(h => LocalPreviewName.Matches(LocalPreviewName.Stamp(DisplayName.Encode(h.Name), 1), 1)),
         "Every current hunt name must leave room for local-preview ownership validation.");
     foreach (var hunt in catalog)
@@ -1104,7 +1143,9 @@ sealed class FakeAnimationAccess : IAnimationAccess, IDirectionalAnimationAccess
 sealed class FakeLocalAccess(FakeAccess access) : ILocalActorAccess
 {
     private ushort next = 300;
-    private readonly Dictionary<LocalActorLease, byte> leases = [];
+    private readonly Dictionary<(ushort, nint, ActorIdentity, ulong), byte> leases = [];
+    private static (ushort, nint, ActorIdentity, ulong) LeaseKey(LocalActorLease lease)
+        => (lease.ClientIndex, lease.Manager, lease.Actor, lease.Token);
     public List<LocalActorLease> Deleted { get; } = [];
     public List<LocalActorLease> Refreshed { get; } = [];
     public bool FailDelete { get; set; }
@@ -1113,16 +1154,16 @@ sealed class FakeLocalAccess(FakeAccess access) : ILocalActorAccess
     {
         var index = next++;
         var actor = new ActorIdentity(index, (2UL << 32) | index, 0, 0, 0x10000 + index);
-        var lease = new LocalActorLease((ushort)(index - 200), 0x5000, actor, index, hunt.Battalion);
+        var lease = new LocalActorLease((ushort)(index - 200), 0x5000, actor, index, hunt.Battalion, hunt.IsAggressive);
         var state = ModelSize.Apply(new VisualState(hunt.ModelId, -1, hunt.Scale, hunt.Customize, hunt.Equipment,
             [0, 0, 0], 0, 0, LocalPreviewName.Stamp(DisplayName.Encode(hunt.Name), lease.Token), hunt.Level,
             hunt.Scale, new System.Numerics.Vector3(hunt.Scale)), scale);
         access.Actors.Add(actor, state);
         if (FailDraw) access.FailBeginFor = actor;
-        leases.Add(lease, 0);
+        leases.Add(LeaseKey(lease), 0);
         return new(lease, state);
     }
-    public bool Exists(LocalActorLease lease) => leases.ContainsKey(lease) && access.Actors.TryGetValue(lease.Actor, out var state)
+    public bool Exists(LocalActorLease lease) => leases.ContainsKey(LeaseKey(lease)) && access.Actors.TryGetValue(lease.Actor, out var state)
         && LocalPreviewName.Matches(state.NameBytes, lease.Token);
     public void RefreshPresentation(LocalActorLease lease)
     {
@@ -1134,7 +1175,7 @@ sealed class FakeLocalAccess(FakeAccess access) : ILocalActorAccess
         if (FailDelete) throw new InvalidOperationException("Simulated delete failure.");
         if (!Exists(lease)) throw new Exception("Attempt to delete an unowned actor.");
         Deleted.Add(lease);
-        leases.Remove(lease);
+        leases.Remove(LeaseKey(lease));
         access.Actors.Remove(lease.Actor);
         access.Hidden.Remove(lease.Actor);
     }

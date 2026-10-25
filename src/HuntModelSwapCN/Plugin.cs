@@ -103,10 +103,13 @@ public sealed class Plugin : IDalamudPlugin
         this.log = log;
         this.chat = chat;
         this.data = data;
+        catalog = HuntCatalog.Load(data.GetExcelSheet<TerritoryType>(), data.GetExcelSheet<BNpcName>(),
+            data.GetExcelSheet<PlaceName>());
         actors = new(objects, nameplates);
         session = new(actors);
         preview = new(session, actors);
-        localPreview = new(session, new NativeLocalActorAccess(objects, targets, actors, nameplates));
+        localPreview = new(session, new NativeLocalActorAccess(objects, targets, actors, nameplates), entry =>
+            catalog.FirstOrDefault(h => h.ModelId == entry.Applied.ModelId && h.Name == entry.ReplacementName)?.IsAggressive);
         pauseAccess = new(actors, interop, log);
         animationPause = new(session, pauseAccess, actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor));
         pauseAccess.ShouldPause = animationPause.IsPausedAddress;
@@ -118,8 +121,6 @@ public sealed class Plugin : IDalamudPlugin
             animationPause.IsPaused);
         visibilityAccess = new(objects);
         modelVisibility = new(visibilityAccess);
-        catalog = HuntCatalog.Load(data.GetExcelSheet<TerritoryType>(), data.GetExcelSheet<BNpcName>(),
-            data.GetExcelSheet<PlaceName>());
         configuration = pluginInterface.GetPluginConfig() as Configuration ?? new();
         captureHuntDialogue = configuration.CaptureHuntDialogue;
         dialogueCatalog = new(catalog);
@@ -143,7 +144,7 @@ public sealed class Plugin : IDalamudPlugin
         client.Logout += OnLogout;
         chat.ChatMessage += OnNpcDialogue;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.12 initialized. No appearance writes, native bubbles or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.13 initialized. No appearance writes, native bubbles or animation playback have been requested.");
     }
 
     private void Open()
@@ -688,6 +689,7 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.EndDisabled();
             ImGui.TextWrapped("无需选中小怪。只保留一只本地生成对象；再次生成会替换它。技能演示优先控制此对象。");
             ImGui.TextWrapped("本地预览隐藏头顶血条，名字、等级和精英头标使用原生敌对怪名牌样式。");
+            ImGui.TextWrapped("生成的 B 怪使用蓝色被动精英头标；A/S 怪使用主动精英头标。颜色分类随当前演示外观更新。");
             var reason = Loading ? "请等待角色进入场景。" : view.CannotApply;
             ImGui.BeginDisabled(reason is not null || selected < 0 || !sizeValid);
             if (ImGui.Button("替换当前目标")) Enqueue("apply", view.Target);

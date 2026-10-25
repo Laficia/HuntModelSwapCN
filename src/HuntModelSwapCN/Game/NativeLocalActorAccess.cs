@@ -42,7 +42,7 @@ public sealed unsafe class NativeLocalActorAccess(IObjectTable objects, ITargetM
             c->NameId = 0;
             c->GameObject.OwnerId = 0xe0000000;
             c->Health = c->MaxHealth = 1;
-            NativeLocalPresentationCodec.Write(c, appearance.Battalion);
+            NativeLocalPresentationCodec.Write(c, appearance.Battalion, appearance.IsAggressive);
             c->GameObject.SetPosition(position.X, position.Y, position.Z);
             c->GameObject.SetRotation(player.Rotation + MathF.PI);
             c->GameObject.TargetableStatus |= ObjectTargetableFlags.IsTargetable;
@@ -52,7 +52,7 @@ public sealed unsafe class NativeLocalActorAccess(IObjectTable objects, ITargetM
             NativeAppearanceCodec.Write(c, state);
             if (objects.CreateObjectReference((nint)c) is not IBattleNpc npc)
                 throw new InvalidOperationException("无法解析新生成的预览怪物。");
-            var lease = new LocalActorLease(slot, (nint)manager, NativeActorAccess.Identity(npc), token, appearance.Battalion);
+            var lease = new LocalActorLease(slot, (nint)manager, NativeActorAccess.Identity(npc), token, appearance.Battalion, appearance.IsAggressive);
             return new(lease, state);
         }
         catch
@@ -76,7 +76,7 @@ public sealed unsafe class NativeLocalActorAccess(IObjectTable objects, ITargetM
     {
         if (!Exists(lease)) return;
         var c = ClientObjectManager.Instance()->GetObjectByIndex(lease.ClientIndex);
-        if (NativeLocalPresentationCodec.Write(c, lease.Battalion)) nameplates.RequestRedraw();
+        if (NativeLocalPresentationCodec.Write(c, lease.Battalion, lease.IsAggressive)) nameplates.RequestRedraw();
         var draw = c->GameObject.DrawObject;
         if (draw == null || draw->LoadState != 3) return;
         // Native nameplate attachment 45; the game falls back to attachment 46.

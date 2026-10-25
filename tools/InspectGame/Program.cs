@@ -2,6 +2,29 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 2 && args[1] == "--aggro-icons")
+{
+    Console.WriteLine("Behavior: " + string.Join(", ", typeof(Behavior).GetProperties().Select(p => $"{p.Name}:{p.PropertyType.Name}")));
+    foreach (var type in new[] { typeof(Character), typeof(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject) })
+        foreach (var m in type.GetMethods().Where(m => m.DeclaringType == type && (m.Name.Contains("Icon") || m.Name.Contains("NamePlate"))))
+            Console.WriteLine($"{m}: {string.Join("; ", m.GetCustomAttributesData())}");
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    var n = probe.Excel.GetSheet<BNpcName>()!;
+    var marks = probe.Excel.GetSheet<NotoriousMonster>()!.Where(h => h.BNpcName.RowId != 0 && h.BNpcBase.RowId != 0).ToArray();
+    foreach (var g in marks.GroupBy(h => h.BNpcBase.Value.Behavior.RowId))
+        Console.WriteLine($"Behavior {g.Key}: count={g.Count()}");
+    foreach (var h in marks.Where(h => n.GetRow(h.BNpcName.RowId).Singular.ToString().Contains("第十三") || h.Rank == 3)
+        .OrderByDescending(h => n.GetRow(h.BNpcName.RowId).Singular.ToString().Contains("第十三")).Take(12))
+    {
+        var b = h.BNpcBase.Value;
+        Console.WriteLine($"{n.GetRow(h.BNpcName.RowId).Singular} base={b.RowId} behavior={b.Behavior.RowId} rank={b.Rank}");
+        if (b.Behavior.ValueNullable is { } behavior)
+            foreach (var p in typeof(Behavior).GetProperties().Where(p => p.Name is not ("ExcelPage" or "RowOffset")))
+                Console.WriteLine($" {p.Name}: {p.GetValue(behavior)}");
+    }
+    return;
+}
+
 if (args.Length is 2 or 3 && args[1] == "--dialogue")
 {
     foreach (var type in new[] { typeof(NpcYell), typeof(FFXIVClientStructs.FFXIV.Client.Game.NpcYellBalloon),

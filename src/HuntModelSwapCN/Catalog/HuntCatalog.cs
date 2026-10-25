@@ -10,6 +10,8 @@ public sealed record HuntAppearance(uint NameId, uint BaseId, int ModelId, byte 
 {
     public string RankName => Rank switch { 1 => "B", 2 => "A", 3 => "S", _ => "?" };
     public string VersionName => $"{Expansion + 2}.0";
+    // Regular B marks are passive; A/S marks are aggressive. BNpcBase.Rank is only icon shape.
+    public bool IsAggressive => Rank is 2 or 3;
     // Regular B/A/S marks are at their expansion's level cap. These tables contain no level field.
     // Unknown future expansions remain unavailable for level replacement until explicitly mapped.
     public byte Level => Expansion switch { 0 => 50, 1 => 60, 2 => 70, 3 => 80, 4 => 90, 5 => 100, _ => 0 };

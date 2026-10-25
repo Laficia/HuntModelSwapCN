@@ -6,11 +6,11 @@ namespace HuntModelSwapCN.Game;
 // Only for a client-only actor owned by LocalPreview. Never applied to a real game NPC.
 public static unsafe class NativeLocalPresentationCodec
 {
-    public static bool Write(NativeCharacter* c, byte battalion)
+    public static bool Write(NativeCharacter* c, byte battalion, bool aggressive)
     {
-        if (c->IsHostile && c->Battalion == battalion) return false;
-        // Enemy nameplate color/type depends on the battalion relationship as well as this flag.
-        c->IsHostile = true;
+        if (c->IsHostile == aggressive && c->Battalion == battalion) return false;
+        // Battalion determines enemy relationship; IsHostile selects aggressive/passive icon color.
+        c->IsHostile = aggressive;
         c->Battalion = battalion;
         c->GameObject.UpdateFlags |= ObjectUpdateFlags.Name;
         return true;
