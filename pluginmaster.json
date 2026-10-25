@@ -3,8 +3,8 @@
     "Author": "Laficia",
     "Name": "狩猎模型替换",
     "InternalName": "HuntModelSwapCN",
-    "AssemblyVersion": "0.1.0.11",
-    "Description": "独立于 HHT。/hms 打开，替换小怪为 S/A/B 狩猎外观，或在面前生成本地预览。支持按地图/版本/级别筛选、自由体型、逐只隐藏、隐藏所有小怪、敌对怪名牌与预览隐藏血条。全部 47 只常规 S 怪提供 Wiki 专属技能菜单；可搜索并单次播放动作，/hms pause 暂停模型动画、/hms resume 恢复。/hms combo 演示布弗鲁方向连招，/hms stop 停止。仅本机演示，不产生真实伤害。",
+    "AssemblyVersion": "0.1.0.12",
+    "Description": "独立于 HHT。/hms 打开，替换小怪为 S/A/B 狩猎外观，或在面前生成本地预览。支持地图筛选、自由体型、逐只及批量隐藏、敌对怪名牌、暂停恢复与水平旋转。47 只常规 S 怪提供技能菜单和台词收集；内置 5 只 S 怪共 44 句台词，可在演示模型上显示原生气泡。/hms talk 演示阿提卡斯四句台词，/hms stoptalk 停止。/hms combo 演示布弗鲁连招。仅本机演示，不产生真实伤害。",
     "ApplicableVersion": "any",
     "Tags": [
       "hunt",
@@ -17,14 +17,14 @@
     "CanUnloadAsync": false,
     "LoadPriority": 0,
     "Punchline": "将小怪模型、名称和等级显示为指定 S/A/B 狩猎怪物",
-    "Changelog": "0.1.0.11：修复恢复动作只改缓存而未触发原生动画刷新的问题，恢复按钮可主动修复卡住的零速动画。新增主窗口顶部与悬浮控制窗，可切换演示对象、随时暂停／恢复，0～360° 水平旋转与左右转向，暂停时也可旋转。/hms controls 打开悬浮窗，/hms rotate 角度 旋转。加入地图下拉及全部地图按钮，支持与版本、级别、搜索组合筛选。保留全部原有功能。",
+    "Changelog": "0.1.0.12：新增 S 怪台词与原生气泡。逐页核对 47 只 S 怪，61 个台词 ID 与国服数据逐条匹配，内置阿提卡斯、天气预报机器人、厌忌之人奇里格、伊休妲、顾尼图共 44 句去重台词。可逐句播放，/hms talk 按 0/6/9/13 秒演示阿提卡斯四句；/hms stoptalk 停止。支持收集加载范围内真实 S 怪的 NPC 台词，去重保存本地。保留暂停恢复、水平旋转和原有功能。",
     "AcceptsFeedback": true,
-    "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN",
     "IsHide": false,
-    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.11/latest.zip",
-    "LastUpdate": 1792879172,
-    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.11/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.11/latest.zip",
+    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.12/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.12/latest.zip",
+    "LastUpdate": 1792900019,
+    "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN",
+    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.12/latest.zip",
     "IsTestingExclusive": false
   }
 ]
