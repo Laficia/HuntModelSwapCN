@@ -28,6 +28,7 @@
     <Compile Include="../../src/HuntModelSwapCN/Core/LocalPreview.cs" Link="LocalPreview.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/LinkedDummyPreview.cs" Link="LinkedDummyPreview.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/CombatPose.cs" Link="CombatPose.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Core/AutoAttackPreview.cs" Link="AutoAttackPreview.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/DemoDefaults.cs" Link="DemoDefaults.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/UserPreferences.cs" Link="UserPreferences.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/RefreshGate.cs" Link="RefreshGate.cs" />

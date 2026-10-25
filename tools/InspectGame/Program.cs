@@ -2,6 +2,29 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 2 && args[1] == "--auto-attacks")
+{
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    Console.WriteLine("BNpcBase: " + string.Join(", ", typeof(BNpcBase).GetProperties().Select(p => $"{p.Name}:{p.PropertyType.Name}")));
+    Console.WriteLine("ActionTimeline: " + string.Join(", ", typeof(ActionTimeline).GetProperties().Select(p => $"{p.Name}:{p.PropertyType.Name}")));
+    foreach (var id in new uint[] { 112, 113, 114, 118, 121, 124, 127 })
+    {
+        var t = probe.Excel.GetSheet<ActionTimeline>().GetRow(id);
+        var path = $"chara/action/{t.Key}.tmb";
+        var file = probe.GetFile(path);
+        var strings = file is null ? "missing" : string.Join(" | ", System.Text.RegularExpressions.Regex.Matches(
+            System.Text.Encoding.ASCII.GetString(file.Data), "[a-zA-Z0-9_./\\[\\] -]{5,}").Select(m => m.Value));
+        Console.WriteLine($"TMB {id} weaponTimeline={t.WeaponTimeline.RowId} residentPap={t.ResidentPap}: {strings}");
+    }
+    foreach (var leaf in new[] { "bt_common/resident/auto_attack1.pap", "bt_common/auto_attack1.pap", "bt_common/resident/attack1.pap" })
+        Console.WriteLine($"PAP chara/monster/m0741/animation/a0001/{leaf}: {probe.FileExists($"chara/monster/m0741/animation/a0001/{leaf}")}");
+    foreach (var t in probe.Excel.GetSheet<ActionTimeline>()!.Where(t => t.Key.ToString().Contains("attack", StringComparison.OrdinalIgnoreCase)))
+        Console.WriteLine($"Timeline {t.RowId}: {t.Key} slot={t.Slot} loop={t.IsLoop}");
+    foreach (var a in probe.Excel.GetSheet<Lumina.Excel.Sheets.Action>()!.Where(a => a.Name.ToString() is "攻击" or "自动攻击"))
+        Console.WriteLine($"Action {a.RowId}: {a.Name} player={a.IsPlayerAction} start={a.AnimationStart.RowId} end={a.AnimationEnd.RowId} cast={a.Cast100ms}");
+    return;
+}
+
 if (args.Length is 2 or 3 && args[1] == "--combat-api")
 {
     foreach (var t in new[] { typeof(Character), typeof(CharacterData), typeof(TimelineContainer),

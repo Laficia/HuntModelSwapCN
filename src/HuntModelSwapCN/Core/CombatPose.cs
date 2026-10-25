@@ -6,6 +6,7 @@ public enum ModelStance { Automatic, Battle, Idle }
 public sealed class CombatPose
 {
     public ModelStance Mode { get; private set; }
+    public bool InCombat => applied?.InCombat ?? false;
     private LocalActorLease? visual;
     private int modelId;
     private CombatPresentation? applied;

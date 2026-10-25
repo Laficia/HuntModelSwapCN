@@ -36,6 +36,11 @@ public sealed class Plugin : IDalamudPlugin
     private readonly NativeAnimationPause pauseAccess;
     private readonly AnimationPause animationPause;
     private readonly ModelRotation modelRotation;
+    private readonly AutoAttackPreview autoAttack;
+    private bool autoAttackEnabled = true;
+    private float autoAttackInterval = 2.5f;
+    private AutoAttackVariant autoAttackVariant;
+    private bool autoAttackFaulted;
     private readonly DemoDefaults demoDefaults = new();
     private readonly RefreshGate bulkScanGate = new(250);
     private ActorIdentity[] bulkCandidates = [];
@@ -101,7 +106,8 @@ public sealed class Plugin : IDalamudPlugin
     private record Request(long Epoch, string Action, ActorIdentity? Actor, int Selection = -1, float Scale = 1,
         uint SkillId = 0, bool ChatFeedback = false, float Distance = 8, bool HideSelf = false, int HoldMs = 2000,
         bool HideAllMonsters = false, float AngleDegrees = 0, uint DialogueNameId = 0,
-        string Text = "", bool Enabled = false, ModelStance Stance = ModelStance.Automatic);
+        string Text = "", bool Enabled = false, ModelStance Stance = ModelStance.Automatic,
+        int AttackIntervalMs = AutoAttackPreview.DefaultIntervalMs, AutoAttackVariant AttackVariant = AutoAttackVariant.Standard);
     private sealed record HiddenTarget(ActorIdentity Actor, string Name);
     private sealed record ActorSelection(ActorIdentity Actor);
     private sealed record ActorHeading(ActorIdentity Actor, float? Degrees);
@@ -147,6 +153,9 @@ public sealed class Plugin : IDalamudPlugin
             animationPause.IsPaused);
         linkedDummy = new(session, localPreview, actors, new NativeLinkedDummyAccess(actors, localActors),
             actor => animationPause.IsPaused(actor) || sequence.Actor == actor || preview.IsBusy(actor, Environment.TickCount64));
+        autoAttack = new(session, new NativeAutoAttackAccess(objects, localActors, actors), animationPause.IsPaused,
+            (actor, now) => sequence.Actor == actor || preview.IsBusy(actor, now), actor => modelRotation.Actors.Contains(actor));
+        preview.BeforePlay = actor => { if (localPreview.Owns(actor)) autoAttack.Interrupt(); };
         linkedTarget = new(interop, log, new LinkedDummyTarget(linkedDummy, localPreview, actors));
         visibilityAccess = new(objects);
         modelVisibility = new(visibilityAccess);
@@ -174,7 +183,7 @@ public sealed class Plugin : IDalamudPlugin
         client.Logout += OnLogout;
         chat.ChatMessage += OnNpcDialogue;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.21 initialized. No appearance writes, native bubbles or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.22 initialized. No appearance writes, native bubbles or animation playback have been requested.");
     }
 
     private void Open()
@@ -268,6 +277,8 @@ public sealed class Plugin : IDalamudPlugin
             if (catalog[i].NameId == p.SelectedNameId && catalog[i].BaseId == p.SelectedBaseId) { selected = i; break; }
         if (selected >= 0) scale = ScaleFor(catalog[selected]);
         stanceSelection = p.Stance; linkedDummy.Pose.SetMode(p.Stance);
+        autoAttackEnabled = p.AutoAttack; autoAttackInterval = p.AutoAttackIntervalMs / 1000f; autoAttackVariant = p.AutoAttackVariant;
+        autoAttack.Configure(p.AutoAttack, p.AutoAttackIntervalMs, p.AutoAttackVariant);
     }
 
     private float ScaleFor(HuntAppearance hunt)
@@ -284,6 +295,7 @@ public sealed class Plugin : IDalamudPlugin
             SelectedBaseId = selected >= 0 ? catalog[selected].BaseId : 0,
             Rank = rankFilter, Expansion = expansionFilter, Territory = territoryFilter, Search = search,
             SpawnDistance = spawnDistance, FloatingControls = floatingControls, Stance = stanceSelection,
+            AutoAttack = autoAttackEnabled, AutoAttackIntervalMs = (int)MathF.Round(autoAttackInterval * 1000), AutoAttackVariant = autoAttackVariant,
             Scales = new(rememberedScales), Sections = new(rememberedSections),
         };
         Interlocked.Exchange(ref preferencesTouchedAt, Environment.TickCount64);
@@ -352,6 +364,7 @@ public sealed class Plugin : IDalamudPlugin
         dialoguePreview.ForgetScene();
         sequence.ForgetScene();
         animationPause.ForgetScene();
+        autoAttack.ForgetScene(); autoAttackFaulted = false;
         modelRotation.Clear();
         try { modelVisibility.Reset(); }
         catch (Exception ex) { log.Error(ex, "切换场景时恢复模型显示失败"); }
@@ -377,6 +390,7 @@ public sealed class Plugin : IDalamudPlugin
             FlushPreferences();
             if (Loading)
             {
+                autoAttack.ForgetScene(); autoAttackFaulted = false;
                 dialoguePreview.ForgetScene();
                 incomingDialogue.Clear();
                 sequence.ForgetScene();
@@ -444,6 +458,14 @@ public sealed class Plugin : IDalamudPlugin
             else { bulkCandidates = []; bulkScanGate.Reset(); }
             modelVisibility.Tick(visibilityAccess.Self, redrawingActors, bulkCandidates);
             linkedDummy.Tick(now);
+            if (!autoAttackFaulted)
+                try { autoAttack.Tick(localPreview.Actor, linkedDummy.Pose.InCombat, now); }
+                catch (Exception ex)
+                {
+                    autoAttackFaulted = true;
+                    status = "自动平A已中断；可重新勾选自动平A重试，或复制目标诊断。";
+                    log.Error(ex, status);
+                }
             entries = session.Snapshot;
             var currentTarget = targets.Target;
             var npc = currentTarget as IBattleNpc;
@@ -478,7 +500,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             var target = targets.Target as IBattleNpc;
             var diagnoseReason = target is { } && target.IsValid() ? actors.CanApply(NativeActorAccess.Identity(target)) : "未选中有效战斗对象。";
-            chat.Print($"[狩猎模型替换 0.1.0.21] {DescribeTargets()}；替换条件：{diagnoseReason ?? "目标可替换，请选择外观"}");
+            chat.Print($"[狩猎模型替换 0.1.0.22] {DescribeTargets()}；替换条件：{diagnoseReason ?? "目标可替换，请选择外观"}");
             return;
         }
         if (request.Action == "stance")
@@ -486,6 +508,13 @@ public sealed class Plugin : IDalamudPlugin
             linkedDummy.Pose.SetMode(request.Stance);
             status = request.Stance switch { ModelStance.Battle => "本地演示模型保持战斗姿态。",
                 ModelStance.Idle => "本地演示模型保持普通待机。", _ => "本地演示模型自动跟随木人；前方预览使用普通待机。" };
+            return;
+        }
+        if (request.Action == "auto-attack-options")
+        {
+            autoAttack.Configure(request.Enabled, request.AttackIntervalMs, request.AttackVariant);
+            autoAttackFaulted = false;
+            status = request.Enabled ? "战斗时定时播放本地平A，手动技能、连招和暂停优先。" : "已关闭自动平A。";
             return;
         }
         if (request.Action == "target-source")
@@ -536,12 +565,13 @@ public sealed class Plugin : IDalamudPlugin
         if (request.Action is "play" or "start-combo" && request.Actor is { } playingActor && animationPause.IsPaused(playingActor))
             throw new InvalidOperationException("演示对象已暂停，请先点击「恢复动作」或输入 /hms resume。");
         // Restore saved speeds before any operation can redraw/delete/change the model.
-        if (request.Action == "all") { animationPause.Reset(); preview.Clear(); demoDefaults.Clear(); }
+        if (request.Action == "all") { animationPause.Reset(); autoAttack.Interrupt(); autoAttack.ForgetScene(); preview.Clear(); demoDefaults.Clear(); }
         else if (request.Action is "spawn" or "remove-local" && localPreview.Actor is { } oldPreview)
             animationPause.Resume(oldPreview.Actor);
         else if (request.Action is "apply" or "restore" && request.Actor is { } changingActor)
         {
             animationPause.Resume(changingActor);
+            if (localPreview.Owns(changingActor)) { autoAttack.Interrupt(); autoAttack.ForgetScene(); }
             preview.Forget(changingActor);
         }
         if (request.Action == "all") modelRotation.Clear();
@@ -623,6 +653,7 @@ public sealed class Plugin : IDalamudPlugin
             if (sequence.Actor == actor) sequence.Stop("已重置演示状态，连招已停止。");
             dialoguePreview.Clear(actor);
             animationPause.Resume(actor, repairIfNotPaused: true);
+            if (localPreview.Owns(actor)) { autoAttack.Interrupt(); autoAttackFaulted = false; }
             preview.Stop(actor);
             session.Resize(actor, defaults.Scale);
             if (selected >= 0 && catalog[selected].ModelId == entry.Applied.ModelId && catalog[selected].Name == entry.ReplacementName)
@@ -727,6 +758,16 @@ public sealed class Plugin : IDalamudPlugin
             status = $"已请求本地播放「{skill.Name}」（技能 ID {skill.ActionId}）；动作和附带特效需实际确认，不产生真实伤害。";
             return;
         }
+        if (request.Action == "auto-attack-once")
+        {
+            if (localPreview.Actor is not { } lease || lease.Actor != actor || !localPreview.OwnsLive(actor))
+                throw new InvalidOperationException("单次平A用于本地生成的演示模型或庭具木人替身。");
+            var now = Environment.TickCount64;
+            var skill = autoAttack.PrepareSingle(lease, now);
+            preview.Play(actor, skill, now, autoAttack.IntervalMs);
+            status = $"已试播本地普通攻击动作，最长 {autoAttack.IntervalMs / 1000f:G} 秒后结束；固定朝向时保留手动角度。";
+            return;
+        }
         if (request.Action == "restore")
         {
             if (localPreview.Owns(actor))
@@ -765,6 +806,7 @@ public sealed class Plugin : IDalamudPlugin
         if (localPreview.Actor is not { } lease) return;
         dialoguePreview.Clear(lease.Actor);
         animationPause.Resume(lease.Actor);
+        autoAttack.Interrupt(); autoAttack.ForgetScene(); autoAttackFaulted = false;
         preview.Forget(lease.Actor);
         demoDefaults.Forget(lease.Actor);
         modelRotation.Release(lease.Actor);
@@ -826,7 +868,7 @@ public sealed class Plugin : IDalamudPlugin
         ImGui.SetNextWindowSize(new Vector2(700, 640), ImGuiCond.FirstUseEver);
         if (ImGui.Begin("狩猎模型替换 /hms###HuntModelSwapCN", ref visible))
         {
-            ImGui.TextDisabled("0.1.0.21 · 本机外观与动作演示");
+            ImGui.TextDisabled("0.1.0.22 · 本机外观与动作演示");
             ImGui.SameLine();
             ImGui.Checkbox("显示悬浮控制窗 /hms controls", ref floatingControls);
             var hideSelf = view.HideSelf;
@@ -978,7 +1020,7 @@ public sealed class Plugin : IDalamudPlugin
                 ImGui.TextWrapped("庭具木人使用原位本地模型，点击模型或名牌时将选择转交给真实木人；也可点「选中木人」或输入 /hms target。它与前方生成共用一个本地模型；再次生成、移除预览或恢复时会还原庭具。木人歼灭战等有角色绘制对象的木人沿用直接替换。");
                 ImGui.TextWrapped(view.TargetDiagnostics);
                 if (ImGui.SmallButton("复制目标诊断"))
-                    ImGui.SetClipboardText($"狩猎模型替换 0.1.0.21\n{view.TargetDiagnostics}\n替换条件：{reason ?? "可替换"}");
+                    ImGui.SetClipboardText($"狩猎模型替换 0.1.0.22\n{view.TargetDiagnostics}\n替换条件：{reason ?? "可替换"}");
                 ImGui.SameLine();
                 ImGui.TextDisabled("或输入 /hms diagnose");
             }
@@ -1108,6 +1150,32 @@ public sealed class Plugin : IDalamudPlugin
         ImGui.EndDisabled();
         if (actor == view.LocalActor && actor.HasValue)
             ImGui.TextDisabled("自动跟随木人；前方预览默认待机。保持战斗姿态无需受击或掉血。");
+        ImGui.BeginDisabled(actor != view.LocalActor || !view.LocalActor.HasValue);
+        var attackOptionsChanged = ImGui.Checkbox("战斗时自动平A（朝向自己）", ref autoAttackEnabled);
+        ImGui.SameLine();
+        ImGui.BeginDisabled(paused);
+        if (ImGui.SmallButton("试播一次平A")) Enqueue("auto-attack-once", actor);
+        ImGui.EndDisabled();
+        ImGui.SetNextItemWidth(150);
+        attackOptionsChanged |= ImGui.SliderFloat("平A间隔（秒）", ref autoAttackInterval, 1, 10, "%.1f");
+        ImGui.SetNextItemWidth(180);
+        string AttackLabel(AutoAttackVariant v) => v switch { AutoAttackVariant.MonsterA => "怪物近战 A", AutoAttackVariant.MonsterB => "怪物近战 B", AutoAttackVariant.Ranged => "怪物远程", _ => "通用普通攻击（默认）" };
+        if (ImGui.BeginCombo("平A动作版本", AttackLabel(autoAttackVariant)))
+        {
+            foreach (var variant in Enum.GetValues<AutoAttackVariant>())
+                if (ImGui.Selectable(AttackLabel(variant), autoAttackVariant == variant))
+                { autoAttackVariant = variant; attackOptionsChanged = true; }
+            ImGui.EndCombo();
+        }
+        if (attackOptionsChanged)
+        {
+            preferencesDirty = true;
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "auto-attack-options", actor, Enabled: autoAttackEnabled,
+                AttackIntervalMs: (int)MathF.Round(autoAttackInterval * 1000), AttackVariant: autoAttackVariant));
+        }
+        ImGui.EndDisabled();
+        if (actor == view.LocalActor && actor.HasValue)
+            ImGui.TextWrapped("自动平A默认开启；选「保持战斗姿态」即可连续演示。固定朝向时保留手动角度；没有动作可切换版本试播。仅本机动作，不造成伤害。");
         if (rotationInputActor != actor)
         {
             rotationInputActor = actor;

@@ -12,6 +12,9 @@ public sealed record UserPreferences
     public float SpawnDistance { get; init; } = 8;
     public bool FloatingControls { get; init; }
     public ModelStance Stance { get; init; }
+    public bool AutoAttack { get; init; } = true;
+    public int AutoAttackIntervalMs { get; init; } = AutoAttackPreview.DefaultIntervalMs;
+    public AutoAttackVariant AutoAttackVariant { get; init; }
     public Dictionary<string, float> Scales { get; init; } = [];
     public Dictionary<string, bool> Sections { get; init; } = [];
     public static string HuntKey(uint nameId, uint baseId) => $"{nameId}:{baseId}";
@@ -22,6 +25,8 @@ public sealed record UserPreferences
         Search = (Search ?? "")[..Math.Min((Search ?? "").Length, 128)],
         SpawnDistance = float.IsFinite(SpawnDistance) ? Math.Clamp(SpawnDistance, 2, 30) : 8,
         Stance = Enum.IsDefined(Stance) ? Stance : ModelStance.Automatic,
+        AutoAttackIntervalMs = AutoAttackIntervalMs is >= 1000 and <= 10000 ? AutoAttackIntervalMs : AutoAttackPreview.DefaultIntervalMs,
+        AutoAttackVariant = Enum.IsDefined(AutoAttackVariant) ? AutoAttackVariant : AutoAttackVariant.Standard,
         Scales = (Scales ?? []).Where(p => ValidKey(p.Key) && float.IsFinite(p.Value) && p.Value > 0)
             .Take(1024).ToDictionary(p => p.Key, p => p.Value),
         Sections = (Sections ?? []).Where(p => p.Key is "modelControls" or "visibilityControls" or "hiddenTargets"

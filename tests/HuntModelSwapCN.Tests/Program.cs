@@ -1007,6 +1007,124 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
 }
 
 {
+    var a = new FakeAccess(); a.Actors[actor] = original;
+    var s = new SwapSession(a); s.Apply(actor, "original", "demo", State(3315, 3)); s.Tick();
+    var untouched = a.Actors[actor];
+    var lease = new LocalActorLease(100, 0x5000, actor, 1);
+    var native = new FakeAutoAttackAccess { ValidLease = lease };
+    var paused = false; var busy = false; var locked = false;
+    var attacks = new AutoAttackPreview(s, native, _ => paused, (_, _) => busy, _ => locked);
+    attacks.Tick(lease, false, 0);
+    Check(native.Plays.Count == 0, "Idle previews must not attack even with the default option enabled.");
+    attacks.Tick(lease, true, 100); attacks.Tick(lease, true, 1000);
+    Check(native.Plays.Count == 1 && native.Plays[0].Timeline == 112 && native.Facing[^1],
+        "Entering battle must play the separate normal attack timeline facing the local player.");
+    attacks.Tick(lease, true, 2600);
+    Check(native.Plays.Count == 2 && native.Stops.Count == 1, "A due swing must replace only its own preceding attack.");
+    attacks.Tick(lease, true, 12600);
+    Check(native.Plays.Count == 3, "A long frame stall must produce one swing, never a backlog burst.");
+    paused = true; var stops = native.Stops.Count; var faces = native.Facing.Count;
+    attacks.Tick(lease, true, 13000); attacks.Tick(lease, true, 20000);
+    Check(native.Plays.Count == 3 && native.Stops.Count == stops && native.Facing.Count == faces,
+        "Pause must preserve the active swing without stopping, turning or advancing the attack clock.");
+    paused = false; attacks.Tick(lease, true, 20001); attacks.Tick(lease, true, 22000);
+    Check(native.Plays.Count == 3, "Resuming must exclude time spent paused rather than immediately replaying a swing.");
+    attacks.Tick(lease, true, 22501);
+    Check(native.Plays.Count == 4, "The remaining interval must finish after resume.");
+    busy = true; attacks.Tick(lease, true, 22600); attacks.Tick(lease, true, 23000);
+    Check(native.Plays.Count == 4 && native.Stops.Count == stops + 2,
+        "A manual action or combo must interrupt automatic attacks without repeatedly stopping timelines.");
+    busy = false; attacks.Tick(lease, true, 23001); attacks.Tick(lease, true, 25500);
+    Check(native.Plays.Count == 5, "Automatic attacks must wait a fresh interval after a manual action finishes.");
+    locked = true; attacks.Tick(lease, true, 28000);
+    Check(!native.Facing[^1], "Automatic swings must preserve a manually fixed heading.");
+    attacks.Configure(false, 5000, AutoAttackVariant.MonsterB);
+    attacks.Tick(lease, true, 40000);
+    Check(native.Plays.Count == 6 && attacks.IntervalMs == 5000, "Disabling must stop repetition and apply the chosen interval.");
+    Check(attacks.PrepareSingle(lease, 40001).TimelineId == 124 && !native.Facing[^1],
+        "Single preview must remain usable when repetition is disabled and must respect a fixed heading.");
+    paused = true;
+    try { attacks.PrepareSingle(lease, 40002); throw new Exception("Paused single attack accepted."); }
+    catch (InvalidOperationException) { Check(true, "Paused single attacks must be rejected."); }
+    paused = false; busy = true;
+    try { attacks.PrepareSingle(lease, 40003); throw new Exception("Busy single attack accepted."); }
+    catch (InvalidOperationException) { Check(true, "Single attacks must not interrupt a manual skill or combo."); }
+    busy = false;
+    attacks.Configure(true, 1000, AutoAttackVariant.MonsterA); attacks.Tick(lease, true, 40004);
+    Check(native.Plays[^1].Timeline == 121, "Changing the animation version must use its registered monster timeline.");
+    paused = true; attacks.Tick(lease, true, 40005); stops = native.Stops.Count;
+    attacks.Configure(false, 1000, AutoAttackVariant.Ranged); attacks.Tick(lease, false, 50000);
+    Check(native.Stops.Count == stops, "Disabling or leaving battle while paused must retain the frozen pose until resume.");
+    paused = false; attacks.Tick(lease, false, 50001);
+    Check(native.Stops.Count == stops + 1, "Resume must finish a deferred cancellation exactly once.");
+    try { attacks.Configure(true, 0, AutoAttackVariant.Standard); throw new Exception("Invalid interval accepted."); }
+    catch (InvalidOperationException) { Check(!attacks.Enabled && attacks.IntervalMs == 1000, "Invalid settings must leave valid options unchanged."); }
+    try { attacks.Configure(true, 2500, (AutoAttackVariant)99); throw new Exception("Invalid variant accepted."); }
+    catch (InvalidOperationException) { Check(attacks.Variant == AutoAttackVariant.Ranged, "Invalid variants must not select arbitrary timelines."); }
+
+    attacks.Configure(true, 2500, AutoAttackVariant.Standard); attacks.Tick(lease, true, 50002);
+    var manualNative = new FakeAnimationAccess();
+    var manual = new ActionPreview(s, manualNative) { BeforePlay = _ => attacks.Interrupt() };
+    manual.Play(actor, new(100, "manual", 3201, "manual", 0), 50003);
+    Check(native.Stops[^1].Timeline == 112 && manualNative.Calls.Count == 1,
+        "The single-action player must clear automatic swings before starting a manual or combo action.");
+    // The actual busy callback, not a guessed short duration, protects long manual actions.
+    manualNative.Active = true;
+    var prioritized = new AutoAttackPreview(s, native, _ => false, manual.IsBusy, _ => false);
+    var beforeManual = native.Plays.Count;
+    prioritized.Tick(lease, true, 50004); prioritized.Tick(lease, true, 90000);
+    var count = native.Plays.Count;
+    Check(manual.IsBusy(actor, 90001) && count == beforeManual, "Long native manual timelines must retain priority over repeated attacks.");
+    manualNative.Active = false; prioritized.Tick(lease, true, 90002); prioritized.Tick(lease, true, 92502);
+    Check(native.Plays.Count == count + 1, "Automatic attacks must recover after the actual manual timeline finishes.");
+    prioritized.Tick(lease, false, 92503); count = native.Plays.Count; stops = native.Stops.Count;
+    prioritized.Tick(lease, false, 95000);
+    Check(native.Plays.Count == count && native.Stops.Count == stops, "Leaving battle must cancel once and remain idle.");
+    Check(a.Actors[actor] == untouched, "Automatic playback must leave the actor's appearance snapshot unchanged.");
+
+    manual.Play(actor, AutoAttackPreview.Animation(AutoAttackVariant.Standard), 95001, 2500);
+    manualNative.Active = true;
+    Check(manual.IsBusy(actor, 96001), "Single normal attack preview must protect its active timeline during the trial window.");
+    manual.IsPaused = _ => paused; paused = true;
+    manual.Tick(97000); manual.Tick(120000); paused = false;
+    Check(manual.IsBusy(actor, 120001), "A single attack's trial window must freeze while paused.");
+    Check(!manual.IsBusy(actor, 121501) && manualNative.Stopped[^1].Timeline == 112,
+        "A resident normal attack must be explicitly stopped at the trial limit instead of blocking future controls indefinitely.");
+}
+
+{
+    var a = new FakeAccess(); a.Actors[actor] = original;
+    var s = new SwapSession(a); s.Apply(actor, "original", "demo", State(3315, 3));
+    var lease = new LocalActorLease(100, 0x5000, actor, 1);
+    var native = new FakeAutoAttackAccess { ValidLease = lease };
+    var attacks = new AutoAttackPreview(s, native, _ => false, (_, _) => false, _ => false);
+    attacks.Tick(lease, true, 0);
+    Check(native.Plays.Count == 0, "Pending redraw must defer automatic playback.");
+    s.Tick(); native.PlayerPresent = false; attacks.Tick(lease, true, 1);
+    Check(native.Plays.Count == 0, "A missing local player must prevent an aimed swing.");
+    native.PlayerPresent = true; attacks.Tick(lease, true, 2501);
+    Check(native.Plays.Count == 1, "A later swing may recover when the local player returns.");
+    var newer = lease with { Token = 2 }; native.ValidLease = newer;
+    attacks.Tick(lease, true, 5001);
+    Check(native.Plays.Count == 1 && native.Stops.Count == 0, "Nonce loss must forget playback without stopping a recycled actor's timeline.");
+    attacks.Tick(newer, true, 5002);
+    Check(native.Plays.Count == 2 && native.Plays[^1].Lease.Token == 2, "The new lease must initialize its own playback state.");
+    a.Actors[actor] = a.Actors[actor] with { ModelId = 235 };
+    s.Forget(actor); s.Apply(actor, "original", "other model", State(235, 2)); s.Tick();
+    attacks.Tick(newer, true, 5003);
+    Check(native.Plays[^1].Model == 235 && native.Stops.Count == 0,
+        "Changing the tracked model must not stop a previous model's attack on the new model.");
+    native.Loaded = false; var count = native.Plays.Count; attacks.Tick(newer, true, 8000);
+    Check(native.Plays.Count == count, "Unloaded models must not receive animation requests.");
+    native.Loaded = true; attacks.Tick(newer, true, 8001);
+    attacks.ForgetScene(); var stops = native.Stops.Count;
+    attacks.Tick(null, true, 11000);
+    Check(native.Stops.Count == stops, "Scene teardown must forget ownership without native cleanup writes.");
+    s.Restore(actor); attacks.Tick(newer, true, 11001);
+    Check(native.Plays.Count == count + 1, "Restoring models must no longer receive automatic playback.");
+}
+
+{
     var defaults = new DemoDefaults();
     defaults.Remember(actor, 3315, 45, 3);
     defaults.Remember(actor, 3315, 180, 2.5f);
@@ -1028,11 +1146,14 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
 {
     var raw = new UserPreferences { SelectedNameId = 10617, SelectedBaseId = 13834, Rank = 999, Expansion = -99,
         Search = new string('测', 200), SpawnDistance = float.NaN, Stance = (ModelStance)99,
+        AutoAttackIntervalMs = -99, AutoAttackVariant = (AutoAttackVariant)99,
         Scales = new() { ["10617:13834"] = 12.75f, ["bad"] = 5, ["1:2"] = float.PositiveInfinity, ["3:4"] = -1 },
         Sections = new() { ["modelControls"] = true, ["hiddenTargets"] = false, ["unknown"] = true } };
     var safe = raw.Normalize();
     Check(safe.Rank == 0 && safe.Expansion == -1 && safe.Search.Length == 128 && safe.SpawnDistance == 8
         && safe.Stance == ModelStance.Automatic, "Invalid persisted choices must fall back to usable defaults.");
+    Check(safe.AutoAttack && safe.AutoAttackIntervalMs == 2500 && safe.AutoAttackVariant == AutoAttackVariant.Standard,
+        "Invalid persisted attack settings must fall back to the default registered timeline and interval.");
     Check(safe.Scales.Count == 1 && safe.Scales[UserPreferences.HuntKey(10617, 13834)] == 12.75f,
         "Per-hunt preferences must preserve free valid scales and discard malformed IDs or invalid floats.");
     Check(safe.Sections.Count == 2 && safe.Sections["modelControls"] && !safe.Sections["hiddenTargets"],
@@ -1045,6 +1166,12 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
     var legacy = System.Text.Json.JsonSerializer.Deserialize<UserPreferences>("{}")!.Normalize();
     Check(legacy.SpawnDistance == 8 && legacy.Expansion == -1 && legacy.Scales.Count == 0,
         "Existing configurations without the new preference fields must load safely.");
+    Check(legacy.AutoAttack && legacy.AutoAttackIntervalMs == 2500,
+        "Legacy configurations must enable combat swings with a valid default interval.");
+    var attackSettings = System.Text.Json.JsonSerializer.Deserialize<UserPreferences>(System.Text.Json.JsonSerializer.Serialize(
+        new UserPreferences { AutoAttack = false, AutoAttackIntervalMs = 5500, AutoAttackVariant = AutoAttackVariant.MonsterB }))!.Normalize();
+    Check(!attackSettings.AutoAttack && attackSettings.AutoAttackIntervalMs == 5500 && attackSettings.AutoAttackVariant == AutoAttackVariant.MonsterB,
+        "Explicit attack settings must round-trip through the real preference JSON.");
     var nullCollections = System.Text.Json.JsonSerializer.Deserialize<UserPreferences>("{\"Search\":null,\"Scales\":null,\"Sections\":null}")!.Normalize();
     Check(nullCollections.Search == "" && nullCollections.Scales.Count == 0 && nullCollections.Sections.Count == 0,
         "Explicit null values from damaged or edited JSON must normalize safely.");
@@ -1577,6 +1704,14 @@ if (args.Length == 1)
     }
     var actions = game.Excel.GetSheet<Lumina.Excel.Sheets.Action>(Language.ChineseSimplified);
     var timelines = game.Excel.GetSheet<ActionTimeline>();
+    foreach (var variant in Enum.GetValues<AutoAttackVariant>())
+    {
+        var attack = AutoAttackPreview.Animation(variant);
+        var timeline = timelines.GetRow(attack.TimelineId);
+        Check(timeline.Key.ToString() == attack.TimelineKey && timeline.Slot == attack.Slot,
+            $"Normal attack {variant} must match its actual CN timeline row and slot.");
+        Check(game.FileExists($"chara/action/{attack.TimelineKey}.tmb"), $"Missing normal attack resource: {attack.TimelineKey}");
+    }
     Check(timelines.GetRow(NativeCombatPresentationCodec.NormalIdle).Key.ToString() == "normal/idle",
         "The normal stance timeline must match the installed CN client's generic animation key.");
     Check(timelines.GetRow(NativeCombatPresentationCodec.BattleIdle).Key.ToString() == "battle/idle",
@@ -1710,6 +1845,32 @@ sealed class FakeDialogueAccess : IDialogueAccess
     public List<(ActorIdentity, int, string)> Closes { get; } = [];
     public void OpenBubble(ActorIdentity actor, int modelId, string text, float seconds) => Opens.Add((actor, modelId, text, seconds));
     public void CloseBubble(ActorIdentity actor, int modelId, string expectedText) => Closes.Add((actor, modelId, expectedText));
+}
+
+sealed class FakeAutoAttackAccess : IAutoAttackAccess
+{
+    public LocalActorLease? ValidLease { get; set; }
+    public bool Loaded { get; set; } = true;
+    public bool PlayerPresent { get; set; } = true;
+    public List<(LocalActorLease Lease, int Model, ushort Timeline)> Plays { get; } = [];
+    public List<(LocalActorLease Lease, int Model, ushort Timeline)> Stops { get; } = [];
+    public List<bool> Facing { get; } = [];
+    public bool Ready(LocalActorLease lease, int expectedModelId) => lease == ValidLease && Loaded;
+    public bool Prepare(LocalActorLease lease, int expectedModelId, bool facePlayer)
+    {
+        if (!Ready(lease, expectedModelId) || !PlayerPresent) return false;
+        Facing.Add(facePlayer); return true;
+    }
+    public void Play(LocalActorLease lease, int expectedModelId, ushort timeline)
+    {
+        if (!Ready(lease, expectedModelId)) throw new Exception("Automatic playback through invalid ownership.");
+        Plays.Add((lease, expectedModelId, timeline));
+    }
+    public void Stop(LocalActorLease lease, int expectedModelId, ushort timeline)
+    {
+        if (!Ready(lease, expectedModelId)) throw new Exception("Automatic cancellation through invalid ownership.");
+        Stops.Add((lease, expectedModelId, timeline));
+    }
 }
 
 sealed class FakeAnimationAccess : IAnimationAccess, IDirectionalAnimationAccess
