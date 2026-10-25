@@ -72,6 +72,8 @@ public sealed class Plugin : IDalamudPlugin
     private string skillSearch = "";
     private bool sameFamily = true;
     private bool showSkillVariants;
+    private bool lastHideAllMonsters;
+    private bool collapseHiddenList;
     private uint selectedSkill;
     private string? lastSkillFilter;
     private SkillAnimation[] skillMatches = [];
@@ -88,7 +90,7 @@ public sealed class Plugin : IDalamudPlugin
         bool HideSelf = false, int HiddenCount = 0, string? CannotHide = null, HiddenTarget[]? HiddenTargets = null,
         bool ComboRunning = false, string ComboStatus = "", string ComboDirections = "", float ComboRemaining = 0,
         bool HideAllMonsters = false, ActorIdentity[]? PausedActors = null, ActorHeading[]? Headings = null,
-        ActorIdentity[]? RotationActors = null, bool DialogueRunning = false);
+        ActorIdentity[]? RotationActors = null, bool DialogueRunning = false, string TargetDiagnostics = "");
 
     public Plugin(IDalamudPluginInterface pluginInterface, IFramework framework, ICommandManager commands,
         IClientState client, ICondition condition, IObjectTable objects, IDataManager data,
@@ -144,7 +146,7 @@ public sealed class Plugin : IDalamudPlugin
         client.Logout += OnLogout;
         chat.ChatMessage += OnNpcDialogue;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.16 initialized. No appearance writes, native bubbles or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.17 initialized. No appearance writes, native bubbles or animation playback have been requested.");
     }
 
     private void Open()
@@ -176,6 +178,8 @@ public sealed class Plugin : IDalamudPlugin
         else if (arguments.Trim().Equals("resume", StringComparison.OrdinalIgnoreCase))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "resume", ControlActor(snapshot), ChatFeedback: true));
         else if (arguments.Trim().Equals("controls", StringComparison.OrdinalIgnoreCase)) floatingControls = !floatingControls;
+        else if (arguments.Trim().Equals("diagnose", StringComparison.OrdinalIgnoreCase))
+            chat.Print($"[狩猎模型替换 0.1.0.17] {snapshot.TargetDiagnostics}；替换条件：{snapshot.CannotApply ?? "目标可替换，请选择外观"}");
         else if (arguments.Trim().Equals("talk", StringComparison.OrdinalIgnoreCase))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "dialogue-sequence", ControlActor(snapshot), ChatFeedback: true));
         else if (arguments.Trim().Equals("stoptalk", StringComparison.OrdinalIgnoreCase))
@@ -301,7 +305,8 @@ public sealed class Plugin : IDalamudPlugin
             try { sequence.Tick(Environment.TickCount64); }
             catch (Exception ex) { status = sequence.Status; log.Error(ex, "布弗鲁连招已中断"); }
             if (wasRunning && !sequence.Running) status = sequence.Status;
-            var npc = targets.Target as IBattleNpc;
+            var currentTarget = targets.Target;
+            var npc = currentTarget as IBattleNpc;
             var entries = session.Entries.ToArray();
             // Wait for redraw before recording/restoring a selected object's model visibility.
             var redrawingActors = entries.Where(e => e.WaitingForDraw || e.Restoring).Select(e => e.Actor).ToHashSet();
@@ -310,8 +315,9 @@ public sealed class Plugin : IDalamudPlugin
             modelVisibility.Tick(visibilityAccess.Self, redrawingActors, modelVisibility.HideAllMonsters
                 ? visibilityAccess.BulkCandidates(protectedActors) : null);
             ActorIdentity? identity = npc is { } && npc.IsValid() ? NativeActorAccess.Identity(npc) : null;
-            snapshot = new(identity, npc?.Name.ToString() ?? "未选中小怪或木人",
-                identity.HasValue ? actors.CanApply(identity.Value) : "请先选中一只战斗小怪或可攻击木人。",
+            snapshot = new(identity, currentTarget?.Name.ToString() ?? "未选中小怪或木人",
+                identity.HasValue ? actors.CanApply(identity.Value) : currentTarget is null
+                    ? "请先选中一只战斗小怪或可攻击木人。" : $"目标类型为 {currentTarget.ObjectKind}，请选择可攻击木人或战斗小怪。",
                 entries, status, localPreview.Actor?.Actor,
                 modelVisibility.HideSelf, modelVisibility.Count,
                 identity.HasValue ? visibilityAccess.CanHide(identity.Value) : "请先选中一只战斗小怪（主动或被动均可）。",
@@ -320,7 +326,7 @@ public sealed class Plugin : IDalamudPlugin
                 sequence.Running, sequence.Status, sequence.DirectionOrder, sequence.RemainingSeconds(Environment.TickCount64),
                 modelVisibility.HideAllMonsters, animationPause.Actors.ToArray(),
                 entries.Select(e => new ActorHeading(e.Actor, actors.Heading(e.Actor, e.Applied.ModelId))).ToArray(),
-                modelRotation.Actors.ToArray(), dialoguePreview.Running);
+                modelRotation.Actors.ToArray(), dialoguePreview.Running, actors.Describe(currentTarget));
         }
         catch (Exception ex)
         {
@@ -568,46 +574,25 @@ public sealed class Plugin : IDalamudPlugin
         ImGui.SetNextWindowSize(new Vector2(700, 640), ImGuiCond.FirstUseEver);
         if (ImGui.Begin("狩猎模型替换 /hms###HuntModelSwapCN", ref visible))
         {
-            ImGui.TextWrapped("选择狩猎怪物后，可在面前生成本地预览，或替换当前战斗小怪／可攻击木人的外观。名字、等级、头标使用所选怪物，体型默认使用它的原版倍率。只影响本机显示。");
+            ImGui.TextDisabled("0.1.0.17 · 本机外观与动作演示");
+            ImGui.SameLine();
             ImGui.Checkbox("显示悬浮控制窗 /hms controls", ref floatingControls);
-            DrawModelControls(view);
-            ImGui.Separator();
             var hideSelf = view.HideSelf;
             ImGui.BeginDisabled(Loading);
             if (ImGui.Checkbox("隐藏自己模型", ref hideSelf))
                 requests.Enqueue(new(Interlocked.Read(ref epoch), "visibility", null, HideSelf: hideSelf));
+            ImGui.SameLine();
             var hideAllMonsters = view.HideAllMonsters;
             if (ImGui.Checkbox("隐藏所有小怪（保留演示对象）", ref hideAllMonsters))
+            {
                 requests.Enqueue(new(Interlocked.Read(ref epoch), "hide-all-monsters", null, HideAllMonsters: hideAllMonsters));
+                if (hideAllMonsters) collapseHiddenList = true;
+            }
             ImGui.EndDisabled();
-            if (view.HideAllMonsters)
-                ImGui.TextWrapped("持续隐藏加载范围内的主动与被动战斗小怪，保留生成预览和已替换的演示对象。列表中单独恢复的小怪在本次开启期间保持显示；重新开启批量隐藏后重置。");
+            if (view.HideAllMonsters && !lastHideAllMonsters) collapseHiddenList = true;
+            lastHideAllMonsters = view.HideAllMonsters;
             ImGui.TextUnformatted($"当前目标：{view.TargetName}");
-            if (view.Target is { } target && StrikingDummyPolicy.IsDummy(target.NameId))
-                ImGui.TextWrapped("已选中木人：可在下方替换外观。木人的血量、受击和训练机制保留；木人重置后若恢复了原模型，会重新应用当前外观。恢复当前目标可还原木人。");
             var hiddenTargets = view.HiddenTargets ?? [];
-            var targetHidden = view.Target.HasValue && hiddenTargets.Any(t => t.Actor == view.Target);
-            ImGui.BeginDisabled(Loading || !view.Target.HasValue || view.CannotHide is not null || targetHidden);
-            if (ImGui.Button("隐藏当前目标")) Enqueue("hide-target", view.Target);
-            ImGui.EndDisabled();
-            ImGui.SameLine();
-            ImGui.BeginDisabled(Loading || !targetHidden);
-            if (ImGui.Button("恢复当前目标显示")) Enqueue("show-target", view.Target);
-            ImGui.EndDisabled();
-            if (view.CannotHide is { } hideReason) ImGui.TextWrapped(hideReason);
-            if (ImGui.Button("恢复全部显示 /hms show")) Enqueue("show-all");
-            ImGui.SameLine();
-            ImGui.TextUnformatted($"已管理隐藏对象：{view.HiddenCount}");
-            ImGui.TextWrapped("先选中一只战斗小怪，再点击隐藏，主动与被动小怪均可。可逐只隐藏；隐藏后从下方列表恢复，无需再次点中模型。切图、登出自动恢复。仅隐藏模型，名牌和独立技能特效仍可能显示。");
-            if (hiddenTargets.Length > 0 && ImGui.CollapsingHeader($"隐藏的小怪（可逐只恢复）({hiddenTargets.Length})", ImGuiTreeNodeFlags.DefaultOpen))
-                foreach (var hidden in hiddenTargets)
-                {
-                    ImGui.PushID($"hidden-{hidden.Actor.Index}-{hidden.Actor.ObjectId}");
-                    if (ImGui.SmallButton("恢复显示")) Enqueue("show-target", hidden.Actor);
-                    ImGui.SameLine();
-                    ImGui.TextUnformatted($"{hidden.Name}（对象 {hidden.Actor.Index}）");
-                    ImGui.PopID();
-                }
             ImGui.Separator();
             ImGui.SetNextItemWidth(120);
             if (ImGui.BeginCombo("狩猎级别", rankFilter == 0 ? "全部" : rankFilter switch { 1 => "B", 2 => "A", 3 => "S", 4 => "SS", _ => "SS随从" }))
@@ -673,7 +658,7 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.SameLine();
             if (ImGui.Button("恢复所选怪物原版倍率") && selected >= 0) scale = catalog[selected].Scale;
             ImGui.EndDisabled();
-            if (selected >= 0) ImGui.TextWrapped($"「{catalog[selected].Name}」原版倍率：{catalog[selected].Scale:G}。输入值直接作为模型倍率，不再额外乘原版体型。");
+            if (selected >= 0) ImGui.TextDisabled($"原版倍率：{catalog[selected].Scale:G}");
             var sizeValid = float.IsFinite(scale) && scale > 0;
             if (!sizeValid) ImGui.TextWrapped("请输入大于 0 的有限倍率。");
             var resizeActor = ControlActor(view);
@@ -691,13 +676,9 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.BeginDisabled(!view.LocalActor.HasValue);
             if (ImGui.Button("移除预览")) Enqueue("remove-local");
             ImGui.EndDisabled();
-            ImGui.TextWrapped("无需选中小怪。只保留一只本地生成对象；再次生成会替换它。技能演示优先控制此对象。");
-            ImGui.TextWrapped("本地预览隐藏头顶血条，名字、等级和精英头标使用原生敌对怪名牌样式。");
-            ImGui.TextWrapped("生成的 B 怪使用蓝色被动精英头标；A/S 怪使用主动精英头标。颜色分类随当前演示外观更新。");
-            ImGui.TextWrapped("SS 与 SS 随从单独分类并保留主动头标；三组特殊狩猎可按名称搜索，或在级别中筛选。");
-            ImGui.TextWrapped("替换真实小怪时也显示所选怪物的原版头标，恢复时还原；仅覆盖头标显示，原怪物的主动／被动行为不变。");
-            var reason = Loading ? "请等待角色进入场景。" : view.CannotApply;
-            ImGui.BeginDisabled(reason is not null || selected < 0 || !sizeValid);
+            var reason = Loading ? "请等待角色进入场景。" : view.CannotApply
+                ?? (selected < 0 ? "请先从上方选择一个怪物外观。" : !sizeValid ? "体型倍率须为大于 0 的有限数值。" : null);
+            ImGui.BeginDisabled(reason is not null);
             if (ImGui.Button("替换当前目标")) Enqueue("apply", view.Target);
             ImGui.EndDisabled();
             ImGui.SameLine();
@@ -711,9 +692,12 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.EndDisabled();
             if (reason is not null) ImGui.TextWrapped(reason);
             ImGui.TextWrapped(view.Status);
-            DrawDialoguePreview(view);
+            ImGui.Separator();
+            if (ImGui.CollapsingHeader("暂停、旋转与控制对象###modelControls")) DrawModelControls(view);
+            DrawVisibilityControls(view);
             DrawSkillPreview(view);
-            if (ImGui.CollapsingHeader($"已替换对象 ({view.Entries.Length})"))
+            DrawDialoguePreview(view);
+            if (ImGui.CollapsingHeader($"已替换对象 ({view.Entries.Length})###swappedActors"))
                 foreach (var entry in view.Entries)
                 {
                     ImGui.PushID(entry.Actor.Index);
@@ -723,10 +707,52 @@ public sealed class Plugin : IDalamudPlugin
                         + (entry.WaitingForDraw ? "（重绘中）" : ""));
                     ImGui.PopID();
                 }
-            ImGui.Separator();
-            ImGui.TextWrapped("替换只在当前已加载对象上生效，离开加载范围或切图后结束。插件卸载时恢复仍存在的对象。首版需游戏内验证各怪物的战斗动画。");
+            if (ImGui.CollapsingHeader("使用说明与目标诊断###help"))
+            {
+                ImGui.TextWrapped("生成无需选中目标，只保留一只本地预览，头顶血条隐藏。替换可用于战斗小怪或可攻击木人；名字、等级、头标使用所选怪物，体型默认原版倍率，可自由调整。");
+                ImGui.TextWrapped("B 为蓝色被动精英头标，A/S/SS 与 SS 随从为对应主动头标。仅改变本机显示，不改变真实怪物的行动、血量和伤害。切图结束临时替换，卸载时恢复仍存在的对象。");
+                ImGui.TextWrapped("隐藏所有小怪会保留演示对象，单独恢复的对象在本次开启期间保持显示。重新开启批量隐藏时重置例外。仅隐藏模型，名牌和独立技能特效仍可能显示。");
+                ImGui.TextWrapped(view.TargetDiagnostics);
+                if (ImGui.SmallButton("复制目标诊断"))
+                    ImGui.SetClipboardText($"狩猎模型替换 0.1.0.17\n{view.TargetDiagnostics}\n替换条件：{reason ?? "可替换"}");
+                ImGui.SameLine();
+                ImGui.TextDisabled("或输入 /hms diagnose");
+            }
         }
         ImGui.End();
+    }
+
+    private void DrawVisibilityControls(UiSnapshot view)
+    {
+        if (!ImGui.CollapsingHeader($"隐藏对象与逐只操作 ({view.HiddenCount})###visibilityControls")) return;
+        var hiddenTargets = view.HiddenTargets ?? [];
+        var targetHidden = view.Target.HasValue && hiddenTargets.Any(t => t.Actor == view.Target);
+        ImGui.BeginDisabled(Loading || !view.Target.HasValue || view.CannotHide is not null || targetHidden);
+        if (ImGui.Button("隐藏当前目标")) Enqueue("hide-target", view.Target);
+        ImGui.EndDisabled();
+        ImGui.SameLine();
+        ImGui.BeginDisabled(Loading || !targetHidden);
+        if (ImGui.Button("恢复当前目标显示")) Enqueue("show-target", view.Target);
+        ImGui.EndDisabled();
+        if (view.CannotHide is { } reason) ImGui.TextWrapped(reason);
+        if (ImGui.Button("恢复全部显示 /hms show")) Enqueue("show-all");
+        if (hiddenTargets.Length == 0) return;
+        if (collapseHiddenList)
+        {
+            ImGui.SetNextItemOpen(false, ImGuiCond.Always);
+            collapseHiddenList = false;
+        }
+        if (!ImGui.CollapsingHeader($"隐藏的小怪（可逐只恢复）({hiddenTargets.Length})###hiddenTargets")) return;
+        if (ImGui.BeginChild("hiddenTargetRows", new Vector2(0, 160), true))
+            foreach (var hidden in hiddenTargets)
+            {
+                ImGui.PushID($"hidden-{hidden.Actor.Index}-{hidden.Actor.ObjectId}");
+                if (ImGui.SmallButton("恢复显示")) Enqueue("show-target", hidden.Actor);
+                ImGui.SameLine();
+                ImGui.TextUnformatted($"{hidden.Name}（对象 {hidden.Actor.Index}）");
+                ImGui.PopID();
+            }
+        ImGui.EndChild();
     }
 
     private ActorIdentity? ControlActor(UiSnapshot view) => controlSelection is { } chosen

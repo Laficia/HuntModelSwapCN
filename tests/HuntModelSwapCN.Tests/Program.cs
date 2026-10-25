@@ -137,6 +137,55 @@ unsafe
 try { DisplayName.Encode(new string('蛇', 22)); throw new Exception("An overlong UTF-8 name was accepted."); }
 catch (InvalidOperationException) { tests++; }
 
+// Regression from the actual disabled-button report: the old CanApply required
+// Combatant=5 and a non-null draw object even for known training dummies.
+{
+    foreach (var name in new uint[] { 541, 13078 })
+        foreach (var kind in new byte[] { 0, 1, 5, 9 })
+        {
+            var facts = new ReplacementTargetFacts(true, kind, name, 0xe0000000, 1, false, false);
+            Check(ReplacementTargetPolicy.CannotApply(facts) is null,
+                "A verified live dummy must be replaceable with a non-Combatant subkind and before its draw object exists.");
+            Check(ReplacementTargetPolicy.CannotApply(facts with { OwnerId = 0x12345678 }) is null,
+                "A known dummy's housing/parent owner association must not classify it as a player pet.");
+        }
+    var ordinary = new ReplacementTargetFacts(true, 5, 33, 0xe0000000, 1, false, true);
+    Check(ReplacementTargetPolicy.CannotApply(ordinary) is null, "Existing ordinary combatant replacement must remain allowed.");
+    Check(ReplacementTargetPolicy.CannotApply(ordinary with { SubKind = 2, OwnerId = 0x12345678 }) is not null
+        && ReplacementTargetPolicy.CannotApply(ordinary with { SubKind = 9 }) is not null
+        && ReplacementTargetPolicy.CannotApply(ordinary with { HasDrawObject = false }) is not null
+        && ReplacementTargetPolicy.CannotApply(ordinary with { OwnerId = 0x12345678 }) is not null,
+        "Pets, party NPCs, owned ordinary actors and unloaded ordinary enemies must retain their existing exclusions.");
+    var dummy = ordinary with { NameId = 541, SubKind = 0, HasDrawObject = false };
+    Check(ReplacementTargetPolicy.CannotApply(dummy with { IsBattleNpc = false }) is not null
+        && ReplacementTargetPolicy.CannotApply(dummy with { CurrentHp = 0 }) is not null
+        && ReplacementTargetPolicy.CannotApply(dummy with { IsTransformed = true }) is not null,
+        "A dummy identity must not bypass native type, health or active transformation checks.");
+    unsafe
+    {
+        NativeCharacter native = default;
+        native.NameId = 541; native.GameObject.BaseId = 901;
+        native.ModelContainer.ModelCharaId = 2449;
+        native.ModelContainer.ModelCharaId_2 = -1;
+        native.GameObject.Scale = native.ModelScale = 1;
+        native.Level = 1; native.Health = 100; native.MaxHealth = 100;
+        DisplayName.Encode("木人").CopyTo(native.GameObject.Name);
+        var before = NativeAppearanceCodec.Capture(&native);
+        NativeAppearanceCodec.Validate(before);
+        Check(before.DrawScale == new System.Numerics.Vector3(1),
+            "Initial dummy capture must use object scale without dereferencing a missing draw object.");
+        NativeAppearanceCodec.Write(&native, State(235, 3.5f) with { NameBytes = DisplayName.Encode("雷德罗巨蛇"), Level = 50, NameplateIcon = 1 });
+        Check(native.GameObject.DrawObject == null && native.ModelContainer.ModelCharaId == 235
+            && native.GameObject.NameString == "雷德罗巨蛇" && native.Level == 50 && native.Icon == 1 && native.ModelScale == 3.5f,
+            "A missing dummy draw object must still permit complete appearance preparation before EnableDraw.");
+        NativeAppearanceCodec.Write(&native, before);
+        Check(native.GameObject.DrawObject == null && native.ModelContainer.ModelCharaId == 2449
+            && native.GameObject.NameString == "木人" && native.Level == 1 && native.ModelScale == 1
+            && native.NameId == 541 && native.GameObject.BaseId == 901 && native.Health == 100,
+            "Restoring an initially draw-less dummy must preserve its complete original appearance and identity.");
+    }
+}
+
 // Dummy reset uses the same actor identity. Keep the first dummy snapshot and
 // complete the replacement's redraw on the next frame, including after retries.
 {

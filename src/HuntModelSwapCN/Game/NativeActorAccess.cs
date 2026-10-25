@@ -37,7 +37,7 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
         var c = Character(actor);
         if (c->ModelContainer.ModelCharaId != expectedModelId)
             throw new InvalidOperationException("目标模型已变化，请重新替换后再播放。");
-        if (c->GameObject.DrawObject->LoadState != 3)
+        if (c->GameObject.DrawObject == null || c->GameObject.DrawObject->LoadState != 3)
             throw new InvalidOperationException("目标模型仍在加载，请稍后再播放。");
         return c;
     }
@@ -85,13 +85,21 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
     public string? CanApply(ActorIdentity actor)
     {
         if (Resolve(actor) is not { } npc) return "请选中一只已加载的战斗小怪或可攻击木人。";
-        if (npc.BattleNpcKind != BattleNpcSubKind.Combatant) return "当前目标不是可替换的战斗小怪或可攻击木人。";
-        if (npc.OwnerId is not (0 or 0xe0000000)) return "不能替换宠物或其他角色所属对象。";
-        if (npc.CurrentHp == 0) return "请先选择存活的战斗小怪或木人。";
         var character = (NativeCharacter*)npc.Address;
-        if (character->TransformationId != 0) return "当前目标正在使用游戏变身，请稍后再试。";
-        if (character->GameObject.DrawObject == null) return "当前目标的模型仍在加载。";
-        return null;
+        return ReplacementTargetPolicy.CannotApply(new(npc.ObjectKind == ObjectKind.BattleNpc,
+            (byte)npc.BattleNpcKind, npc.NameId, npc.OwnerId, npc.CurrentHp,
+            character->TransformationId != 0, character->GameObject.DrawObject != null));
+    }
+
+    public string Describe(IGameObject? target)
+    {
+        if (target is null || !target.IsValid() || target.Address == 0) return "未选中有效目标。";
+        var text = $"目标={target.Name}，类型={target.ObjectKind}，子类型={target.SubKind}，BaseId={target.BaseId}";
+        if (target is not IBattleNpc npc || !npc.IsValid() || npc.Address == 0) return text;
+        var c = (NativeCharacter*)npc.Address;
+        return text + $"，NameId={npc.NameId}，OwnerId={npc.OwnerId:X8}，HP={npc.CurrentHp}/{npc.MaxHp}"
+            + $"，Model={c->ModelContainer.ModelCharaId}，Draw={(c->GameObject.DrawObject == null ? "无" : c->GameObject.DrawObject->LoadState.ToString())}"
+            + $"，Transform={c->TransformationId}，Scale={c->ModelScale:G}/{c->GameObject.Scale:G}";
     }
 
     private NativeCharacter* Character(ActorIdentity actor)
