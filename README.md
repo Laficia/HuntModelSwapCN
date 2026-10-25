@@ -178,7 +178,7 @@ dotnet run --project tests/HuntModelSwapCN.Tests -c Release -- '你的游戏目�
 
 默认引用 `%APPDATA%/XIVLauncherCN/addon/Hooks/dev`。其他安装位置可通过 `-p:DALAMUD_HOME=路径` 指定。
 
-当前客户端 2.0～7.0 的完整数据检查预期 1536 项通过；后续游戏新增狩猎怪时应相应更新测试中的数量断言与数值等级映射，插件名单和技能候选动态读取。
+当前客户端 2.0～7.0 的完整数据检查预期 1828 项通过；后续游戏新增狩猎怪时应相应更新测试中的数量断言与数值等级映射，插件名单和技能候选动态读取。
 
 构建输出在 `src/HuntModelSwapCN/bin/Release/`，卫月打包器生成的压缩包在其 `HuntModelSwapCN/latest.zip`。
 

@@ -19,12 +19,12 @@
     "Punchline": "将小怪模型、名称和等级显示为指定 S/A/B 狩猎怪物",
     "Changelog": "0.1.0.12：新增 S 怪台词与原生气泡。逐页核对 47 只 S 怪，61 个台词 ID 与国服数据逐条匹配，内置阿提卡斯、天气预报机器人、厌忌之人奇里格、伊休妲、顾尼图共 44 句去重台词。可逐句播放，/hms talk 按 0/6/9/13 秒演示阿提卡斯四句；/hms stoptalk 停止。支持收集加载范围内真实 S 怪的 NPC 台词，去重保存本地。保留暂停恢复、水平旋转和原有功能。",
     "AcceptsFeedback": true,
-    "IsHide": false,
-    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.12/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.12/latest.zip",
-    "LastUpdate": 1792900019,
-    "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN",
     "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.12/latest.zip",
-    "IsTestingExclusive": false
+    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.12/latest.zip",
+    "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN",
+    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.12/latest.zip",
+    "LastUpdate": 1792900082,
+    "IsTestingExclusive": false,
+    "IsHide": false
   }
 ]
