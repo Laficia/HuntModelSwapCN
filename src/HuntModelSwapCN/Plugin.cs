@@ -134,7 +134,7 @@ public sealed class Plugin : IDalamudPlugin
         var models = data.GetExcelSheet<ModelChara>();
         modelFamilies = catalog.Select(h => h.ModelId).Distinct().ToDictionary(id => id,
             id => SkillCatalog.ModelFamily(models.GetRow((uint)id)));
-        nameplatePresentation = new(nameplates, session, localPreview, log);
+        nameplatePresentation = new(nameplates, session, localPreview, log, catalog);
         commands.AddHandler("/hms", new CommandInfo(OnCommand)
             { HelpMessage = "打开狩猎模型替换；/hms controls 悬浮控制；/hms pause 暂停；/hms resume 恢复；/hms rotate 角度 水平旋转；/hms show 恢复显示；/hms restore 恢复全部；/hms play 技能ID；/hms combo 布弗鲁连招；/hms stop 停止连招；/hms talk 阿提卡斯四句气泡；/hms stoptalk 停止台词。" });
         pluginInterface.UiBuilder.Draw += Draw;
@@ -144,7 +144,7 @@ public sealed class Plugin : IDalamudPlugin
         client.Logout += OnLogout;
         chat.ChatMessage += OnNpcDialogue;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.13 initialized. No appearance writes, native bubbles or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.14 initialized. No appearance writes, native bubbles or animation playback have been requested.");
     }
 
     private void Open()
@@ -690,6 +690,7 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.TextWrapped("无需选中小怪。只保留一只本地生成对象；再次生成会替换它。技能演示优先控制此对象。");
             ImGui.TextWrapped("本地预览隐藏头顶血条，名字、等级和精英头标使用原生敌对怪名牌样式。");
             ImGui.TextWrapped("生成的 B 怪使用蓝色被动精英头标；A/S 怪使用主动精英头标。颜色分类随当前演示外观更新。");
+            ImGui.TextWrapped("替换真实小怪时也显示所选怪物的原版头标，恢复时还原；仅覆盖头标显示，原怪物的主动／被动行为不变。");
             var reason = Loading ? "请等待角色进入场景。" : view.CannotApply;
             ImGui.BeginDisabled(reason is not null || selected < 0 || !sizeValid);
             if (ImGui.Button("替换当前目标")) Enqueue("apply", view.Target);

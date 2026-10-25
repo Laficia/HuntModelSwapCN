@@ -213,3 +213,14 @@ Release 编译无警告，1837 项离线检查通过。新增被动/主动切换
 参考：
 - https://na.finalfantasyxiv.com/uiguide/battle/battle-np/battle_np_icon.html
 - https://na.finalfantasyxiv.com/lodestone/topics/detail/8bd64bf47da9032ed17891b220e0c3564e228182
+
+
+## 0.1.0.14 真实小怪替换的原版头标
+
+用户要求真实小怪被替换时也使用所选 B/A/S 的原版头标，原先只修复了生成对象。保持真实 IsHostile / Battalion 不变，改用 INamePlateUpdateHandler.NameIconId 覆盖显示资源。按完整 ActorIdentity 找当前有效 SwapEntry，再核对目标名称、模型及图形类别，B 被动蓝色、A/S 主动；等待重绘、恢复中和未知类别不覆盖。原有每次替换及恢复的 RequestRedraw 会让游戏刷新原版图标；不保存旧 UI 指针或槽位。只在 OnNamePlateUpdate 对有重要更新的名牌赋值，不每帧请求全局刷新；本地对象另核验 lease nonce。
+
+只读检查本机 exe 的原生名牌图标选择分支，Character.Icon 类别 1 对应被动 0xf108=61704、主动 0xf10e=61710。另一处名牌更新分支具有相同选择并写入名牌数字数组。已从本机 ui/icon/061000/061704.tex 与 061710.tex 提取并按 A8R8G8B8（小端 BGRA）解码查看，确认前者蓝色被动精英、后者红黄色主动精英。仅将资源 ID 作为已知游戏数据使用，没有硬编码原生函数 RVA，也没有安装新钩子。其他当前狩猎类别均为 1；未来新类别保留游戏结果，等待核对。
+
+Release 编译无警告，2048 项离线检查通过。新增全部 201 种外观的对应图标、两枚图标资源存在、主动来源换 B / 被动来源换 A / 换 S、连续替换、恢复/重绘/未跟踪不覆盖、名称模型类别不匹配拒绝、未知形状拒绝，以及真实怪物主动标志、战斗位、阵营、HP 和身份不被外观写入改变的检查。实际名牌渲染及恢复效果仍需游戏内验证。
+
+接口参考：https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Gui/NamePlate/NamePlateUpdateHandler.cs

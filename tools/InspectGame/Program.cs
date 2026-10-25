@@ -2,6 +2,20 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 3 && args[1] == "--export-name-icons")
+{
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    Directory.CreateDirectory(args[2]);
+    foreach (var id in new[] { 61704, 61710 })
+    {
+        var path = $"ui/icon/061000/{id:D6}.tex";
+        var tex = probe.GetFile<Lumina.Data.Files.TexFile>(path) ?? throw new Exception($"Missing {path}");
+        Console.WriteLine($"{path}: {tex.Header.Width}x{tex.Header.Height}, {tex.ImageData.Length} bytes");
+        File.WriteAllBytes(Path.Combine(args[2], $"{id}.bgra"), tex.ImageData);
+    }
+    return;
+}
+
 if (args.Length == 2 && args[1] == "--aggro-icons")
 {
     Console.WriteLine("Behavior: " + string.Join(", ", typeof(Behavior).GetProperties().Select(p => $"{p.Name}:{p.PropertyType.Name}")));

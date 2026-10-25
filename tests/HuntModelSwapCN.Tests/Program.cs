@@ -634,6 +634,45 @@ var localPreview = new LocalPreview(localSession, localFactory);
 var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", "厄尔庇斯", 3, 3,
     new byte[26], new ulong[10], 0, 0, false, Battalion: 4);
 {
+    HuntAppearance[] iconCatalog = [sampleHunt, sampleHunt with { Rank = 1, Name = "B怪" },
+        sampleHunt with { Rank = 2, Name = "A怪" }];
+    var state = State(sampleHunt.ModelId, 1) with { NameplateIcon = 1 };
+    var entry = new SwapEntry(actor, "主动普通小怪", "B怪", original, state, false, false);
+    Check(NameplateIconPolicy.Resolve(entry, iconCatalog) == 61704,
+        "A real aggressive source replaced with B must display the native blue elite resource.");
+    Check(NameplateIconPolicy.Resolve(entry with { OriginalName = "被动普通小怪", ReplacementName = "A怪" }, iconCatalog) == 61710,
+        "A passive source replaced with A must display its aggressive elite resource, independently of source classification.");
+    Check(NameplateIconPolicy.Resolve(entry with { ReplacementName = sampleHunt.Name }, iconCatalog) == 61710,
+        "S replacements must select the target's native elite icon rather than inherit a passive source icon.");
+    Check(NameplateIconPolicy.Resolve(entry with { Restoring = true }, iconCatalog) is null
+        && NameplateIconPolicy.Resolve(entry with { WaitingForDraw = true }, iconCatalog) is null
+        && NameplateIconPolicy.Resolve(null, iconCatalog) is null,
+        "Restore, redraw and untracked plates must return to the game's own icon calculation.");
+    Check(NameplateIconPolicy.Resolve(entry with { ReplacementName = "未知" }, iconCatalog) is null
+        && NameplateIconPolicy.Resolve(entry with { Applied = state with { ModelId = -1 } }, iconCatalog) is null
+        && NameplateIconPolicy.Resolve(entry with { Applied = state with { NameplateIcon = 2 } }, iconCatalog) is null,
+        "The icon override must validate target name, model and native icon category.");
+    Check(NameplateIconPolicy.Resolve(entry, [iconCatalog[1] with { NameplateIcon = 2 }]) is null,
+        "Unknown future icon shapes must not silently use today's elite resources.");
+    unsafe
+    {
+        NativeCharacter native = default;
+        native.Flags = 0xa3;
+        native.Battalion = 4;
+        native.NameId = 999;
+        native.GameObject.BaseId = 888;
+        native.Health = native.MaxHealth = 123;
+        NativeAppearanceCodec.Write(&native, state);
+        Check(native.Flags == 0xa3 && native.IsHostile && native.Battalion == 4 && native.NameId == 999
+            && native.GameObject.BaseId == 888 && native.Health == 123,
+            "Replacing a real actor's presentation must preserve its aggression, combat bits, battalion and battle identity.");
+        native.IsHostile = false;
+        NativeAppearanceCodec.Write(&native, state);
+        Check(!native.IsHostile && native.Flags == 0xa2,
+            "An aggressive target icon must not change a passive source actor's actual aggression bit.");
+    }
+}
+{
     var passiveHunt = sampleHunt with { Rank = 1, Name = "被动B" };
     HuntAppearance[] appearances = [sampleHunt, passiveHunt];
     var iconAccess = new FakeAccess();
@@ -983,6 +1022,15 @@ if (args.Length == 1)
         "All regular B previews must be passive while all regular A/S previews remain aggressive.");
     Check(catalog.Single(h => h.Name == "第十三个孩子") is { Rank: 1, IsAggressive: false, Battalion: 4, NameplateIcon: 1 },
         "The Thirteenth Child must retain its blue passive elite icon without becoming a friendly NPC.");
+    foreach (var h in catalog)
+    {
+        var iconState = State(h.ModelId, h.Scale) with { NameplateIcon = h.NameplateIcon };
+        var iconEntry = new SwapEntry(actor, "source", h.Name, original, iconState, false, false);
+        Check(NameplateIconPolicy.Resolve(iconEntry, catalog) == (h.Rank == 1 ? 61704 : 61710),
+            $"Every replacement must select its target hunt's native nameplate icon: {h.Name}");
+    }
+    foreach (var id in new[] { NameplateIconPolicy.PassiveElite, NameplateIconPolicy.AggressiveElite })
+        Check(game.FileExists($"ui/icon/061000/{id:D6}.tex"), "Selected native nameplate icon resources must exist in the installed client.");
     Check(catalog.All(h => LocalPreviewName.Matches(LocalPreviewName.Stamp(DisplayName.Encode(h.Name), 1), 1)),
         "Every current hunt name must leave room for local-preview ownership validation.");
     foreach (var hunt in catalog)

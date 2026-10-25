@@ -2,6 +2,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Gui.NamePlate;
 using Dalamud.Plugin.Services;
 using HuntModelSwapCN.Core;
+using HuntModelSwapCN.Catalog;
 
 namespace HuntModelSwapCN.Game;
 
@@ -13,13 +14,16 @@ public sealed class NameplatePresentation : IDisposable
     private readonly SwapSession session;
     private readonly LocalPreview localPreview;
     private readonly IPluginLog log;
+    private readonly IReadOnlyList<HuntAppearance> catalog;
     private bool disposed;
-    public NameplatePresentation(INamePlateGui nameplates, SwapSession session, LocalPreview localPreview, IPluginLog log)
+    public NameplatePresentation(INamePlateGui nameplates, SwapSession session, LocalPreview localPreview, IPluginLog log,
+        IReadOnlyList<HuntAppearance> catalog)
     {
         this.nameplates = nameplates;
         this.session = session;
         this.localPreview = localPreview;
         this.log = log;
+        this.catalog = catalog;
         nameplates.OnDataUpdate += UpdateLocalVisibility;
         nameplates.OnNamePlateUpdate += Update;
     }
@@ -51,7 +55,11 @@ public sealed class NameplatePresentation : IDisposable
             {
                 if (handler.GameObject is not IBattleNpc npc || !npc.IsValid()) continue;
                 var identity = NativeActorAccess.Identity(npc);
+                if (localPreview.Owns(identity) && !localPreview.OwnsLive(identity)) continue;
                 if (session.NameFor(identity) is { } name) handler.SetField(NamePlateStringField.Name, name);
+                var entry = session.Entries.FirstOrDefault(e => e.Actor == identity);
+                if (NameplateIconPolicy.Resolve(entry, catalog) is { } icon) handler.NameIconId = icon;
+                // Restore/redraw uses the game's freshly calculated original icon. No cached UI slots.
             }
         }
         catch (Exception ex) { log.Error(ex, "更新替换对象头顶名称失败"); }
