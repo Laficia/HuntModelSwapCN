@@ -58,6 +58,8 @@ public sealed class NameplatePresentation : IDisposable
                 if (localPreview.Owns(identity) && !localPreview.OwnsLive(identity)) continue;
                 if (session.NameFor(identity) is { } name) handler.SetField(NamePlateStringField.Name, name);
                 var entry = session.Entries.FirstOrDefault(e => e.Actor == identity);
+                if (NameplateLevelPolicy.Resolve(entry) is { } level)
+                    handler.SetField(NamePlateStringField.LevelPrefix, level);
                 if (NameplateIconPolicy.Resolve(entry, catalog) is { } icon) handler.NameIconId = icon;
                 // Restore/redraw uses the game's freshly calculated original icon. No cached UI slots.
             }

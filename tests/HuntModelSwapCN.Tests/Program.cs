@@ -137,6 +137,49 @@ unsafe
 try { DisplayName.Encode(new string('蛇', 22)); throw new Exception("An overlong UTF-8 name was accepted."); }
 catch (InvalidOperationException) { tests++; }
 
+// Dummy reset uses the same actor identity. Keep the first dummy snapshot and
+// complete the replacement's redraw on the next frame, including after retries.
+{
+    var dummy = actor with { DataId = 901, NameId = 541 };
+    var dummyOriginal = State(2449, 1) with { NameBytes = DisplayName.Encode("木人"), Level = 100, NameplateIcon = 0 };
+    var dummyAccess = new FakeAccess { RepairDummies = true };
+    dummyAccess.Actors.Add(dummy, dummyOriginal);
+    var dummySession = new SwapSession(dummyAccess);
+    dummySession.Apply(dummy, "木人", "雷德罗巨蛇", State(235, 3) with { Level = 50, NameplateIcon = 1 });
+    dummySession.Tick();
+    dummyAccess.Actors[dummy] = dummyOriginal;
+    dummySession.Tick();
+    Check(dummySession.Entries.Single().WaitingForDraw && dummyAccess.Hidden.Contains(dummy)
+        && dummyAccess.Actors[dummy].ModelId == 235, "A reset dummy must reapply its model using the pending two-frame redraw.");
+    dummySession.Tick();
+    Check(!dummyAccess.Hidden.Contains(dummy) && !dummySession.Entries.Single().WaitingForDraw
+        && dummySession.Entries.Single().Original == dummyOriginal,
+        "Repair must finish on the next frame without capturing the replaced creature as the original dummy.");
+    dummyAccess.Actors[dummy] = dummyOriginal;
+    dummyAccess.FailBeginFor = dummy;
+    try { dummySession.Tick(); throw new Exception("Expected repair redraw failure."); }
+    catch (InvalidOperationException) { }
+    dummyAccess.FailBeginFor = null;
+    dummySession.Tick(); dummySession.Tick();
+    Check(dummyAccess.Actors[dummy].ModelId == 235 && !dummyAccess.Hidden.Contains(dummy),
+        "A failed repair must remain tracked and be recoverable on a subsequent tick.");
+    dummySession.Apply(dummy, "雷德罗巨蛇", "B怪", State(300, 0.5f) with { Level = 80, NameplateIcon = 1 });
+    dummySession.Tick();
+    Check(NameplateLevelPolicy.Resolve(dummySession.Entries.Single()) == "80级 ", "Changing a dummy from S to B must update the cached nameplate level.");
+    dummySession.Restore(dummy);
+    Check(NameplateLevelPolicy.Resolve(dummySession.Entries.Single()) == "100级 ", "A restoring dummy must use its original level prefix immediately.");
+    dummySession.Tick();
+    Check(dummyAccess.Actors[dummy] == dummyOriginal && dummySession.Entries.Count == 0,
+        "Repeated swaps and automatic repairs must still restore the original dummy's complete presentation.");
+    var writes = dummyAccess.Writes.Count;
+    dummySession.Tick();
+    Check(dummyAccess.Writes.Count == writes, "Dummy repair must stop when restore has removed the swap entry.");
+    Check(!StrikingDummyPolicy.NeedsRedraw(33, 2449, -1, false, State(235, 3))
+        && !StrikingDummyPolicy.NeedsRedraw(541, 2449, -1, true, State(235, 3)),
+        "Automatic dummy repair must not apply to ordinary monsters or native transformations.");
+    Check(NameplateLevelPolicy.Resolve(null) is null, "Untracked objects must retain the game's level text.");
+}
+
 // Regression: spawned actors used friendly green nameplates despite the correct name/level/icon data.
 // A local preview's cached label anchor must track its actual render scale.
 unsafe
@@ -1042,6 +1085,50 @@ if (args.Length == 1)
         Check(NameplateIconPolicy.Resolve(iconEntry, catalog) == (h.IsAggressive ? 61710 : 61704),
             $"Every replacement must select its target hunt's native nameplate icon: {h.Name}");
     }
+    Check(game.Excel.GetSheet<BNpcName>().GetRow(541).Singular.ToString() == "木人"
+        && game.Excel.GetSheet<BNpcName>().GetRow(13078).Singular.ToString() == "老朽的木人",
+        "Dummy identity rows must match the installed CN client; do not classify by a swapped display name.");
+    unsafe
+    {
+        NativeCharacter dummy = default;
+        FFXIVClientStructs.FFXIV.Client.Graphics.Scene.DrawObject dummyDraw = default;
+        dummy.GameObject.DrawObject = &dummyDraw;
+        dummyDraw.Object.Scale = new(1.25f);
+        var dummyBase = game.Excel.GetSheet<BNpcBase>().GetRow(901);
+        dummy.ModelContainer.ModelCharaId = (int)dummyBase.ModelChara.RowId;
+        dummy.ModelContainer.ModelCharaId_2 = -1;
+        dummy.ModelScale = dummy.GameObject.Scale = dummyBase.Scale;
+        dummy.GameObject.BaseId = 901;
+        dummy.NameId = 541;
+        dummy.Health = 1234; dummy.MaxHealth = 5678;
+        dummy.Level = 100; dummy.Icon = dummyBase.Rank;
+        dummy.Battalion = (byte)dummyBase.Battalion.RowId;
+        dummy.Flags = 0xa2;
+        dummy.GameObject.HitboxRadius = 0.75f;
+        DisplayName.Encode("木人").CopyTo(dummy.GameObject.Name);
+        var before = NativeAppearanceCodec.Capture(&dummy);
+        foreach (var hunt in catalog)
+        {
+            var replacement = HuntAppearanceReplacement.Create(before, hunt, hunt.Scale);
+            NativeAppearanceCodec.Write(&dummy, replacement);
+            var entry = new SwapEntry(actor with { NameId = 541, DataId = 901 }, "木人", hunt.Name, before, replacement, false, false);
+            Check(dummy.ModelContainer.ModelCharaId == hunt.ModelId && dummy.GameObject.NameString == hunt.Name
+                && dummy.Level == hunt.Level && dummy.Icon == hunt.NameplateIcon
+                && dummy.ModelScale == hunt.Scale && dummy.GameObject.Scale == hunt.Scale
+                && (System.Numerics.Vector3)dummyDraw.Object.Scale == new System.Numerics.Vector3(hunt.Scale)
+                && NameplateLevelPolicy.Resolve(entry) == $"{hunt.Level}级 "
+                && NameplateIconPolicy.Resolve(entry, catalog) == (hunt.IsAggressive ? 61710 : 61704),
+                $"A dummy must use every hunt's own model, name, numeric/rendered level, elite icon and native scale: {hunt.Name}");
+            Check(dummy.NameId == 541 && dummy.GameObject.BaseId == 901 && dummy.Health == 1234 && dummy.MaxHealth == 5678
+                && dummy.Flags == 0xa2 && dummy.Battalion == 4 && dummy.GameObject.HitboxRadius == 0.75f,
+                $"Replacing a dummy must preserve battle identity, health, aggression, battalion and hitbox: {hunt.Name}");
+            NativeAppearanceCodec.Write(&dummy, before);
+            Check(dummy.GameObject.NameString == "木人" && dummy.Level == 100 && dummy.Icon == before.NameplateIcon
+                && dummy.ModelContainer.ModelCharaId == before.ModelId && dummy.ModelScale == before.ModelScale
+                && (System.Numerics.Vector3)dummyDraw.Object.Scale == before.DrawScale,
+                $"Restoring after {hunt.Name} must restore the actual dummy's original presentation.");
+        }
+    }
     foreach (var id in new[] { NameplateIconPolicy.PassiveElite, NameplateIconPolicy.AggressiveElite })
         Check(game.FileExists($"ui/icon/061000/{id:D6}.tex"), "Selected native nameplate icon resources must exist in the installed client.");
     Check(catalog.All(h => LocalPreviewName.Matches(LocalPreviewName.Stamp(DisplayName.Encode(h.Name), 1), 1)),
@@ -1166,6 +1253,9 @@ sealed class FakeAccess : IActorAccess
     public HashSet<ActorIdentity> Hidden { get; } = new();
     public List<(ActorIdentity Actor, VisualState State)> Writes { get; } = new();
     public ActorIdentity? FailBeginFor { get; set; }
+    public bool RepairDummies { get; set; }
+    public bool NeedsRedraw(ActorIdentity actor, VisualState state)
+        => RepairDummies && StrikingDummyPolicy.NeedsRedraw(actor.NameId, Actors[actor].ModelId, Actors[actor].SecondaryModelId, false, state);
     public bool Exists(ActorIdentity actor) => Actors.ContainsKey(actor);
     public VisualState Read(ActorIdentity actor) => Actors[actor];
     public void BeginRedraw(ActorIdentity actor, VisualState state)

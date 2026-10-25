@@ -2,6 +2,20 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 2 && args[1] == "--striking-dummies")
+{
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    foreach (var n in probe.Excel.GetSheet<BNpcName>()!.Where(n => n.Singular.ToString().Contains("木人")))
+        Console.WriteLine($"Name {n.RowId}: {n.Singular}");
+    Console.WriteLine("BNpcBase properties: " + string.Join(", ", typeof(BNpcBase).GetProperties().Select(p => $"{p.Name}:{p.PropertyType.Name}")));
+    foreach (var id in new uint[] { 0x385, 0x2de0, 0x41cd })
+    {
+        var b = probe.Excel.GetSheet<BNpcBase>()!.GetRow(id);
+        Console.WriteLine($"Dummy base={b.RowId} model={b.ModelChara.RowId} scale={b.Scale} rank={b.Rank} battalion={b.Battalion.RowId} behavior={b.Behavior.RowId}");
+    }
+    return;
+}
+
 if (args.Length == 2 && args[1] == "--special-hunts")
 {
     using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });

@@ -52,7 +52,7 @@ public sealed class Plugin : IDalamudPlugin
     private int skillLoadRequested;
     private readonly IReadOnlyDictionary<int, string> modelFamilies;
     private readonly ConcurrentQueue<Request> requests = new();
-    private volatile UiSnapshot snapshot = new(null, "未选中小怪", "请先进入游戏。", [], "就绪");
+    private volatile UiSnapshot snapshot = new(null, "未选中小怪或木人", "请先进入游戏。", [], "就绪");
     private bool visible;
     private bool floatingControls;
     private volatile ActorSelection? controlSelection;
@@ -144,7 +144,7 @@ public sealed class Plugin : IDalamudPlugin
         client.Logout += OnLogout;
         chat.ChatMessage += OnNpcDialogue;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.15 initialized. No appearance writes, native bubbles or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.16 initialized. No appearance writes, native bubbles or animation playback have been requested.");
     }
 
     private void Open()
@@ -310,8 +310,8 @@ public sealed class Plugin : IDalamudPlugin
             modelVisibility.Tick(visibilityAccess.Self, redrawingActors, modelVisibility.HideAllMonsters
                 ? visibilityAccess.BulkCandidates(protectedActors) : null);
             ActorIdentity? identity = npc is { } && npc.IsValid() ? NativeActorAccess.Identity(npc) : null;
-            snapshot = new(identity, npc?.Name.ToString() ?? "未选中小怪",
-                identity.HasValue ? actors.CanApply(identity.Value) : "请先选中一只普通小怪。",
+            snapshot = new(identity, npc?.Name.ToString() ?? "未选中小怪或木人",
+                identity.HasValue ? actors.CanApply(identity.Value) : "请先选中一只战斗小怪或可攻击木人。",
                 entries, status, localPreview.Actor?.Actor,
                 modelVisibility.HideSelf, modelVisibility.Count,
                 identity.HasValue ? visibilityAccess.CanHide(identity.Value) : "请先选中一只战斗小怪（主动或被动均可）。",
@@ -529,7 +529,7 @@ public sealed class Plugin : IDalamudPlugin
         var current = actors.Read(actor);
         session.Apply(actor, actors.Resolve(actor)!.Name.ToString(), appearance.Name,
             localPreview.PreserveOwnership(actor, NativeActorAccess.Replacement(current, appearance, request.Scale)));
-        status = $"已请求替换为 Lv.{appearance.Level} {appearance.RankName} 怪「{appearance.Name}」，同步替换模型、名称与显示等级。";
+        status = $"已请求替换为 Lv.{appearance.Level} {appearance.RankName} 怪「{appearance.Name}」，同步替换模型、名字、显示等级、头标与体型（{request.Scale:G}）。";
     }
 
     private void LoadSkills()
@@ -568,7 +568,7 @@ public sealed class Plugin : IDalamudPlugin
         ImGui.SetNextWindowSize(new Vector2(700, 640), ImGuiCond.FirstUseEver);
         if (ImGui.Begin("狩猎模型替换 /hms###HuntModelSwapCN", ref visible))
         {
-            ImGui.TextWrapped("选择狩猎怪物后，可在面前生成本地预览，或替换当前小怪的外观。只影响本机显示。");
+            ImGui.TextWrapped("选择狩猎怪物后，可在面前生成本地预览，或替换当前战斗小怪／可攻击木人的外观。名字、等级、头标使用所选怪物，体型默认使用它的原版倍率。只影响本机显示。");
             ImGui.Checkbox("显示悬浮控制窗 /hms controls", ref floatingControls);
             DrawModelControls(view);
             ImGui.Separator();
@@ -583,6 +583,8 @@ public sealed class Plugin : IDalamudPlugin
             if (view.HideAllMonsters)
                 ImGui.TextWrapped("持续隐藏加载范围内的主动与被动战斗小怪，保留生成预览和已替换的演示对象。列表中单独恢复的小怪在本次开启期间保持显示；重新开启批量隐藏后重置。");
             ImGui.TextUnformatted($"当前目标：{view.TargetName}");
+            if (view.Target is { } target && StrikingDummyPolicy.IsDummy(target.NameId))
+                ImGui.TextWrapped("已选中木人：可在下方替换外观。木人的血量、受击和训练机制保留；木人重置后若恢复了原模型，会重新应用当前外观。恢复当前目标可还原木人。");
             var hiddenTargets = view.HiddenTargets ?? [];
             var targetHidden = view.Target.HasValue && hiddenTargets.Any(t => t.Actor == view.Target);
             ImGui.BeginDisabled(Loading || !view.Target.HasValue || view.CannotHide is not null || targetHidden);

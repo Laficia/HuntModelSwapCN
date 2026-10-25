@@ -13,6 +13,9 @@
     <Compile Include="../../src/HuntModelSwapCN/Catalog/HuntDialogueCatalog.cs" Link="HuntDialogueCatalog.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/DialoguePreview.cs" Link="DialoguePreview.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/NameplateIconPolicy.cs" Link="NameplateIconPolicy.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Core/NameplateLevelPolicy.cs" Link="NameplateLevelPolicy.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Core/StrikingDummyPolicy.cs" Link="StrikingDummyPolicy.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Core/HuntAppearanceReplacement.cs" Link="HuntAppearanceReplacement.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/SwapSession.cs" Link="SwapSession.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/DisplayName.cs" Link="DisplayName.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Core/PreviewCommand.cs" Link="PreviewCommand.cs" />

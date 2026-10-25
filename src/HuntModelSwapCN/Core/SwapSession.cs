@@ -27,6 +27,7 @@ public interface IActorAccess
     void BeginRedraw(ActorIdentity actor, VisualState state);
     void FinishRedraw(ActorIdentity actor);
     void RefreshPresentation(ActorIdentity actor, VisualState state);
+    bool NeedsRedraw(ActorIdentity actor, VisualState state) => false;
 }
 public sealed record SwapEntry(ActorIdentity Actor, string OriginalName, string ReplacementName,
     VisualState Original, VisualState Applied, bool WaitingForDraw, bool Restoring);
@@ -79,6 +80,14 @@ public sealed class SwapSession(IActorAccess access)
                 access.FinishRedraw(entry.Actor);
                 if (entry.Restoring) { entries.Remove(entry.Actor); continue; }
                 entries[entry.Actor] = entry with { WaitingForDraw = false };
+            }
+            // A real dummy can be reset without leaving its object-table slot.
+            // Reuse the two-frame redraw, keeping the first original snapshot.
+            if (access.NeedsRedraw(entry.Actor, entry.Applied))
+            {
+                entries[entry.Actor] = entry with { WaitingForDraw = true };
+                access.BeginRedraw(entry.Actor, entry.Applied);
+                continue;
             }
             access.RefreshPresentation(entry.Actor, entry.Applied);
         }
