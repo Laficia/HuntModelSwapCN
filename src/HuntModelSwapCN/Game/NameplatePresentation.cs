@@ -15,15 +15,17 @@ public sealed class NameplatePresentation : IDisposable
     private readonly LocalPreview localPreview;
     private readonly IPluginLog log;
     private readonly IReadOnlyList<HuntAppearance> catalog;
+    private readonly Func<ActorIdentity, bool>? hiddenSource;
     private bool disposed;
     public NameplatePresentation(INamePlateGui nameplates, SwapSession session, LocalPreview localPreview, IPluginLog log,
-        IReadOnlyList<HuntAppearance> catalog)
+        IReadOnlyList<HuntAppearance> catalog, Func<ActorIdentity, bool>? hiddenSource = null)
     {
         this.nameplates = nameplates;
         this.session = session;
         this.localPreview = localPreview;
         this.log = log;
         this.catalog = catalog;
+        this.hiddenSource = hiddenSource;
         nameplates.OnDataUpdate += UpdateLocalVisibility;
         nameplates.OnNamePlateUpdate += Update;
     }
@@ -35,6 +37,12 @@ public sealed class NameplatePresentation : IDisposable
         {
             foreach (var handler in handlers)
             {
+                if (hiddenSource is not null && handler.GameObject is IBattleNpc source && source.IsValid()
+                    && hiddenSource(NativeActorAccess.Identity(source)))
+                {
+                    handler.VisibilityFlags = 0;
+                    continue;
+                }
                 // Only resolve the owned preview, not every nameplate in the scene each frame.
                 if (handler.GameObjectId != lease.Actor.ObjectId
                     || handler.GameObject is not IBattleNpc npc || !npc.IsValid()) continue;

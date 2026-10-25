@@ -10,6 +10,7 @@ namespace HuntModelSwapCN.Game;
 
 public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui nameplates) : IActorAccess, IAnimationAccess, IDirectionalAnimationAccess, IDialogueAccess
 {
+    public Func<ActorIdentity, bool>? KeepHidden { private get; set; }
     public static ActorIdentity Identity(IBattleNpc npc)
         => new(npc.ObjectIndex, npc.GameObjectId, npc.BaseId, npc.NameId, npc.Address);
 
@@ -99,6 +100,7 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
         var c = (NativeCharacter*)npc.Address;
         return text + $"，NameId={npc.NameId}，OwnerId={npc.OwnerId:X8}，HP={npc.CurrentHp}/{npc.MaxHp}"
             + $"，Model={c->ModelContainer.ModelCharaId}，Draw={(c->GameObject.DrawObject == null ? "无" : c->GameObject.DrawObject->LoadState.ToString())}"
+            + $"，Layout={(c->GameObject.SharedGroupLayoutInstance == null ? "无" : "有")}，Render={c->GameObject.RenderFlags}"
             + $"，Transform={c->TransformationId}，Scale={c->ModelScale:G}/{c->GameObject.Scale:G}";
     }
 
@@ -136,6 +138,7 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
     // Runs on the following framework update, allowing a game tick between hiding and showing.
     public void FinishRedraw(ActorIdentity actor)
     {
+        if (KeepHidden?.Invoke(actor) == true) return;
         Character(actor)->GameObject.EnableDraw();
         nameplates.RequestRedraw();
     }

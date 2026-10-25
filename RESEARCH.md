@@ -255,3 +255,18 @@ Release 编译无警告，4240 项离线检查通过。覆盖 207 种模型及�
 - 主界面折叠辅助功能和长说明。隐藏与替换对象列表用固定 ### ID，数量变化不重置开合；批量隐藏开启边沿只要求收起一次，之后保留用户操作。隐藏列表固定高度 160 滚动，不为这类可逆 UI 排列单独添加镜像测试。
 - TargetDiagnostics 记录类型／子类型／原始 NameId／BaseId／owner／HP／模型／绘制加载状态和比例。面板默认折叠，仅通过按钮复制或用户显式 /hms diagnose 输出本机聊天；不自动上传。
 - 编译零警告，4893 项离线检查通过。当前无法在用户游戏场景实际点击木人，修复针对已确认的两个拦截条件，不能宣称实机验证通过。
+
+
+## 0.1.0.18 庭具木人 Type=0 的原位可见模型
+
+实际诊断：庭具 BaseId=901、NameId=541、OwnerId=E0000000、原始 Model=2449、Draw=无、HP=44；替换后 Model=4302、Scale=0.5，但 Draw 仍无、庭具外形不变。木人歼灭战 BaseId=16845、Model=4308、Draw=3、OwnerId 为玩家 ID。用当前国服 Lumina 核对：901 的 ModelChara.Type=0，16845／11744 为 Type=3。因此不再把所有无 DrawObject 木人解释为等待角色模型加载。
+
+新增 LinkedDummyPreview，复用已有的单个 LocalPreview 池，在原目标位置／初始朝向创建不可选中的本地角色模型；原木人的 NameId/BaseId、HP、OwnerId 等不改，显示字段继续走既有备份路径。使用正常本地角色 SetupBNpc，只对本插件创建的代理调用，绝不对网络木人调用 SetupBNpc 或篡改其子类型。原位代理没有真实狩猎身份，仍以 nonce 验证生命周期。真实木人维持为战斗目标，代理负责可见外观、名牌和演示控制。
+
+NativeLinkedDummyAccess 使用已解析角色的 SharedGroupLayoutInstance 字段，在同一完整 ActorIdentity 与同一布局指针上备份 Active／Collider 状态；Hide 时禁用其布局可见性并维持原 Collider 标志，恢复时只向同一来源、同一布局指针写回，布局指针变化或场景切换不使用旧指针。位置每帧从仍存在的原木人取值，不覆盖手动朝向。场景切换只清除旧记录。实际碰撞语义尚需游戏内验证，不能把离线模拟当原生图形集成验证。
+
+NativeActorAccess.FinishRedraw 对活跃原位关联的真实源对象保持隐藏，避免重新显示庭具。名牌数据回调只隐藏该关联源的名牌；代理复用原生本地怪名牌、骨骼高度修正和头条血量隐藏。显式恢复、移除、前方新生成和卸载先恢复动画／气泡等控制，再删除拥有的本地模型，随后请求恢复源外观及原始可见状态。删除失败保留关联以便重试；5 秒始终不就绪则回滚。连续同源替换保留首次原快照及原可见性，避免将自身临时隐藏状态记成原始状态。
+
+ILocalActorAccess 增加 CreateAt，LocalPlacement 先验证有限位置／朝向后再移除旧预览。旧前方生成路径不改位置规则。UsesLayoutModel 根据原始 NameId 和 BNpcBase 对应的 ModelChara.Type 区分源，不能根据替换后 Character.ModelCharaId 推断。诊断新增 Layout／Render 及原位替身自己的 Draw。
+
+4908 项离线检查通过，编译零警告。新增针对原位位置及不可选中、真实源快照、代理 NameId/BaseId=0、正常还原、同帧重复换模、原本隐藏、删除失败重试、5 秒加载超时、来源消失、来源槽位复用、代理 nonce 丢失和场景切换的回归检查。未在运行中的游戏验证本实现，发布为开发测试版。

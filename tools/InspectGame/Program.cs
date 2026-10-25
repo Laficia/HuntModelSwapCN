@@ -11,7 +11,23 @@ if (args.Length == 2 && args[1] == "--striking-dummies")
     foreach (var id in new uint[] { 0x385, 0x2de0, 0x41cd })
     {
         var b = probe.Excel.GetSheet<BNpcBase>()!.GetRow(id);
-        Console.WriteLine($"Dummy base={b.RowId} model={b.ModelChara.RowId} scale={b.Scale} rank={b.Rank} battalion={b.Battalion.RowId} behavior={b.Behavior.RowId}");
+        Console.WriteLine($"Dummy base={b.RowId} model={b.ModelChara.RowId} type={b.ModelChara.Value.Type} scale={b.Scale} rank={b.Rank} battalion={b.Battalion.RowId} behavior={b.Behavior.RowId}");
+    }
+    return;
+}
+
+if (args.Length == 2 && args[1] == "--redraw-api")
+{
+    foreach (var t in new[] { typeof(Character), typeof(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject),
+        typeof(FFXIVClientStructs.FFXIV.Client.Graphics.Scene.CharacterBase),
+        typeof(FFXIVClientStructs.FFXIV.Client.Game.Character.ModelContainer),
+        typeof(FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group.SharedGroupLayoutInstance) })
+    {
+        Console.WriteLine(t.FullName + " attrs=" + string.Join(";", t.GetCustomAttributesData()));
+        foreach (var f in t.GetFields().Where(f => !f.IsStatic && new[] { "Model", "Draw", "Layout", "Flags", "ObjectKind", "SubKind" }.Any(x => f.Name.Contains(x))))
+            Console.WriteLine($" field {f.Name}:{f.FieldType.Name} offset={System.Runtime.InteropServices.Marshal.OffsetOf(t, f.Name):X}");
+        foreach (var m in t.GetMethods().Where(m => m.DeclaringType == t && new[] { "Draw", "Active", "Model", "Visible" }.Any(x => m.Name.Contains(x)) && !m.Name.StartsWith("get_") && !m.Name.StartsWith("set_")))
+            Console.WriteLine($" method {m}: {string.Join(";", m.GetCustomAttributesData())}");
     }
     return;
 }

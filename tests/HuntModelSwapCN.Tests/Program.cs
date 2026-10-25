@@ -726,6 +726,90 @@ var localPreview = new LocalPreview(localSession, localFactory);
 var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", "厄尔庇斯", 3, 3,
     new byte[26], new ulong[10], 0, 0, false, Battalion: 4);
 {
+    var source = actor with { NameId = 541, DataId = 901 };
+    var dummyState = State(2449, 1) with { NameBytes = DisplayName.Encode("木人"), Level = 1 };
+    (FakeAccess Actors, FakeLocalAccess Factory, SwapSession Session, LocalPreview Preview, FakeLinkedAccess Source, LinkedDummyPreview Link) Setup()
+    {
+        var a = new FakeAccess(); a.Actors.Add(source, dummyState);
+        var factory = new FakeLocalAccess(a);
+        var swaps = new SwapSession(a);
+        var p = new LocalPreview(swaps, factory);
+        var sourceAccess = new FakeLinkedAccess(a);
+        return (a, factory, swaps, p, sourceAccess, new LinkedDummyPreview(swaps, p, a, sourceAccess));
+    }
+    var f = Setup();
+    f.Link.Start(source, "木人", sampleHunt, sampleHunt.Scale, 0);
+    var visual = f.Link.Visual!.Value;
+    Check(f.Factory.Placements.Single() == new LocalPlacement(new(10, 20, 30), 1.25f, false),
+        "A furnishing replacement must spawn at the exact target position/rotation and remain untargetable.");
+    Check(f.Link.Replaces(source) && f.Preview.OwnsLive(visual) && visual.NameId == 0 && visual.DataId == 0
+        && f.Session.Entries.Single(e => e.Actor == source).Original == dummyState,
+        "The linked visual must retain nonce ownership and no real hunt identity, while saving the original training target.");
+    f.Session.Tick(); f.Link.Tick(1);
+    Check(f.Source.IsHidden(source) && f.Source.Aligned.Single() == (visual, source),
+        "A live linked visual must conceal the original source and follow its position without changing the training identity.");
+    f.Link.Clear();
+    Check(f.Factory.Deleted.Count == 1 && f.Link.Source is null && f.Source.Restores.Count == 0,
+        "Removing a linked model must delete its owned visual and defer original visibility restoration until redraw finishes.");
+    f.Session.Tick(); f.Link.Tick(2);
+    Check(f.Actors.Actors[source] == dummyState && !f.Source.IsHidden(source) && f.Session.Entries.Count == 0,
+        "Restoring a furnishing replacement must restore its original appearance and visibility without a remaining proxy.");
+
+    f = Setup();
+    f.Link.Start(source, "木人", sampleHunt, 3, 0); f.Session.Tick();
+    f.Link.Clear(); // Start another swap before the previous source restore has drawn.
+    f.Link.Start(source, "木人", sampleHunt with { Name = "第二外观", ModelId = 235 }, 0.5f, 1);
+    f.Session.Tick(); f.Link.Tick(2);
+    Check(f.Source.IsHidden(source) && f.Session.Entries.Single(e => e.Actor == source).Original == dummyState,
+        "A same-frame reapply must keep the original snapshot and must not unhide the old layout beneath the new visual.");
+    f.Link.Clear(); f.Session.Tick(); f.Link.Tick(3);
+    Check(!f.Source.IsHidden(source) && f.Actors.Actors[source] == dummyState,
+        "Quick repeated furnishing swaps must not capture their own temporary hidden state as the original.");
+
+    f = Setup(); f.Source.Hidden.Add(source);
+    f.Link.Start(source, "木人", sampleHunt, 3, 0); f.Session.Tick();
+    f.Link.Clear(); f.Session.Tick(); f.Link.Tick(2);
+    Check(f.Source.IsHidden(source), "An originally hidden furnishing must remain hidden after linked visual removal.");
+
+    f = Setup();
+    f.Link.Start(source, "木人", sampleHunt, 3, 0); f.Session.Tick();
+    f.Factory.FailDelete = true;
+    try { f.Link.Clear(); throw new Exception("Expected linked delete failure."); } catch (InvalidOperationException) { }
+    Check(f.Link.Source == source && f.Preview.OwnsLive(f.Link.Visual!.Value),
+        "A failed proxy deletion must retain its complete link and nonce lease for retry.");
+    f.Factory.FailDelete = false; f.Link.Clear(); f.Session.Tick(); f.Link.Tick(2);
+    Check(!f.Source.IsHidden(source), "Retrying proxy removal must finish restoring the source.");
+
+    f = Setup(); f.Source.Ready = false;
+    f.Link.Start(source, "木人", sampleHunt, 3, 0); f.Session.Tick();
+    try { f.Link.Tick(5000); throw new Exception("Expected proxy load timeout."); } catch (InvalidOperationException) { }
+    f.Session.Tick(); f.Link.FinishRestores();
+    Check(f.Link.Source is null && f.Preview.Actor is null && !f.Source.IsHidden(source),
+        "A visual that never loads must roll back instead of reporting a successful replacement indefinitely.");
+
+    f = Setup();
+    f.Link.Start(source, "木人", sampleHunt, 3, 0); f.Session.Tick();
+    var recycledSource = source with { ObjectId = source.ObjectId + 1 };
+    f.Actors.Actors.Remove(source); f.Actors.Actors.Add(recycledSource, original);
+    f.Link.Tick(1); f.Session.Tick(); f.Link.FinishRestores();
+    Check(f.Preview.Actor is null && f.Actors.Actors[recycledSource] == original && f.Source.Restores.Count == 0,
+        "A despawned source must remove the local visual without restoring anything into a recycled target slot.");
+
+    f = Setup();
+    f.Link.Start(source, "木人", sampleHunt, 3, 0); f.Session.Tick();
+    var oldVisual = f.Link.Visual!.Value;
+    f.Actors.Actors[oldVisual] = original; // Same identity/address, different native ownership marker.
+    f.Link.Tick(1); f.Session.Tick(); f.Link.FinishRestores();
+    Check(f.Factory.Deleted.Count == 0 && f.Actors.Actors[oldVisual] == original && !f.Source.IsHidden(source),
+        "A lost proxy nonce must restore the source but must never delete or rewrite the foreign object.");
+
+    f = Setup(); f.Link.Start(source, "木人", sampleHunt, 3, 0);
+    var linkedWriteCount = f.Actors.Writes.Count;
+    f.Link.ForgetScene(); f.Preview.ForgetScene(); f.Session.ForgetDespawned(); f.Link.Tick(1);
+    Check(f.Actors.Writes.Count == linkedWriteCount && f.Factory.Deleted.Count == 0 && f.Source.Forgotten,
+        "A territory change must discard the link without touching native objects from the prior scene.");
+}
+{
     HuntAppearance[] iconCatalog = [sampleHunt, sampleHunt with { Rank = 1, Name = "B怪" },
         sampleHunt with { Rank = 2, Name = "A怪" }];
     var state = State(sampleHunt.ModelId, 1) with { NameplateIcon = 1 };
@@ -1137,6 +1221,11 @@ if (args.Length == 1)
     Check(game.Excel.GetSheet<BNpcName>().GetRow(541).Singular.ToString() == "木人"
         && game.Excel.GetSheet<BNpcName>().GetRow(13078).Singular.ToString() == "老朽的木人",
         "Dummy identity rows must match the installed CN client; do not classify by a swapped display name.");
+    Check(StrikingDummyPolicy.UsesLayoutModel(541, game.Excel.GetSheet<BNpcBase>().GetRow(901).ModelChara.Value.Type)
+        && !StrikingDummyPolicy.UsesLayoutModel(541, game.Excel.GetSheet<BNpcBase>().GetRow(16845).ModelChara.Value.Type)
+        && !StrikingDummyPolicy.UsesLayoutModel(541, game.Excel.GetSheet<BNpcBase>().GetRow(11744).ModelChara.Value.Type)
+        && !StrikingDummyPolicy.UsesLayoutModel(33, 0),
+        "Only confirmed layout-based dummies use a linked visual; trial/explorer dummies and unrelated layout NPCs keep their own paths.");
     unsafe
     {
         NativeCharacter dummy = default;
@@ -1361,6 +1450,12 @@ sealed class FakeLocalAccess(FakeAccess access) : ILocalActorAccess
     public List<LocalActorLease> Refreshed { get; } = [];
     public bool FailDelete { get; set; }
     public bool FailDraw { get; set; }
+    public List<LocalPlacement> Placements { get; } = [];
+    public LocalSpawn CreateAt(HuntAppearance hunt, float scale, LocalPlacement placement)
+    {
+        placement.Validate(); Placements.Add(placement);
+        return Create(hunt, scale, 8);
+    }
     public LocalSpawn Create(HuntAppearance hunt, float scale, float distance)
     {
         var index = next++;
@@ -1390,6 +1485,27 @@ sealed class FakeLocalAccess(FakeAccess access) : ILocalActorAccess
         access.Actors.Remove(lease.Actor);
         access.Hidden.Remove(lease.Actor);
     }
+}
+
+sealed class FakeLinkedAccess(FakeAccess actors) : ILinkedDummyAccess
+{
+    public HashSet<ActorIdentity> Hidden { get; } = [];
+    public List<(ActorIdentity, ActorIdentity)> Aligned { get; } = [];
+    public List<(ActorIdentity, bool)> Restores { get; } = [];
+    public bool Ready { get; set; } = true;
+    public bool Forgotten { get; private set; }
+    public bool Exists(ActorIdentity source) => actors.Exists(source);
+    public LocalPlacement Placement(ActorIdentity source) => new(new(10, 20, 30), 1.25f, false);
+    public bool IsHidden(ActorIdentity source) => Hidden.Contains(source);
+    public void Hide(ActorIdentity source) => Hidden.Add(source);
+    public void RestoreVisibility(ActorIdentity source, bool hidden)
+    {
+        Restores.Add((source, hidden));
+        if (hidden) Hidden.Add(source); else Hidden.Remove(source);
+    }
+    public void Align(LocalActorLease visual, ActorIdentity source) => Aligned.Add((visual.Actor, source));
+    public bool IsReady(LocalActorLease visual) => Ready;
+    public void ForgetScene() => Forgotten = true;
 }
 
 sealed class FakePauseAccess(FakeAccess actors) : IAnimationPauseAccess

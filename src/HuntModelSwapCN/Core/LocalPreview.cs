@@ -8,9 +8,19 @@ namespace HuntModelSwapCN.Core;
 public sealed record LocalActorLease(ushort ClientIndex, nint Manager, ActorIdentity Actor, ulong Token, byte Battalion = 0,
     bool IsAggressive = true);
 public sealed record LocalSpawn(LocalActorLease Lease, VisualState State);
+public readonly record struct LocalPlacement(Vector3 Position, float Rotation, bool Targetable = true)
+{
+    public void Validate()
+    {
+        if (!float.IsFinite(Position.X) || !float.IsFinite(Position.Y) || !float.IsFinite(Position.Z) || !float.IsFinite(Rotation))
+            throw new InvalidOperationException("本地模型位置或朝向无效。");
+    }
+}
 public interface ILocalActorAccess
 {
     LocalSpawn Create(HuntAppearance appearance, float scale, float distance);
+    LocalSpawn CreateAt(HuntAppearance appearance, float scale, LocalPlacement placement)
+        => throw new InvalidOperationException("当前接口不支持原位生成。");
     bool Exists(LocalActorLease lease);
     void RefreshPresentation(LocalActorLease lease);
     void Delete(LocalActorLease lease);
@@ -57,10 +67,19 @@ public sealed class LocalPreview(SwapSession session, ILocalActorAccess access, 
         => OwnsLive(actor) ? flags & ~0x2 : flags;
 
     public ActorIdentity Spawn(HuntAppearance appearance, float scale, float distance)
+        => SpawnCore(appearance, scale, () => access.Create(appearance, scale, distance));
+
+    public ActorIdentity SpawnAt(HuntAppearance appearance, float scale, LocalPlacement placement)
+    {
+        placement.Validate();
+        return SpawnCore(appearance, scale, () => access.CreateAt(appearance, scale, placement));
+    }
+
+    private ActorIdentity SpawnCore(HuntAppearance appearance, float scale, Func<LocalSpawn> create)
     {
         ModelSize.Validate(scale);
         Clear();
-        var created = access.Create(appearance, scale, distance);
+        var created = create();
         Actor = created.Lease;
         try
         {

@@ -17,6 +17,13 @@ public sealed unsafe class NativeLocalActorAccess(IObjectTable objects, ITargetM
         if (objects.LocalPlayer is not { } player || !player.IsValid())
             throw new InvalidOperationException("请先进入游戏场景。");
         var position = SpawnPlacement.InFront(player.Position, player.Rotation, distance);
+        return CreateAt(appearance, scale, new(position, player.Rotation + MathF.PI));
+    }
+
+    public LocalSpawn CreateAt(HuntAppearance appearance, float scale, LocalPlacement placement)
+    {
+        ModelSize.Validate(scale); placement.Validate();
+        var position = placement.Position;
         var name = DisplayName.Encode(appearance.Name);
         var token = BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(sizeof(ulong))) | 1UL;
         name = LocalPreviewName.Stamp(name, token); // Validate before allocating a native actor.
@@ -44,8 +51,10 @@ public sealed unsafe class NativeLocalActorAccess(IObjectTable objects, ITargetM
             c->Health = c->MaxHealth = 1;
             NativeLocalPresentationCodec.Write(c, appearance.Battalion, appearance.IsAggressive);
             c->GameObject.SetPosition(position.X, position.Y, position.Z);
-            c->GameObject.SetRotation(player.Rotation + MathF.PI);
-            c->GameObject.TargetableStatus |= ObjectTargetableFlags.IsTargetable;
+            c->GameObject.SetRotation(placement.Rotation);
+            c->GameObject.TargetableStatus = placement.Targetable
+                ? c->GameObject.TargetableStatus | ObjectTargetableFlags.IsTargetable
+                : c->GameObject.TargetableStatus & ~ObjectTargetableFlags.IsTargetable;
             c->GameObject.SetReadyToDraw();
             var state = NativeActorAccess.Replacement(NativeAppearanceCodec.Capture(c), appearance, scale)
                 with { NameBytes = name };
