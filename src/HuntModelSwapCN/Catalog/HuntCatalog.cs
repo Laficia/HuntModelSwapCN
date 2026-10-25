@@ -6,12 +6,14 @@ namespace HuntModelSwapCN.Catalog;
 public sealed record HuntAppearance(uint NameId, uint BaseId, int ModelId, byte Rank, uint Expansion,
     uint TerritoryId, string Name, string Territory, float Scale, byte ModelType,
     byte[] Customize, ulong[] Equipment, ulong MainHand, ulong OffHand, bool Visor, byte NameplateIcon = 1,
-    byte Battalion = 0)
+    byte Battalion = 0, bool IsSpecial = false, uint[]? TerritoryIds = null)
 {
-    public string RankName => Rank switch { 1 => "B", 2 => "A", 3 => "S", _ => "?" };
+    public string RankName => IsSpecial ? Rank == 3 ? "SS" : "SS随从" : Rank switch { 1 => "B", 2 => "A", 3 => "S", _ => "?" };
+    public int FilterRank => IsSpecial ? Rank == 3 ? 4 : 5 : Rank;
+    public bool MatchesTerritory(uint id) => id == 0 || TerritoryId == id || (TerritoryIds?.Contains(id) ?? false);
     public string VersionName => $"{Expansion + 2}.0";
     // Regular B marks are passive; A/S marks are aggressive. BNpcBase.Rank is only icon shape.
-    public bool IsAggressive => Rank is 2 or 3;
+    public bool IsAggressive => IsSpecial || Rank is 2 or 3;
     // Regular B/A/S marks are at their expansion's level cap. These tables contain no level field.
     // Unknown future expansions remain unavailable for level replacement until explicitly mapped.
     public byte Level => Expansion switch { 0 => 50, 1 => 60, 2 => 70, 3 => 80, 4 => 90, 5 => 100, _ => 0 };
@@ -19,8 +21,8 @@ public sealed record HuntAppearance(uint NameId, uint BaseId, int ModelId, byte 
 
 public static class HuntCatalog
 {
-    // The first five territory entries are the regular B/A/S hunts. Subsequent entries
-    // contain SS minions and SS bosses (whose Rank values also say B/S).
+    private static readonly HashSet<uint> SpecialNames = [8916, 8915, 10616, 10615, 13407, 13406];
+    // Special adds are rank B in the sheet, but must retain their own display/skill identity.
     public static IReadOnlyList<HuntAppearance> Load(ExcelSheet<TerritoryType> territories,
         ExcelSheet<BNpcName> names, ExcelSheet<PlaceName> places)
     {
@@ -29,10 +31,18 @@ public static class HuntCatalog
         {
             if (territory.NotoriousMonsterTerritory.RowId == 0) continue;
             var zone = places.GetRowOrDefault(territory.PlaceName.RowId)?.Name.ToString() ?? $"地图 {territory.RowId}";
-            foreach (var link in territory.NotoriousMonsterTerritory.Value.NotoriousMonsters.Take(5))
+            foreach (var (link, index) in territory.NotoriousMonsterTerritory.Value.NotoriousMonsters.Select((link, i) => (link, i)))
             {
                 if (link.RowId == 0 || link.ValueNullable is not { } hunt || hunt.Rank is < 1 or > 3
                     || hunt.BNpcName.RowId == 0 || hunt.BNpcBase.RowId == 0) continue;
+                var special = SpecialNames.Contains(hunt.BNpcName.RowId);
+                if (index >= 5 && !special) continue;
+                var identity = (hunt.BNpcName.RowId, hunt.BNpcBase.RowId);
+                if (result.TryGetValue(identity, out var existing))
+                {
+                    result[identity] = existing with { TerritoryIds = (existing.TerritoryIds ?? [existing.TerritoryId]).Append(territory.RowId).Distinct().ToArray() };
+                    continue;
+                }
                 var npc = hunt.BNpcBase.Value;
                 var model = npc.ModelChara.ValueNullable;
                 // ModelChara row 0 is valid: human hunts such as Albin use Customize + NpcEquip.
@@ -62,10 +72,10 @@ public static class HuntCatalog
                     Armor(equipment.ModelLeftRing, equipment.DyeLeftRing.RowId, equipment.Dye2LeftRing.RowId)];
                 result.TryAdd((hunt.BNpcName.RowId, npc.RowId), new HuntAppearance(hunt.BNpcName.RowId,
                     npc.RowId, (int)model.Value.RowId, hunt.Rank, territory.ExVersion.RowId,
-                    territory.RowId, name, zone, npc.Scale, model.Value.Type, customize, armor,
+                    territory.RowId, name, special ? "该版本全境" : zone, npc.Scale, model.Value.Type, customize, armor,
                     Weapon(equipment.ModelMainHand, equipment.DyeMainHand.RowId, equipment.Dye2MainHand.RowId),
                     Weapon(equipment.ModelOffHand, equipment.DyeOffHand.RowId, equipment.Dye2OffHand.RowId),
-                    equipment.VisorToggled, npc.Rank, checked((byte)npc.Battalion.RowId)));
+                    equipment.VisorToggled, npc.Rank, checked((byte)npc.Battalion.RowId), special, [territory.RowId]));
             }
         }
         return result.Values.OrderByDescending(h => h.Expansion).ThenByDescending(h => h.Rank)

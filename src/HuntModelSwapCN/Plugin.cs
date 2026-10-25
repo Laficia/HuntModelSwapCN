@@ -124,11 +124,11 @@ public sealed class Plugin : IDalamudPlugin
         configuration = pluginInterface.GetPluginConfig() as Configuration ?? new();
         captureHuntDialogue = configuration.CaptureHuntDialogue;
         dialogueCatalog = new(catalog);
-        foreach (var line in (configuration.CapturedDialogue ?? []).Take(47 * HuntDialogueCatalog.MaxPerHunt))
+        foreach (var line in (configuration.CapturedDialogue ?? []).Take(catalog.Count(h => h.Rank == 3) * HuntDialogueCatalog.MaxPerHunt))
             try { if (line is not null) dialogueCatalog.Capture(line.NameId, line.Text); }
             catch (InvalidOperationException) { /* Ignore invalid saved text, never pass it to native UI. */ }
         dialogueLines = dialogueCatalog.All;
-        mapChoices = catalog.GroupBy(h => h.TerritoryId)
+        mapChoices = catalog.Where(h => !h.IsSpecial).GroupBy(h => h.TerritoryId)
             .Select(g => new MapChoice(g.Key, g.First().Expansion, g.First().Territory))
             .OrderByDescending(m => m.Expansion).ThenBy(m => m.TerritoryId).ToArray();
         var models = data.GetExcelSheet<ModelChara>();
@@ -144,7 +144,7 @@ public sealed class Plugin : IDalamudPlugin
         client.Logout += OnLogout;
         chat.ChatMessage += OnNpcDialogue;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.14 initialized. No appearance writes, native bubbles or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.15 initialized. No appearance writes, native bubbles or animation playback have been requested.");
     }
 
     private void Open()
@@ -608,9 +608,9 @@ public sealed class Plugin : IDalamudPlugin
                 }
             ImGui.Separator();
             ImGui.SetNextItemWidth(120);
-            if (ImGui.BeginCombo("狩猎级别", rankFilter == 0 ? "全部" : rankFilter switch { 1 => "B", 2 => "A", _ => "S" }))
+            if (ImGui.BeginCombo("狩猎级别", rankFilter == 0 ? "全部" : rankFilter switch { 1 => "B", 2 => "A", 3 => "S", 4 => "SS", _ => "SS随从" }))
             {
-                foreach (var (value, label) in new[] { (0, "全部"), (3, "S"), (2, "A"), (1, "B") })
+                foreach (var (value, label) in new[] { (0, "全部"), (4, "SS"), (5, "SS随从"), (3, "S"), (2, "A"), (1, "B") })
                     if (ImGui.Selectable(label, rankFilter == value)) rankFilter = value;
                 ImGui.EndCombo();
             }
@@ -647,11 +647,13 @@ public sealed class Plugin : IDalamudPlugin
                 for (var i = 0; i < catalog.Count; i++)
                 {
                     var hunt = catalog[i];
-                    if ((rankFilter != 0 && hunt.Rank != rankFilter)
+                    if ((rankFilter != 0 && hunt.FilterRank != rankFilter)
                         || (expansionFilter >= 0 && hunt.Expansion != expansionFilter)
-                        || (territoryFilter != 0 && hunt.TerritoryId != territoryFilter)
+                        || !hunt.MatchesTerritory(territoryFilter)
                         || (!hunt.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
-                            && !hunt.Territory.Contains(search, StringComparison.OrdinalIgnoreCase))) continue;
+                            && !hunt.Territory.Contains(search, StringComparison.OrdinalIgnoreCase)
+                            && !(hunt.IsSpecial && mapChoices.Any(m => hunt.MatchesTerritory(m.TerritoryId)
+                                && m.Name.Contains(search, StringComparison.OrdinalIgnoreCase))))) continue;
                     if (ImGui.Selectable($"{hunt.VersionName} {hunt.RankName}  Lv.{hunt.Level} {hunt.Name}  ·  {hunt.Territory}##{i}", selected == i))
                     {
                         selected = i;
@@ -690,6 +692,7 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.TextWrapped("无需选中小怪。只保留一只本地生成对象；再次生成会替换它。技能演示优先控制此对象。");
             ImGui.TextWrapped("本地预览隐藏头顶血条，名字、等级和精英头标使用原生敌对怪名牌样式。");
             ImGui.TextWrapped("生成的 B 怪使用蓝色被动精英头标；A/S 怪使用主动精英头标。颜色分类随当前演示外观更新。");
+            ImGui.TextWrapped("SS 与 SS 随从单独分类并保留主动头标；三组特殊狩猎可按名称搜索，或在级别中筛选。");
             ImGui.TextWrapped("替换真实小怪时也显示所选怪物的原版头标，恢复时还原；仅覆盖头标显示，原怪物的主动／被动行为不变。");
             var reason = Loading ? "请等待角色进入场景。" : view.CannotApply;
             ImGui.BeginDisabled(reason is not null || selected < 0 || !sizeValid);
@@ -733,7 +736,7 @@ public sealed class Plugin : IDalamudPlugin
         var capture = captureHuntDialogue;
         if (ImGui.Checkbox("收集真实 S 怪的 NPC 台词（保存到本地）", ref capture))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "dialogue-capture", null, Enabled: capture));
-        ImGui.TextWrapped("覆盖列表中的 47 只 S 怪；只收集 NPC 对话频道中名称完全匹配、且真实 S 怪在加载范围内的台词。不读取玩家聊天。相同台词去重保存。");
+        ImGui.TextWrapped("支持列表中的普通 S 与 SS 怪；只收集 NPC 对话频道中名称完全匹配、且真实怪物在加载范围内的台词。不读取玩家聊天。相同台词去重保存。");
         if (ImGui.Button("加载／刷新已确认台词库")) Enqueue("dialogue-load");
         ImGui.TextUnformatted($"台词库：{dialogueLines.Length} 句，{dialogueLines.Select(l => l.NameId).Distinct().Count()} 只 S 怪");
         if (ImGui.TreeNode("47 只 S 怪台词核对清单"))
@@ -867,7 +870,7 @@ public sealed class Plugin : IDalamudPlugin
             && h.Name == entry.ReplacementName);
         if (hunt is not null && HuntSkillPresets.Profile(hunt.NameId) is { } profile && profile.ModelId == entry!.Applied.ModelId)
         {
-            ImGui.TextUnformatted($"{hunt.Name} · 专属技能（Wiki 收录 {profile.Skills.Length} 项）");
+            ImGui.TextUnformatted($"{hunt.RankName} · {hunt.Name} · 对应技能库（{profile.Skills.Length} 项）");
             if (ImGui.SmallButton("打开此怪的 Wiki 技能资料")) Dalamud.Utility.Util.OpenLink(profile.WikiUrl);
             ImGui.Checkbox("显示同名动作版本（需试播确认）", ref showSkillVariants);
             if (ImGui.BeginChild("huntSkillPresets", new Vector2(0, 200), true))
@@ -882,8 +885,10 @@ public sealed class Plugin : IDalamudPlugin
                     ImGui.EndDisabled();
                     if (skill is null)
                         ImGui.TextDisabled(item.Mode == "variants" ? "同名动作有多个版本，勾选上方选项后可试播。"
-                            : item.Mode == "unavailable" ? "暂无可单独播放的本地释放动作。" : "本机技能表与资料不符，暂不播放。");
+                            : item.Mode == "unavailable" ? "暂未匹配到可独立播放的本地动作。" : "本机技能表与资料不符，暂不播放。");
                     else if (item.Mode == "resource") ImGui.TextDisabled("按 Wiki 技能名与本机模型资源对应；动作 ID 为演示映射。");
+                    if (skill?.TimelineKey.StartsWith("mon_sp/gimmick/", StringComparison.Ordinal) == true)
+                        ImGui.TextWrapped("原 NPC 使用的准备／机制时间轴，可能仅显示特效或无明显动作；不自动执行后续连招。");
                     if (item.Primary?.ActionName is { } actionName) ImGui.TextDisabled($"当前国服技能名：{actionName}");
                     if (showSkillVariants)
                         foreach (var mapping in item.Variants.Where(v => v.ActionId != skill?.ActionId))

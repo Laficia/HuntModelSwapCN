@@ -970,8 +970,21 @@ if (args.Length == 1)
     var catalog = HuntCatalog.Load(game.Excel.GetSheet<TerritoryType>(Language.ChineseSimplified),
         game.Excel.GetSheet<BNpcName>(Language.ChineseSimplified), game.Excel.GetSheet<PlaceName>(Language.ChineseSimplified));
     Console.WriteLine("Catalog: " + string.Join(", ", catalog.GroupBy(h => h.RankName).Select(g => $"{g.Key}={g.Count()}")));
-    Check(catalog.Count == 201, "The installed 2.0-7.0 client must supply 201 regular hunts.");
-    Check(catalog.Count(h => h.Rank == 3) == 47, "S list must exclude SS bosses.");
+    Check(catalog.Count == 207 && catalog.Count(h => !h.IsSpecial) == 201,
+        "The installed client must supply 201 regular hunts and six requested special appearances.");
+    Check(catalog.Count(h => h.FilterRank == 3) == 47 && catalog.Count(h => h.FilterRank == 4) == 3
+        && catalog.Count(h => h.FilterRank == 5) == 3, "S, SS bosses and SS adds must be separate filters.");
+    Check(catalog.Where(h => h.IsSpecial).Select(h => h.NameId).Order().SequenceEqual(new uint[] {8915,8916,10615,10616,13406,13407}),
+        "Only the six explicitly requested special actors may enter the special catalog.");
+    foreach (var special in catalog.Where(h => h.IsSpecial))
+    {
+        Check(special.IsAggressive && special.RankName is "SS" or "SS随从" && special.TerritoryIds?.Length == 6,
+            $"Special actors must be aggressive, correctly labelled and deduplicated across six maps: {special.Name}");
+        Check(special.MatchesTerritory(0) && special.TerritoryIds!.All(special.MatchesTerritory)
+            && !special.MatchesTerritory(uint.MaxValue), "Special map filters must cover their actual expansion territories only.");
+        var expectedMaps = catalog.Where(h => !h.IsSpecial && h.Expansion == special.Expansion).Select(h => h.TerritoryId).Distinct().Order();
+        Check(special.TerritoryIds!.Order().SequenceEqual(expectedMaps), "Every special must retain all six map associations instead of only its first occurrence.");
+    }
     var dialogue = new HuntDialogueCatalog(catalog);
     var npcYells = game.Excel.GetSheet<NpcYell>(Language.ChineseSimplified)!;
     Check(HuntDialogueCatalog.Profiles.Count == 47 && HuntDialogueCatalog.Profiles.Select(p => p.NameId).Distinct().Count() == 47,
@@ -996,7 +1009,7 @@ if (args.Length == 1)
     foreach (var h in catalog.Where(h => h.Rank == 3))
     {
         Check(dialogue.Speaker(h.Name) == h.NameId && dialogue.Capture(h.NameId, $"收集测试：{h.Name}"),
-            "Real NPC speech capture must accept every one of the 47 regular S hunts.");
+            "Real NPC speech capture must accept every regular S and requested SS hunt.");
         Check(!dialogue.Capture(h.NameId, $"收集测试：{h.Name}"), "Repeated NPC chat must not duplicate saved dialogue.");
     }
     Check(dialogue.Speaker("玩家随便说的话") is null && dialogue.Speaker("前缀伊休妲") is null
@@ -1006,7 +1019,7 @@ if (args.Length == 1)
     Check(dialogue.All.Count(l => l.NameId == 10617) == HuntDialogueCatalog.MaxPerHunt, "Per-hunt captured speech must be bounded.");
     var savedDialogue = System.Text.Json.JsonSerializer.Deserialize<HuntDialogue[]>(System.Text.Json.JsonSerializer.Serialize(dialogue.All))!;
     Check(savedDialogue.SequenceEqual(dialogue.All), "Saved text, hunt ownership, line breaks and timing must survive a JSON round trip.");
-    Check(catalog.Count(h => h.Rank == 1) == 77 && catalog.Count(h => h.Rank == 2) == 77, "B/A lists must exclude SS minions.");
+    Check(catalog.Count(h => h.FilterRank == 1) == 77 && catalog.Count(h => h.FilterRank == 2) == 77, "B/A filters must exclude SS minions.");
     Check(catalog.Single(h => h.NameId == 2953).ModelId == 235, "Name ID must resolve to a ModelChara ID, not be used as the model.");
     Check(catalog.All(h => h.ModelId >= 0 && h.BaseId > 0 && float.IsFinite(h.Scale) && h.Scale > 0
         && h.Customize.Length == 26 && h.Equipment.Length == 10), "Every hunt must have complete appearance data.");
@@ -1018,15 +1031,15 @@ if (args.Length == 1)
         "Every catalog name must fit in a complete, null-terminated native UTF-8 name buffer.");
     Check(catalog.All(h => h.NameplateIcon == 1), "Current S/A/B hunts must all use the data's elite nameplate category.");
     Check(catalog.All(h => h.Battalion == 4), "Regular hunt previews must use the enemy battalion read from their own BNpcBase records.");
-    Check(catalog.Where(h => !h.IsAggressive).Count() == 77 && catalog.Where(h => h.IsAggressive).Count() == 124,
-        "All regular B previews must be passive while all regular A/S previews remain aggressive.");
+    Check(catalog.Where(h => !h.IsAggressive).Count() == 77 && catalog.Where(h => h.IsAggressive).Count() == 130,
+        "Regular B previews are passive; regular A/S and all requested special actors are aggressive.");
     Check(catalog.Single(h => h.Name == "第十三个孩子") is { Rank: 1, IsAggressive: false, Battalion: 4, NameplateIcon: 1 },
         "The Thirteenth Child must retain its blue passive elite icon without becoming a friendly NPC.");
     foreach (var h in catalog)
     {
         var iconState = State(h.ModelId, h.Scale) with { NameplateIcon = h.NameplateIcon };
         var iconEntry = new SwapEntry(actor, "source", h.Name, original, iconState, false, false);
-        Check(NameplateIconPolicy.Resolve(iconEntry, catalog) == (h.Rank == 1 ? 61704 : 61710),
+        Check(NameplateIconPolicy.Resolve(iconEntry, catalog) == (h.IsAggressive ? 61710 : 61704),
             $"Every replacement must select its target hunt's native nameplate icon: {h.Name}");
     }
     foreach (var id in new[] { NameplateIconPolicy.PassiveElite, NameplateIconPolicy.AggressiveElite })
@@ -1074,23 +1087,30 @@ if (args.Length == 1)
     }
     Check(HuntSkillPresets.For(2953, skills).Any() && HuntSkillPresets.For(2953, skills).All(s => !preset.Any(b => b.ActionId == s.ActionId)),
         "Laideronnette must have its own Wiki skill mappings, not inherit Bufru's actions.");
-    Check(HuntSkillPresets.All.Count == 47 && HuntSkillPresets.All.Sum(p => p.Skills.Length) == 300,
-        "Every current regular S hunt must have its reviewed Wiki skill profile.");
-    Check(HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "record")) == 138
-        && HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "resource")) == 116
-        && HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "variants")) == 34
-        && HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "unavailable")) == 12,
+    Check(HuntSkillPresets.All.Count == 207 && HuntSkillPresets.All.Sum(p => p.Skills.Length) == 802,
+        "Every regular S/A/B and requested special actor must have its own reviewed skill profile.");
+    Check(HuntSkillPresets.All.Where(p => catalog.Any(h => h.NameId == p.NameId && h.FilterRank == 3)).Sum(p => p.Skills.Length) == 300,
+        "Extending A/B and special profiles must preserve all 300 original S-hunt skill entries.");
+    Check(HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "record")) == 346
+        && HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "resource")) == 340
+        && HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "variants")) == 100
+        && HuntSkillPresets.All.Sum(p => p.Skills.Count(s => s.Mode == "unavailable")) == 16,
         "Known action records, unique resource mappings, ambiguous variants and unavailable releases must stay distinct.");
+    Check(HuntSkillPresets.All.Where(p => catalog.Any(h => h.NameId == p.NameId && h.FilterRank == 3))
+        .All(p => p.Skills.Any(s => s.Primary is not null)), "All original regular S profiles must retain a direct playback mapping.");
+    Check(HuntSkillPresets.Profile(8916)!.Skills.Single(s => s.Name == "石化之眼").Primary is { ActionId: 18041, ActionName: "石化眼" },
+        "The requested Forgiven Gossip must use its recorded action and validate the current CN spelling.");
     foreach (var skillProfile in HuntSkillPresets.All)
     {
         var hunt = catalog.Single(h => h.NameId == skillProfile.NameId);
         var family = SkillCatalog.ModelFamily(game.Excel.GetSheet<ModelChara>().GetRow((uint)hunt.ModelId));
-        Check(hunt.Rank == 3 && hunt.Name == skillProfile.Name && hunt.ModelId == skillProfile.ModelId
+        Check(hunt.Name == skillProfile.Name && hunt.ModelId == skillProfile.ModelId
             && skillProfile.Skills.Select(s => s.Name).Distinct().Count() == skillProfile.Skills.Length
             && skillProfile.WikiUrl.StartsWith("https://ff14.huijiwiki.com/wiki/", StringComparison.Ordinal),
             $"Skill skillProfiles must identify the correct S hunt and retain its Wiki source: {skillProfile.Name}");
-        Check(skillProfile.Skills.Any(s => HuntSkillPresets.Resolve(s.Name, s.Primary, skills) is not null),
-            $"Every current S hunt must have at least one directly available animation mapping: {skillProfile.Name}");
+        Check(skillProfile.Skills.Any(s => HuntSkillPresets.Resolve(s.Name, s.Primary, skills) is not null
+            || s.Variants.Any(v => HuntSkillPresets.Resolve(s.Name, v, skills) is not null)),
+            $"Every skill library must include at least one playable or explicit trial animation mapping: {skillProfile.Name}");
         foreach (var item in skillProfile.Skills)
         {
             Check(item.Mode is "record" or "resource" or "variants" or "unavailable"
@@ -1107,7 +1127,11 @@ if (args.Length == 1)
                 Check((mapping.TimelineKey.StartsWith($"mon_sp/{family}/", StringComparison.Ordinal)
                     || mapping.TimelineKey.StartsWith("mon_sp/[SKL_ID]/", StringComparison.Ordinal)
                     || mapping.TimelineKey.StartsWith("mon_sp/common/", StringComparison.Ordinal)
-                    || mapping.TimelineKey.StartsWith("magic/", StringComparison.Ordinal))
+                    || mapping.TimelineKey.StartsWith("magic/", StringComparison.Ordinal)
+                    || item.Mode == "record" && skillProfile.RecordSource is not null
+                        && mapping.TimelineKey.StartsWith("mon_sp/gimmick/", StringComparison.Ordinal)
+                    || hunt.NameId == 4361 && mapping.TimelineKey.StartsWith("ws/bt_swd_sld/", StringComparison.Ordinal)
+                    || hunt.NameId == 2926 && mapping.TimelineKey.StartsWith("ws/bt_2sp_emp/", StringComparison.Ordinal))
                     && game.FileExists($"chara/action/{resource}.tmb"),
                     $"Each skillProfile action must have a compatible installed resource: {skillProfile.Name}/{item.Name}");
             }

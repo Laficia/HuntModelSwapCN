@@ -2,6 +2,8 @@
 
 S 怪技能名称与归属核对自[最终幻想 XIV 中文维基（灰机 Wiki）](https://ff14.huijiwiki.com/)。每个条目的具体页面保存在 `Catalog/SRankSkillProfiles.json` 的 `WikiUrl`，插件中可打开该页面。2026-10-25 通过正常浏览器逐页核对了 47 种常规 S 怪；只整理技能名称/归属等游戏数据事实，不收录攻略正文或图片。Wiki 页面注明内容遵循 [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/)。游戏名称、技能名称及资源由 SQUARE ENIX 与相关权利人所有。
 
+0.1.0.15 另通过正常浏览器逐页核对 77 只 A、77 只 B 和用户指定的六种特殊狩猎技能章节，502 项新增技能的名称／归属、具体来源 URL 与记录映射存于 `Catalog/AdditionalHuntSkillProfiles.json`。同样只保存游戏事实，不分发攻略正文。记录 ID 还参考下述固定提交的 A 级与特殊狩猎模块；没有复制其实现。
+
 动作 ID、中文名称、时间轴及资源存在性按本机国服客户端表核对。唯一资源对应不等于已经确认该怪的原始 Action ID；资料明确区分战斗记录映射、资源映射、多版本候选和无独立动作。
 
 S 怪台词归属于 2026-10-25 通过正常浏览器逐页核对上述 47 只怪物的页面；明确收录台词的五只的页面链接保存在 `Catalog/SRankDialogueProfiles.json`。台词正文由本机国服 `NpcYell` 表读取，JSON 中保留行号与文本校验值，游戏台词版权归原权利人所有。不收录 Wiki 攻略正文或图片。阿提卡斯 16874～16903 的方向台词变体 ID 还参考下述固定提交的 `BossMod.Modules/Dawntrail/Hunt/RankS/Atticus.cs`，只使用 ID 归属事实，没有引入其机制代码。其余三句由用户实战文本和 Wiki／客户端共同核对。

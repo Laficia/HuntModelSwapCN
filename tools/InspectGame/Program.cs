@@ -2,6 +2,18 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 2 && args[1] == "--special-hunts")
+{
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    string[] wanted = ["克尔的侍从", "克尔", "得到宽恕的流言", "得到宽恕的叛乱", "水晶化身", "水晶化身之王"];
+    var specialNames = probe.Excel.GetSheet<BNpcName>()!;
+    var marks = probe.Excel.GetSheet<NotoriousMonster>()!.Where(h => h.BNpcName.RowId > 0 && h.BNpcBase.RowId > 0
+        && wanted.Contains(specialNames.GetRow(h.BNpcName.RowId).Singular.ToString()));
+    foreach (var h in marks.DistinctBy(h => (h.BNpcName.RowId, h.BNpcBase.RowId)))
+        Console.WriteLine($"{specialNames.GetRow(h.BNpcName.RowId).Singular}: name={h.BNpcName.RowId} base={h.BNpcBase.RowId} huntRank={h.Rank} model={h.BNpcBase.Value.ModelChara.RowId} scale={h.BNpcBase.Value.Scale} icon={h.BNpcBase.Value.Rank} battalion={h.BNpcBase.Value.Battalion.RowId}");
+    return;
+}
+
 if (args.Length == 3 && args[1] == "--export-name-icons")
 {
     using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
@@ -131,22 +143,25 @@ if (args.Length == 3 && args[1] == "--export-skill-data")
     var skills = HuntModelSwapCN.Catalog.SkillCatalog.Load(probe.Excel.GetSheet<Lumina.Excel.Sheets.Action>()!,
         probe.Excel.GetSheet<ActionTimeline>()!);
     var result = new {
-        Hunts = catalog.Where(h => h.Rank == 3).Select(h => new { h.NameId, h.BaseId, h.ModelId, h.Name,
-            h.Expansion, h.Scale, Family = HuntModelSwapCN.Catalog.SkillCatalog.ModelFamily(models.GetRow((uint)h.ModelId)) }),
+        Hunts = catalog.Select(h => new { h.NameId, h.BaseId, h.ModelId, h.Name,
+            h.Expansion, h.Scale, h.Rank, h.IsSpecial, h.ModelType, h.MainHand, h.OffHand, Family = HuntModelSwapCN.Catalog.SkillCatalog.ModelFamily(models.GetRow((uint)h.ModelId)) }),
         Actions = skills.Values,
         AllActions = probe.Excel.GetSheet<Lumina.Excel.Sheets.Action>()!.Where(a => !a.IsPlayerAction)
             .Select(a => new { ActionId = a.RowId, Name = a.Name.ToString(), End = a.AnimationEnd.RowId }),
-        Resources = catalog.Where(h => h.Rank == 3).Select(h => new {
+        Resources = catalog.Select(h => new {
             h.NameId,
             Keys = skills.Values.Select(s => s.TimelineKey).Distinct().Where(k => {
                 var family = HuntModelSwapCN.Catalog.SkillCatalog.ModelFamily(models.GetRow((uint)h.ModelId));
                 return k.StartsWith($"mon_sp/{family}/", StringComparison.Ordinal) || k.StartsWith("mon_sp/[SKL_ID]/", StringComparison.Ordinal)
-                    || k.StartsWith("mon_sp/common/", StringComparison.Ordinal) || k.StartsWith("magic/", StringComparison.Ordinal);
+                    || k.StartsWith("mon_sp/common/", StringComparison.Ordinal) || k.StartsWith("magic/", StringComparison.Ordinal)
+                    || k.StartsWith("mon_sp/gimmick/", StringComparison.Ordinal)
+                    || (h.NameId == 4361 && k.StartsWith("ws/bt_swd_sld/", StringComparison.Ordinal))
+                    || (h.NameId == 2926 && k.StartsWith("ws/bt_2sp_emp/", StringComparison.Ordinal));
             }).Where(k => probe.FileExists($"chara/action/{k.Replace("[SKL_ID]", HuntModelSwapCN.Catalog.SkillCatalog.ModelFamily(models.GetRow((uint)h.ModelId)))}.tmb"))
         }),
     };
     File.WriteAllText(args[2], System.Text.Json.JsonSerializer.Serialize(result));
-    Console.WriteLine($"Exported {catalog.Count(h => h.Rank == 3)} S hunts and {skills.Count} playable action records.");
+    Console.WriteLine($"Exported {catalog.Count} hunts and {skills.Count} playable action records.");
     Console.WriteLine(string.Join("\n", catalog.Where(h => h.Rank == 3).Select(h => $"{h.NameId}: {h.Name}")));
     return;
 }

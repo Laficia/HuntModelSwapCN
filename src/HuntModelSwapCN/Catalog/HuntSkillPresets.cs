@@ -20,8 +20,13 @@ public static class HuntSkillPresets
     {
         using var stream = typeof(HuntSkillPresets).Assembly.GetManifestResourceStream("HuntModelSwapCN.SRankSkillProfiles.json")
             ?? throw new InvalidOperationException("缺少 S 怪专属技能资料。");
+        using var additional = typeof(HuntSkillPresets).Assembly.GetManifestResourceStream("HuntModelSwapCN.AdditionalHuntSkillProfiles.json")
+            ?? throw new InvalidOperationException("缺少 A/B/特殊狩猎技能资料。");
         return (JsonSerializer.Deserialize<HuntSkillProfile[]>(stream)
-            ?? throw new InvalidOperationException("S 怪技能资料无法读取。")).ToDictionary(p => p.NameId);
+            ?? throw new InvalidOperationException("S 怪技能资料无法读取。"))
+            .Concat(JsonSerializer.Deserialize<HuntSkillProfile[]>(additional)
+                ?? throw new InvalidOperationException("A/B/特殊狩猎技能资料无法读取。"))
+            .ToDictionary(p => p.NameId);
     }
 
     public static SkillAnimation? Resolve(string name, SkillMapping? mapping, IReadOnlyDictionary<uint, SkillAnimation> skills)

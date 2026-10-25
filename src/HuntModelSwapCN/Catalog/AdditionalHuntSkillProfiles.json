@@ -1,0 +1,7505 @@
+[
+  {
+    "NameId": 13406,
+    "Name": "水晶化身之王",
+    "ModelId": 4302,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%B0%B4%E6%99%B6%E5%8C%96%E8%BA%AB%E4%B9%8B%E7%8E%8B",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankS/ArchAethereater.cs",
+    "Skills": [
+      {
+        "Name": "热能支配",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39511,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "无魂光流",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39507,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": [
+          {
+            "ActionId": 39507,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 39508,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          }
+        ]
+      },
+      {
+        "Name": "炽炎",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39513,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "冰澈",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39514,
+          "TimelineId": 3207,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "抹煞",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39515,
+          "TimelineId": 3209,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "熔毁",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39516,
+          "TimelineId": 3208,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13361,
+    "Name": "女王鹰蜂",
+    "ModelId": 4202,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A5%B3%E7%8E%8B%E9%B9%B0%E8%9C%82",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/QueenHawk.cs",
+    "Skills": [
+      {
+        "Name": "狂乱针",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39489,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "直线纺锤",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39490,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "近处怒刺",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39482,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "远处怒刺",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39483,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "狂乱蜂鸣",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39486,
+          "TimelineId": 3210,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13362,
+    "Name": "内丘奇霍",
+    "ModelId": 4298,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%86%85%E4%B8%98%E5%A5%87%E9%9C%8D",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/Nechuciho.cs",
+    "Skills": [
+      {
+        "Name": "持杖咏唱",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39493,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "古树之杖",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39496,
+          "TimelineId": 1378,
+          "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+        },
+        "Variants": [
+          {
+            "ActionId": 39496,
+            "TimelineId": 1378,
+            "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+          },
+          {
+            "ActionId": 39785,
+            "TimelineId": 10628,
+            "TimelineKey": "mon_sp/d1009/mon_sp044"
+          }
+        ]
+      },
+      {
+        "Name": "古树之嚎",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39491,
+          "TimelineId": 3213,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "5级死亡宣告",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39492,
+          "TimelineId": 3217,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp017"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13442,
+    "Name": "惊雨蟾蜍",
+    "ModelId": 4164,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%83%8A%E9%9B%A8%E8%9F%BE%E8%9C%8D",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/Raintriller.cs",
+    "Skills": [
+      {
+        "Name": "雨中鸣",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39749,
+          "TimelineId": 1378,
+          "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "呱呱呱♪",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39750,
+          "TimelineId": 1494,
+          "TimelineKey": "mon_sp/m0030/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "咕咕咕♪",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39752,
+          "TimelineId": 11079,
+          "TimelineKey": "mon_sp/common/mon_sph074"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "咯咯咯♪",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39753,
+          "TimelineId": 11080,
+          "TimelineKey": "mon_sp/common/mon_sph075"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "毒液滴落",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39754,
+          "TimelineId": 1495,
+          "TimelineKey": "mon_sp/m0030/mon_sp006"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13443,
+    "Name": "普库恰",
+    "ModelId": 4198,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%99%AE%E5%BA%93%E6%81%B0",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/Pkuucha.cs",
+    "Skills": [
+      {
+        "Name": "狂欢进行曲",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39755,
+          "TimelineId": 11081,
+          "TimelineKey": "mon_sp/common/mon_sph076"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "狂欢桑巴舞",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39756,
+          "TimelineId": 11082,
+          "TimelineKey": "mon_sp/common/mon_sph077"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "死亡俯冲",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39799,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "滑行俯冲",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39757,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "曲后桑巴",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39797,
+          "TimelineId": 1378,
+          "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "猛啄",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 27240,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 12692,
+    "Name": "幻煌鸟",
+    "ModelId": 4303,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B9%BB%E7%85%8C%E9%B8%9F",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/Starcrier.cs",
+    "Skills": [
+      {
+        "Name": "飙风",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 37163,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "旋圆的风歌",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 37038,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "回环的风歌",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 37039,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "闪光的风歌",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 37305,
+          "TimelineId": 4921,
+          "TimelineKey": "mon_sp/common/mon_sph028"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "丧失的哀歌",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 37040,
+          "TimelineId": 3208,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 12753,
+    "Name": "血鸣鼠",
+    "ModelId": 4197,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%A1%80%E9%B8%A3%E9%BC%A0",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/RraxYitya.cs",
+    "Skills": [
+      {
+        "Name": "左方翼膜刃",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 37165,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "右方翼膜刃",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 37164,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "飞扑",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 37372,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "反复三连刃",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 37170,
+          "TimelineId": 1378,
+          "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13400,
+    "Name": "艾海海陶瓦泡",
+    "ModelId": 4169,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%89%BE%E6%B5%B7%E6%B5%B7%E9%99%B6%E7%93%A6%E6%B3%A1",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/Yehehetoauapyo.cs",
+    "Skills": [
+      {
+        "Name": "转向准备",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38626,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "吐息转向甩尾",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38632,
+          "TimelineId": 1378,
+          "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "甩尾转向吐息",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38633,
+          "TimelineId": 1378,
+          "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "转向吐息甩尾",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38634,
+          "TimelineId": 1378,
+          "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "转向甩尾吐息",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38635,
+          "TimelineId": 1378,
+          "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "转向",
+        "Mode": "unavailable",
+        "Primary": null,
+        "Variants": []
+      },
+      {
+        "Name": "火焰吐息",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38636,
+          "TimelineId": 3223,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp023"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "尾部打击",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38637,
+          "TimelineId": 3224,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp024"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "狂乱尖啸",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 39878,
+          "TimelineId": 3207,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13401,
+    "Name": "凯海尼海亚麦尤伊",
+    "ModelId": 4165,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%87%AF%E6%B5%B7%E5%B0%BC%E6%B5%B7%E4%BA%9A%E9%BA%A6%E5%B0%A4%E4%BC%8A",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/Keheniheyamewi.cs",
+    "Skills": [
+      {
+        "Name": "毒液挥洒",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38650,
+          "TimelineId": 3209,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "躯体重压",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38651,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "猛冲洒毒",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38648,
+          "TimelineId": 1378,
+          "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "毒气",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38652,
+          "TimelineId": 3210,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "毒性粘液",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38654,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "地狱粘液",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38653,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13157,
+    "Name": "海休瓦拉",
+    "ModelId": 4187,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%B5%B7%E4%BC%91%E7%93%A6%E6%8B%89",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/Heshuala.cs",
+    "Skills": [
+      {
+        "Name": "雷气充填",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39095,
+          "TimelineId": 3210,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "回转放电",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39099,
+          "TimelineId": 11108,
+          "TimelineKey": "mon_sp/common/mon_sph081"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "十字放电",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39102,
+          "TimelineId": 3211,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp011"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "乂字放电",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39103,
+          "TimelineId": 3212,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "落雷",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39104,
+          "TimelineId": 3213,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "广域奔雷",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39105,
+          "TimelineId": 10946,
+          "TimelineKey": "mon_sp/common/mon_sph067"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13158,
+    "Name": "多变装置",
+    "ModelId": 4184,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A4%9A%E5%8F%98%E8%A3%85%E7%BD%AE",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/UrnaVariabilis.cs",
+    "Skills": [
+      {
+        "Name": "落雷电圆",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39106,
+          "TimelineId": 6876,
+          "TimelineKey": "mon_sp/common/mon_sph043"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "落雷电环",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39107,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "雷雨",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39115,
+          "TimelineId": 3610,
+          "TimelineKey": "mon_sp/gimmick/baha_quarl_inazuma_hatudou"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "雷转质波动",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39116,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "磁控",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39108,
+          "TimelineId": 4691,
+          "TimelineKey": "mon_sp/gimmick/d2a5_boss_gimmick01"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "电圆磁控",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39109,
+          "TimelineId": 4403,
+          "TimelineKey": "mon_sp/gimmick/alexthree_magnet_knockback"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "电环磁控",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39110,
+          "TimelineId": 4403,
+          "TimelineKey": "mon_sp/gimmick/alexthree_magnet_knockback"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13435,
+    "Name": "清扫者萨莉",
+    "ModelId": 4185,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%B8%85%E6%89%AB%E8%80%85%E8%90%A8%E8%8E%89",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/SallyTheSweeper.cs",
+    "Skills": [
+      {
+        "Name": "代码读取",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38454,
+          "TimelineId": 1378,
+          "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "处决代码",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38457,
+          "TimelineId": 3216,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+        },
+        "Variants": [
+          {
+            "ActionId": 38457,
+            "TimelineId": 3216,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+          },
+          {
+            "ActionId": 38458,
+            "TimelineId": 3217,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp017"
+          },
+          {
+            "ActionId": 38463,
+            "TimelineId": 3218,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp018"
+          }
+        ]
+      },
+      {
+        "Name": "代码反转",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38459,
+          "TimelineId": 3216,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+        },
+        "Variants": [
+          {
+            "ActionId": 38459,
+            "TimelineId": 3216,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+          },
+          {
+            "ActionId": 38460,
+            "TimelineId": 3218,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp018"
+          }
+        ]
+      },
+      {
+        "Name": "跳跃圆割",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38466,
+          "TimelineId": 3219,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp019"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13436,
+    "Name": "猫眼",
+    "ModelId": 4188,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%8C%AB%E7%9C%BC",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankA/CatsEye.cs",
+    "Skills": [
+      {
+        "Name": "猫眼",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38510,
+          "TimelineId": 3210,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "血眼凝视",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38515,
+          "TimelineId": 3209,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "猫的随心所欲",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 38514,
+          "TimelineId": 3211,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp011"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "重力波",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39887,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13144,
+    "Name": "疯狂龙舌兰",
+    "ModelId": 4113,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%96%AF%E7%8B%82%E9%BE%99%E8%88%8C%E5%85%B0",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "钩刺急旋",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 38317,
+          "TimelineId": 3218,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp018"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13145,
+    "Name": "卓伯卡布拉",
+    "ModelId": 4176,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8D%93%E4%BC%AF%E5%8D%A1%E5%B8%83%E6%8B%89",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "三连爪",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 932,
+          "TimelineId": 1526,
+          "TimelineKey": "mon_sp/m0143/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13407,
+    "Name": "水晶化身",
+    "ModelId": 1848,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%B0%B4%E6%99%B6%E5%8C%96%E8%BA%AB",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Dawntrail/Hunt/RankS/CrystalIncarnation.cs",
+    "Skills": [
+      {
+        "Name": "冰冻",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39624,
+          "TimelineId": 8994,
+          "TimelineKey": "mon_sp/common/mon_sph060"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "烈炎",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 39623,
+          "TimelineId": 479,
+          "TimelineKey": "magic/thm_black/firela"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13146,
+    "Name": "撞角头",
+    "ModelId": 4235,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%92%9E%E8%A7%92%E5%A4%B4",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "砂砾雨",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 38300,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "尾部横扫",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 935,
+          "TimelineId": 1531,
+          "TimelineKey": "mon_sp/m0147/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13147,
+    "Name": "格沃佐拜柯拜",
+    "ModelId": 4101,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%A0%BC%E6%B2%83%E4%BD%90%E6%8B%9C%E6%9F%AF%E6%8B%9C",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "狂水",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 5831,
+          "TimelineId": 4726,
+          "TimelineKey": "mon_sp/common/mon_sph026"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13148,
+    "Name": "绿叶飞花 哈杜加",
+    "ModelId": 4194,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%BB%BF%E5%8F%B6%E9%A3%9E%E8%8A%B1_%E5%93%88%E6%9D%9C%E5%8A%A0",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "龙卷",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 900,
+            "TimelineId": 2281,
+            "TimelineKey": "mon_sp/common/mon_sph012"
+          },
+          {
+            "ActionId": 13415,
+            "TimelineId": 528,
+            "TimelineKey": "magic/thm_black/tornado2"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 13149,
+    "Name": "休提因别克",
+    "ModelId": 4108,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BC%91%E6%8F%90%E5%9B%A0%E5%88%AB%E5%85%8B",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "旋转攻击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 38289,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13150,
+    "Name": "绝妙圆扇刺",
+    "ModelId": 4210,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%BB%9D%E5%A6%99%E5%9C%86%E6%89%87%E5%88%BA",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "仙人扇",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 38748,
+          "TimelineId": 5943,
+          "TimelineKey": "mon_sp/common/mon_sph033"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13151,
+    "Name": "乌克提纳",
+    "ModelId": 4170,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%B9%8C%E5%85%8B%E6%8F%90%E7%BA%B3",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "狂野喧嚣",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 408,
+          "TimelineId": 1188,
+          "TimelineKey": "mon_sp/m0065/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "毒滴牙",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 409,
+            "TimelineId": 1189,
+            "TimelineKey": "mon_sp/m0065/mon_sp002"
+          },
+          {
+            "ActionId": 38772,
+            "TimelineId": 1743,
+            "TimelineKey": "mon_sp/m0065/mon_sp005"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 13152,
+    "Name": "斩首魔鸟",
+    "ModelId": 4238,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%96%A9%E9%A6%96%E9%AD%94%E9%B8%9F",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "火球",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 2130,
+            "TimelineId": 2923,
+            "TimelineKey": "mon_sp/m0183/mon_sp002"
+          },
+          {
+            "ActionId": 2311,
+            "TimelineId": 3508,
+            "TimelineKey": "mon_sp/m0183/mon_sp011"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 13153,
+    "Name": "高康特",
+    "ModelId": 4181,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%AB%98%E5%BA%B7%E7%89%B9",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "汽油弹",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 6850,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 6851,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          }
+        ]
+      },
+      {
+        "Name": "汽油弹燃烧圈",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 24968,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13154,
+    "Name": "携宝精",
+    "ModelId": 4288,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%90%BA%E5%AE%9D%E7%B2%BE",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "狂热击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 401,
+          "TimelineId": 1183,
+          "TimelineKey": "mon_sp/m0028/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "嬉闹攻击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 399,
+          "TimelineId": 1181,
+          "TimelineKey": "mon_sp/m0028/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 13155,
+    "Name": "第十三个孩子",
+    "ModelId": 4161,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%AC%AC%E5%8D%81%E4%B8%89%E4%B8%AA%E5%AD%A9%E5%AD%90",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "崩溃",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 972,
+          "TimelineId": 478,
+          "TimelineKey": "magic/thm_black/photonstrike"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "黑暗",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 928,
+            "TimelineId": 2280,
+            "TimelineKey": "mon_sp/common/mon_sph011"
+          },
+          {
+            "ActionId": 6623,
+            "TimelineId": 4925,
+            "TimelineKey": "mon_sp/common/mon_sph030"
+          },
+          {
+            "ActionId": 31814,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 48255,
+            "TimelineId": 3207,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 10615,
+    "Name": "克尔",
+    "ModelId": 3343,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%85%8B%E5%B0%94",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankS/Ker.cs",
+    "Skills": [
+      {
+        "Name": "太阳虚空",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27636,
+          "TimelineId": 3218,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp018"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "古代冰封",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27637,
+          "TimelineId": 3210,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "胁迫的凝视",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27635,
+          "TimelineId": 3209,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "古代神圣",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27639,
+          "TimelineId": 3212,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "古代核爆",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27638,
+          "TimelineId": 3211,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp011"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "恶毒重击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 27665,
+          "TimelineId": 3219,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp019"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "断罪之瞳",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27640,
+          "TimelineId": 3213,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "前葬",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27641,
+          "TimelineId": 3214,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp014"
+        },
+        "Variants": [
+          {
+            "ActionId": 27641,
+            "TimelineId": 3214,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp014"
+          },
+          {
+            "ActionId": 27661,
+            "TimelineId": 3215,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp015"
+          }
+        ]
+      },
+      {
+        "Name": "后葬",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27642,
+          "TimelineId": 3215,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp015"
+        },
+        "Variants": [
+          {
+            "ActionId": 27642,
+            "TimelineId": 3215,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp015"
+          },
+          {
+            "ActionId": 27662,
+            "TimelineId": 3214,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp014"
+          }
+        ]
+      },
+      {
+        "Name": "左葬",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27644,
+          "TimelineId": 3217,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp017"
+        },
+        "Variants": [
+          {
+            "ActionId": 27644,
+            "TimelineId": 3217,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp017"
+          },
+          {
+            "ActionId": 27664,
+            "TimelineId": 3216,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+          }
+        ]
+      },
+      {
+        "Name": "右葬",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27643,
+          "TimelineId": 3216,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+        },
+        "Variants": [
+          {
+            "ActionId": 27643,
+            "TimelineId": 3216,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+          },
+          {
+            "ActionId": 27663,
+            "TimelineId": 3217,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp017"
+          }
+        ]
+      },
+      {
+        "Name": "咏唱反转术",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27927,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "咏唱记忆术",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27645,
+          "TimelineId": 3207,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "咏唱记忆唤起",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27653,
+          "TimelineId": 3212,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+        },
+        "Variants": [
+          {
+            "ActionId": 27653,
+            "TimelineId": 3212,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+          },
+          {
+            "ActionId": 27654,
+            "TimelineId": 3213,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+          },
+          {
+            "ActionId": 27659,
+            "TimelineId": 3210,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+          },
+          {
+            "ActionId": 27706,
+            "TimelineId": 3211,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp011"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 10623,
+    "Name": "斯图希",
+    "ModelId": 573,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%96%AF%E5%9B%BE%E5%B8%8C",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/Storsie.cs",
+    "Skills": [
+      {
+        "Name": "重咬",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27361,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "属性变异",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27354,
+          "TimelineId": 3208,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+        },
+        "Variants": [
+          {
+            "ActionId": 27354,
+            "TimelineId": 3208,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+          },
+          {
+            "ActionId": 27870,
+            "TimelineId": 1378,
+            "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+          }
+        ]
+      },
+      {
+        "Name": "大地钻击",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27360,
+          "TimelineId": 8904,
+          "TimelineKey": "mon_sp/common/mon_sph057"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "电震",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27359,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "漩涡风暴",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27358,
+          "TimelineId": 8906,
+          "TimelineKey": "mon_sp/common/mon_sph058"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10624,
+    "Name": "胡睹",
+    "ModelId": 3441,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%83%A1%E7%9D%B9",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/Hulder.cs",
+    "Skills": [
+      {
+        "Name": "惑乱的埃斯坦比耶",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27073,
+          "TimelineId": 6055,
+          "TimelineKey": "mon_sp/common/mon_sph035"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "狂风暴雨",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27075,
+          "TimelineId": 3212,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "死亡叹歌",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27076,
+          "TimelineId": 3209,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "狂爱之歌",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27077,
+          "TimelineId": 2534,
+          "TimelineKey": "mon_sp/m0069/mon_sp008"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "春风",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27078,
+          "TimelineId": 2281,
+          "TimelineKey": "mon_sp/common/mon_sph012"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10625,
+    "Name": "尤兰",
+    "ModelId": 153,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B0%A4%E5%85%B0",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/Yilan.cs",
+    "Skills": [
+      {
+        "Name": "声暴",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27230,
+          "TimelineId": 3211,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp011"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "缩小灯",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27231,
+          "TimelineId": 3212,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "捕食",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27232,
+          "TimelineId": 3210,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "泥沼爆弹",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27233,
+          "TimelineId": 1498,
+          "TimelineKey": "mon_sp/m0039/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "咸水雨",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27234,
+          "TimelineId": 3457,
+          "TimelineKey": "mon_sp/m0039/mon_sp005"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10626,
+    "Name": "须羯里婆",
+    "ModelId": 3435,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%A1%BB%E7%BE%AF%E9%87%8C%E5%A9%86",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/Sugriva.cs",
+    "Skills": [
+      {
+        "Name": "大龙卷",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27219,
+          "TimelineId": 3209,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "侧风",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27227,
+          "TimelineId": 3208,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "电火花",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27221,
+          "TimelineId": 3217,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp017"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "高速撞击",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27220,
+          "TimelineId": 3215,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp015"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "坚实岩牢",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27225,
+          "TimelineId": 3213,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "尾镰",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27222,
+          "TimelineId": 3216,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "宰杀",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27223,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "撕裂",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27224,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10627,
+    "Name": "密涅瓦",
+    "ModelId": 3434,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%AF%86%E6%B6%85%E7%93%A6",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/Minerva.cs",
+    "Skills": [
+      {
+        "Name": "装填对人导弹",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27297,
+          "TimelineId": 3515,
+          "TimelineKey": "mon_sp/m0183/mon_sp015"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "装填环形导弹",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27298,
+          "TimelineId": 3515,
+          "TimelineKey": "mon_sp/m0183/mon_sp015",
+          "ActionName": "装填环状导弹"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "导弹发射",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27299,
+          "TimelineId": 3239,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp039"
+        },
+        "Variants": [
+          {
+            "ActionId": 27299,
+            "TimelineId": 3239,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp039"
+          },
+          {
+            "ActionId": 27300,
+            "TimelineId": 3240,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp040"
+          },
+          {
+            "ActionId": 27517,
+            "TimelineId": 1378,
+            "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi_saisoku"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 10628,
+    "Name": "黑杨树精",
+    "ModelId": 3433,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%BB%91%E6%9D%A8%E6%A0%91%E7%B2%BE",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/Aegeiros.cs",
+    "Skills": [
+      {
+        "Name": "绿叶风暴",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27708,
+          "TimelineId": 1206,
+          "TimelineKey": "mon_sp/m0027/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "雾凇风暴",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27709,
+          "TimelineId": 3221,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp021"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "雪球",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27710,
+          "TimelineId": 2564,
+          "TimelineKey": "mon_sp/m0027/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "顶枝冲压",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27711,
+          "TimelineId": 1205,
+          "TimelineKey": "mon_sp/m0027/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "后手冲击",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27712,
+          "TimelineId": 1219,
+          "TimelineKey": "mon_sp/m0027/mon_sp004"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10629,
+    "Name": "月面仙人刺女王",
+    "ModelId": 3385,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%9C%88%E9%9D%A2%E4%BB%99%E4%BA%BA%E5%88%BA%E5%A5%B3%E7%8E%8B",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/LunatenderQueen.cs",
+    "Skills": [
+      {
+        "Name": "瞑目的敕令",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27363,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "近侍的敕令",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27364,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "疏远的敕令",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27365,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "逆反",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27367,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "九十九万针刺",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27366,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10630,
+    "Name": "慕斯公主",
+    "ModelId": 3432,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%85%95%E6%96%AF%E5%85%AC%E4%B8%BB",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/MoussePrincess.cs",
+    "Skills": [
+      {
+        "Name": "异想天开的时尚",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27320,
+          "TimelineId": 1196,
+          "TimelineKey": "mon_sp/m0055/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "公主的咒歌",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27318,
+          "TimelineId": 1222,
+          "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi"
+        },
+        "Variants": [
+          {
+            "ActionId": 27318,
+            "TimelineId": 1222,
+            "TimelineKey": "mon_sp/gimmick/monster_hanyou_hitclip_nomi"
+          },
+          {
+            "ActionId": 27319,
+            "TimelineId": 6055,
+            "TimelineKey": "mon_sp/common/mon_sph035"
+          }
+        ]
+      },
+      {
+        "Name": "公主哼歌",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27322,
+          "TimelineId": 6057,
+          "TimelineKey": "mon_sp/common/mon_sph036"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "乱鞭",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27321,
+          "TimelineId": 1728,
+          "TimelineKey": "mon_sp/m0055/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "放逐",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27323,
+          "TimelineId": 2480,
+          "TimelineKey": "mon_sp/m0055/mon_sp004"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10633,
+    "Name": "凡·艾尔",
+    "ModelId": 555,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%87%A1%C2%B7%E8%89%BE%E5%B0%94",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/FanAil.cs",
+    "Skills": [
+      {
+        "Name": "旋风之翼",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27380,
+          "TimelineId": 3225,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp025"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "液体地狱",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27376,
+          "TimelineId": 1791,
+          "TimelineKey": "mon_sp/m0060/mon_sp011"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "垂直下落",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27378,
+          "TimelineId": 1696,
+          "TimelineKey": "mon_sp/m0060/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "爆破俯冲",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27373,
+          "TimelineId": 4573,
+          "TimelineKey": "mon_sp/[SKL_ID]/hide/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "死刑",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27379,
+          "TimelineId": 1789,
+          "TimelineKey": "mon_sp/m0060/mon_sp009"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10634,
+    "Name": "伊塔总领",
+    "ModelId": 3310,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BC%8A%E5%A1%94%E6%80%BB%E9%A2%86",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/ArchEta.cs",
+    "Skills": [
+      {
+        "Name": "重踩",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27271,
+          "TimelineId": 3211,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp011"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "能量收束炮",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27269,
+          "TimelineId": 3213,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "音嚎",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27272,
+          "TimelineId": 3207,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "拍尾",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27270,
+          "TimelineId": 3212,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "尖牙穿刺",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27274,
+          "TimelineId": 3215,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp015"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "钢铁尖牙",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27273,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10631,
+    "Name": "固兰盖奇",
+    "ModelId": 3377,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%9B%BA%E5%85%B0%E7%9B%96%E5%A5%87",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/Gurangatch.cs",
+    "Skills": [
+      {
+        "Name": "右侧锤击",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27494,
+          "TimelineId": 3237,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp037"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "左侧锤击",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27493,
+          "TimelineId": 3238,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp038"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "八倍锤击",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27497,
+          "TimelineId": 3238,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp038"
+        },
+        "Variants": [
+          {
+            "ActionId": 27497,
+            "TimelineId": 3238,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp038"
+          },
+          {
+            "ActionId": 27498,
+            "TimelineId": 3237,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp037"
+          }
+        ]
+      },
+      {
+        "Name": "慑骨怒吼",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27512,
+          "TimelineId": 3216,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "狂野冲锋",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27511,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10632,
+    "Name": "瓣齿鲨",
+    "ModelId": 3455,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%93%A3%E9%BD%BF%E9%B2%A8",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankA/Petalodus.cs",
+    "Skills": [
+      {
+        "Name": "怒潮断头台",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27068,
+          "TimelineId": 3220,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp020"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "古代冰结",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27069,
+          "TimelineId": 8994,
+          "TimelineKey": "mon_sp/common/mon_sph060"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "海之骚动",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27063,
+          "TimelineId": 3228,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp028"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "狂水IV",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27067,
+          "TimelineId": 4726,
+          "TimelineKey": "mon_sp/common/mon_sph026"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10616,
+    "Name": "克尔的侍从",
+    "ModelId": 1599,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%85%8B%E5%B0%94%E7%9A%84%E4%BE%8D%E4%BB%8E",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Endwalker/Hunt/RankS/KerShroud.cs",
+    "Skills": [
+      {
+        "Name": "熵火",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27724,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "瘟疫诅咒",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 27725,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10635,
+    "Name": "草贤人",
+    "ModelId": 3458,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%8D%89%E8%B4%A4%E4%BA%BA",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "草风",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 27769,
+          "TimelineId": 5943,
+          "TimelineKey": "mon_sp/common/mon_sph033"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "吐泥",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 27768,
+          "TimelineId": 3216,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10636,
+    "Name": "哞哞",
+    "ModelId": 1684,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%93%9E%E5%93%9E",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "冲顶",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 17201,
+          "TimelineId": 2932,
+          "TimelineKey": "mon_sp/m0171/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "突进",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 6471,
+            "TimelineId": 3213,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+          },
+          {
+            "ActionId": 7929,
+            "TimelineId": 3210,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+          },
+          {
+            "ActionId": 7932,
+            "TimelineId": 3204,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+          },
+          {
+            "ActionId": 8330,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          },
+          {
+            "ActionId": 10337,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          },
+          {
+            "ActionId": 13725,
+            "TimelineId": 3206,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+          },
+          {
+            "ActionId": 22003,
+            "TimelineId": 3216,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+          },
+          {
+            "ActionId": 22008,
+            "TimelineId": 3217,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp017"
+          },
+          {
+            "ActionId": 27235,
+            "TimelineId": 3209,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+          },
+          {
+            "ActionId": 32050,
+            "TimelineId": 3208,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+          },
+          {
+            "ActionId": 37056,
+            "TimelineId": 3205,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+          },
+          {
+            "ActionId": 49759,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 10637,
+    "Name": "金刚鸠摩罗",
+    "ModelId": 3279,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%87%91%E5%88%9A%E9%B8%A0%E6%91%A9%E7%BD%97",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "庵摩罗抽打",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 26001,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "刺阵",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 17959,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10638,
+    "Name": "伊罗婆缇",
+    "ModelId": 1427,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BC%8A%E7%BD%97%E5%A9%86%E7%BC%87",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "怒踏",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3675,
+            "TimelineId": 3206,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+          },
+          {
+            "ActionId": 11798,
+            "TimelineId": 3208,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+          }
+        ]
+      },
+      {
+        "Name": "象鼻抽打",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3670,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10639,
+    "Name": "战争贩子",
+    "ModelId": 3185,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%88%98%E4%BA%89%E8%B4%A9%E5%AD%90",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "魔导激光",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 7347,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          },
+          {
+            "ActionId": 27382,
+            "TimelineId": 3205,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+          },
+          {
+            "ActionId": 32632,
+            "TimelineId": 3206,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 10640,
+    "Name": "皇帝的玫瑰",
+    "ModelId": 2216,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%9A%87%E5%B8%9D%E7%9A%84%E7%8E%AB%E7%91%B0",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "呕吐",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 11807,
+            "TimelineId": 3215,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp015"
+          },
+          {
+            "ActionId": 27401,
+            "TimelineId": 3221,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp021"
+          },
+          {
+            "ActionId": 36483,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          },
+          {
+            "ActionId": 50361,
+            "TimelineId": 3209,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+          }
+        ]
+      },
+      {
+        "Name": "藤条抽打",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 11801,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          },
+          {
+            "ActionId": 25913,
+            "TimelineId": 3224,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp024"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 10641,
+    "Name": "巨月蚤",
+    "ModelId": 3255,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B7%A8%E6%9C%88%E8%9A%A4",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "捕食行动",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 27689,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "苦涩水流",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 17155,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10642,
+    "Name": "起源石",
+    "ModelId": 1771,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%B5%B7%E6%BA%90%E7%9F%B3",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "巨跃",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 25723,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "泥石流",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 9884,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10645,
+    "Name": "等级作弊仪",
+    "ModelId": 2040,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%AD%89%E7%BA%A7%E4%BD%9C%E5%BC%8A%E4%BB%AA",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "初始化",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 13738,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 27546,
+            "TimelineId": 3208,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 10646,
+    "Name": "欧斯克·雷伊",
+    "ModelId": 3318,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%AC%A7%E6%96%AF%E5%85%8B%C2%B7%E9%9B%B7%E4%BC%8A",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "火球",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3127,
+            "TimelineId": 3206,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+          },
+          {
+            "ActionId": 3290,
+            "TimelineId": 3205,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+          },
+          {
+            "ActionId": 3916,
+            "TimelineId": 3240,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp040"
+          },
+          {
+            "ActionId": 6987,
+            "TimelineId": 3224,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp024"
+          },
+          {
+            "ActionId": 8732,
+            "TimelineId": 3208,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+          },
+          {
+            "ActionId": 10335,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 22587,
+            "TimelineId": 3213,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+          },
+          {
+            "ActionId": 28975,
+            "TimelineId": 3217,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp017"
+          },
+          {
+            "ActionId": 30874,
+            "TimelineId": 3209,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+          },
+          {
+            "ActionId": 35040,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          },
+          {
+            "ActionId": 38722,
+            "TimelineId": 3204,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+          },
+          {
+            "ActionId": 41354,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          }
+        ]
+      },
+      {
+        "Name": "灼烧",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2341,
+          "TimelineId": 3522,
+          "TimelineKey": "mon_sp/m0063/mon_sp022"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10643,
+    "Name": "尤姆卡克斯",
+    "ModelId": 3341,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B0%A4%E5%A7%86%E5%8D%A1%E5%85%8B%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "问题根源",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 26775,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 10644,
+    "Name": "肖科莫",
+    "ModelId": 2673,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%82%96%E7%A7%91%E8%8E%AB",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "喷射水波",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 17158,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "暴力破坏",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 17157,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8915,
+    "Name": "得到宽恕的叛乱",
+    "ModelId": 2614,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%BE%97%E5%88%B0%E5%AE%BD%E6%81%95%E7%9A%84%E5%8F%9B%E4%B9%B1",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankS/ForgivenRebellion.cs",
+    "Skills": [
+      {
+        "Name": "圣化冰结",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17598,
+          "TimelineId": 6766,
+          "TimelineKey": "mon_sp/common/mon_sph042"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "圣化冰结连锁",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17628,
+          "TimelineId": 6766,
+          "TimelineKey": "mon_sp/common/mon_sph042"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "干涉",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17602,
+          "TimelineId": 3230,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp030"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "天堂旋斩",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 18126,
+          "TimelineId": 3230,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp030"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "天堂之镰",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17600,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "猛炎",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17601,
+          "TimelineId": 7498,
+          "TimelineKey": "mon_sp/common/mon_sph051"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "圣旨",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17597,
+          "TimelineId": 3231,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp031"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "转移",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17611,
+          "TimelineId": 3219,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp019"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "精神控制",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17599,
+          "TimelineId": 3232,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp032"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8906,
+    "Name": "纳克拉维",
+    "ModelId": 2042,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%BA%B3%E5%85%8B%E6%8B%89%E7%BB%B4",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/Nuckelavee.cs",
+    "Skills": [
+      {
+        "Name": "鱼雷",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16964,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "沼地遗尸",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16965,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "飞驰",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16967,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "怨恨之意",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 18037,
+          "TimelineId": 6006,
+          "TimelineKey": "mon_sp/gimmick/g3d4_cyuboss1_gimmick02"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8907,
+    "Name": "纳里蓬",
+    "ModelId": 1772,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%BA%B3%E9%87%8C%E8%93%AC",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/Nariphon.cs",
+    "Skills": [
+      {
+        "Name": "藤锤",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16969,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "注射过敏元",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16972,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "特异根茎",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16971,
+          "TimelineId": 3208,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "恶意瘴气",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16970,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8911,
+    "Name": "小小杀手",
+    "ModelId": 2690,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B0%8F%E5%B0%8F%E6%9D%80%E6%89%8B",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/LilMurderer.cs",
+    "Skills": [
+      {
+        "Name": "哥布林乱拳",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17488,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "哥布震雷",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17492,
+          "TimelineId": 7482,
+          "TimelineKey": "mon_sp/common/mon_sph049"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "哥布暴雷",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17493,
+          "TimelineId": 6876,
+          "TimelineKey": "mon_sp/common/mon_sph043"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "哥布加速",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17491,
+          "TimelineId": 7483,
+          "TimelineKey": "mon_sp/common/mon_sph050"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "哥布林斩击",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17489,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8912,
+    "Name": "乌拉坎",
+    "ModelId": 2598,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%B9%8C%E6%8B%89%E5%9D%8E",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/Huracan.cs",
+    "Skills": [
+      {
+        "Name": "妖蛇之尾",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17494,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "火炎流",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17499,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "疾强风",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17496,
+          "TimelineId": 3210,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "冰雨",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17497,
+          "TimelineId": 3208,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "漏斗云",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17498,
+          "TimelineId": 3212,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "妖蛇之牙",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17495,
+          "TimelineId": 3209,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8901,
+    "Name": "马利克巨人掌",
+    "ModelId": 2776,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%A9%AC%E5%88%A9%E5%85%8B%E5%B7%A8%E4%BA%BA%E6%8E%8C",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/Maliktender.cs",
+    "Skills": [
+      {
+        "Name": "仙人刺舞",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 18019,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "二万针刺",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 18022,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "加速",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 18020,
+          "TimelineId": 7483,
+          "TimelineKey": "mon_sp/common/mon_sph050"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "九十九万针刺",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 18024,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8902,
+    "Name": "休格尔",
+    "ModelId": 135,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BC%91%E6%A0%BC%E5%B0%94",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/Sugaar.cs",
+    "Skills": [
+      {
+        "Name": "躯体震击",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 18018,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "先声夺人",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 18015,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "劈啪尾",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 18016,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8654,
+    "Name": "泥人",
+    "ModelId": 2357,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%B3%A5%E4%BA%BA",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/TheMudman.cs",
+    "Skills": [
+      {
+        "Name": "污泥泼洒",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16828,
+          "TimelineId": 3223,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp023"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "污泥内无双",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16826,
+          "TimelineId": 3216,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "污泥外无双",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16827,
+          "TimelineId": 3222,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp022"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "重力领域",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16829,
+          "TimelineId": 503,
+          "TimelineKey": "magic/swl_summon/gravide"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8655,
+    "Name": "保尔迪雅",
+    "ModelId": 2599,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BF%9D%E5%B0%94%E8%BF%AA%E9%9B%85",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/OPoorestPauldia.cs",
+    "Skills": [
+      {
+        "Name": "锈爪",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 16830,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8891,
+    "Name": "苏帕伊",
+    "ModelId": 2661,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%8B%8F%E5%B8%95%E4%BC%8A",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/Supay.cs",
+    "Skills": [
+      {
+        "Name": "渎神吼",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17858,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "石化之眼",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17856,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "喙斧",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17857,
+          "TimelineId": 1305,
+          "TimelineKey": "mon_sp/m0044/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8892,
+    "Name": "格拉斯曼",
+    "ModelId": 735,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%A0%BC%E6%8B%89%E6%96%AF%E6%9B%BC",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/Grassman.cs",
+    "Skills": [
+      {
+        "Name": "捶胸",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17859,
+          "TimelineId": 3422,
+          "TimelineKey": "mon_sp/m0183/mon_sp008"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "扔岩石",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17861,
+          "TimelineId": 3573,
+          "TimelineKey": "mon_sp/m0183/mon_sp017"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "殴打",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17860,
+          "TimelineId": 3421,
+          "TimelineKey": "mon_sp/m0183/mon_sp007"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "打飞",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17862,
+          "TimelineId": 3424,
+          "TimelineKey": "mon_sp/m0183/mon_sp009"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8896,
+    "Name": "卢莎卡",
+    "ModelId": 1867,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8D%A2%E8%8E%8E%E5%8D%A1",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/Rusalka.cs",
+    "Skills": [
+      {
+        "Name": "以太火花",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17368,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "水化炮",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17363,
+          "TimelineId": 4726,
+          "TimelineKey": "mon_sp/common/mon_sph026"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "吸引",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17366,
+          "TimelineId": 6059,
+          "TimelineKey": "mon_sp/common/mon_sph037"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "洪水",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17369,
+          "TimelineId": 4724,
+          "TimelineKey": "mon_sp/common/mon_sph025"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8897,
+    "Name": "巴力",
+    "ModelId": 2780,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B7%B4%E5%8A%9B",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankA/Baal.cs",
+    "Skills": [
+      {
+        "Name": "臭水",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17956,
+          "TimelineId": 3224,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp024"
+        },
+        "Variants": [
+          {
+            "ActionId": 17956,
+            "TimelineId": 3224,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp024"
+          },
+          {
+            "ActionId": 17957,
+            "TimelineId": 3225,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp025"
+          }
+        ]
+      },
+      {
+        "Name": "臭水波",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17421,
+          "TimelineId": 3226,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp026"
+        },
+        "Variants": [
+          {
+            "ActionId": 17421,
+            "TimelineId": 3226,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp026"
+          },
+          {
+            "ActionId": 17422,
+            "TimelineId": 3227,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp027"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 8908,
+    "Name": "浓毛兽",
+    "ModelId": 914,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%B5%93%E6%AF%9B%E5%85%BD",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "凶残正打",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4535,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "强击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2183,
+          "TimelineId": 3063,
+          "TimelineKey": "mon_sp/m0176/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "前照光",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4537,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8909,
+    "Name": "伊兹帕帕洛特尔",
+    "ModelId": 1405,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BC%8A%E5%85%B9%E5%B8%95%E5%B8%95%E6%B4%9B%E7%89%B9%E5%B0%94",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "噬咬",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 5572,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "麻痹翅风",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 16979,
+          "TimelineId": 3207,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8916,
+    "Name": "得到宽恕的流言",
+    "ModelId": 2749,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%BE%97%E5%88%B0%E5%AE%BD%E6%81%95%E7%9A%84%E6%B5%81%E8%A8%80",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Shadowbringers/Hunt/RankS/ForgivenGossip.cs",
+    "Skills": [
+      {
+        "Name": "石化之眼",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 18041,
+          "TimelineId": 3375,
+          "TimelineKey": "mon_sp/gimmick/sukyura_sekika",
+          "ActionName": "石化眼"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "冰瀑",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 17043,
+          "TimelineId": 2586,
+          "TimelineKey": "mon_sp/m0016/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8913,
+    "Name": "三合鸟儿",
+    "ModelId": 2649,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%B8%89%E5%90%88%E9%B8%9F%E5%84%BF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "猛啄",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 570,
+          "TimelineId": 1305,
+          "TimelineKey": "mon_sp/m0044/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "禽臭",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 571,
+          "TimelineId": 1306,
+          "TimelineKey": "mon_sp/m0044/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8914,
+    "Name": "不屈号",
+    "ModelId": 2583,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%B8%8D%E5%B1%88%E5%8F%B7",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "痛殴",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 9138,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8903,
+    "Name": "大井巨虫",
+    "ModelId": 242,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A4%A7%E4%BA%95%E5%B7%A8%E8%99%AB",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "沙尘旋风",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1111,
+          "TimelineId": 1742,
+          "TimelineKey": "mon_sp/m0068/mon_sp007"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "黄沙吐息",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 528,
+          "TimelineId": 1264,
+          "TimelineKey": "mon_sp/m0068/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "剧毒吐息",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 530,
+          "TimelineId": 1266,
+          "TimelineKey": "mon_sp/m0068/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8904,
+    "Name": "残虐杂技师",
+    "ModelId": 2601,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%AE%8B%E8%99%90%E6%9D%82%E6%8A%80%E5%B8%88",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "愤怒旋风",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 17962,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "愤怒一击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 17961,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8656,
+    "Name": "杜莫伊",
+    "ModelId": 2558,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%9D%9C%E8%8E%AB%E4%BC%8A",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "碎骨拳",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 612,
+          "TimelineId": 1345,
+          "TimelineKey": "mon_sp/m0049/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "散播花粉",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 15788,
+          "TimelineId": 3227,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp027"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "双重碎击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 618,
+          "TimelineId": 1351,
+          "TimelineKey": "mon_sp/m0049/mon_sp007"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8657,
+    "Name": "狐首虺",
+    "ModelId": 2433,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%8B%90%E9%A6%96%E8%99%BA",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "扫尾",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 14607,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "火焰吐息",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 16840,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8893,
+    "Name": "启灵果",
+    "ModelId": 2419,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%90%AF%E7%81%B5%E6%9E%9C",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "头槌",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 17898,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "喷射汁液",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 17160,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          },
+          {
+            "ActionId": 45762,
+            "TimelineId": 4574,
+            "TimelineKey": "mon_sp/[SKL_ID]/hide/mon_sp002"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 8894,
+    "Name": "帕查玛玛",
+    "ModelId": 1302,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B8%95%E6%9F%A5%E7%8E%9B%E7%8E%9B",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "恐角",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 5363,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "额角",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 5362,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8898,
+    "Name": "徒手抓鱼 基乌嘶·渊斯",
+    "ModelId": 2695,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%BE%92%E6%89%8B%E6%8A%93%E9%B1%BC_%E5%9F%BA%E4%B9%8C%E5%98%B6%C2%B7%E6%B8%8A%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "撕抓",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 557,
+          "TimelineId": 1295,
+          "TimelineKey": "mon_sp/d1007/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "船底凿穿",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1863,
+          "TimelineId": 2710,
+          "TimelineKey": "mon_sp/d1007/mon_sp007"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 8899,
+    "Name": "助祭大蟹",
+    "ModelId": 2597,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8A%A9%E7%A5%AD%E5%A4%A7%E8%9F%B9",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "螯连击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8611,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "大涡潮",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8612,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 5990,
+    "Name": "奥迦斯",
+    "ModelId": 1989,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A5%A5%E8%BF%A6%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "喷沙",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 2897,
+            "TimelineId": 3204,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+          },
+          {
+            "ActionId": 8673,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          },
+          {
+            "ActionId": 34813,
+            "TimelineId": 3208,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+          }
+        ]
+      },
+      {
+        "Name": "毒液喷射",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3291,
+            "TimelineId": 3213,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+          },
+          {
+            "ActionId": 8674,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          },
+          {
+            "ActionId": 33775,
+            "TimelineId": 3207,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+          }
+        ]
+      },
+      {
+        "Name": "大颚咬",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 8672,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 34823,
+            "TimelineId": 3214,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp014"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 5991,
+    "Name": "女王蜂",
+    "ModelId": 1990,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A5%B3%E7%8E%8B%E8%9C%82",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "释放信息素",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 5235,
+          "TimelineId": 3210,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "蜂毒素飞溅",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 5237,
+          "TimelineId": 3212,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "闪雷枪",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8202,
+          "TimelineId": 3208,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "直线纺锤",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 5240,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "女王蜂刺",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 5236,
+          "TimelineId": 3211,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp011"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 5996,
+    "Name": "船幽灵",
+    "ModelId": 1761,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%88%B9%E5%B9%BD%E7%81%B5",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "水力球",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8023,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "莫名击掌",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8022,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "漩涡",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 8024,
+            "TimelineId": 3206,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+          },
+          {
+            "ActionId": 11510,
+            "TimelineId": 3204,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 5997,
+    "Name": "鬼观梦",
+    "ModelId": 1941,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%AC%BC%E8%A7%82%E6%A2%A6",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "首角抢攻",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 6123,
+          "TimelineId": 3207,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "万雷",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 6124,
+          "TimelineId": 3208,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "寒流",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8555,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "带电",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8551,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "带冰",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8552,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 5998,
+    "Name": "象魔修罗",
+    "ModelId": 2053,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%B1%A1%E9%AD%94%E4%BF%AE%E7%BD%97",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Stormblood/Hunt/RankA/Gajasura.cs",
+    "Skills": [
+      {
+        "Name": "回转",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 8188,
+          "TimelineId": 3228,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp028"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "殴打",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 8189,
+          "TimelineId": 3227,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp027"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "用力投掷",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 8187,
+          "TimelineId": 3223,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp023"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 5999,
+    "Name": "安迦达",
+    "ModelId": 1439,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%AE%89%E8%BF%A6%E8%BE%BE",
+    "RecordSource": "https://github.com/awgil/ffxiv_bossmod/blob/4fc3798e283432e2bac33130f48769ba778a0eba/BossMod.Modules/Stormblood/Hunt/RankA/Angada.cs",
+    "Skills": [
+      {
+        "Name": "尾镰",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 8190,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "坚实岩牢",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 8193,
+          "TimelineId": 3213,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "宰杀",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 8191,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "撕裂",
+        "Mode": "record",
+        "Primary": {
+          "ActionId": 8192,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 5992,
+    "Name": "弗克施泰因",
+    "ModelId": 1993,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%BC%97%E5%85%8B%E6%96%BD%E6%B3%B0%E5%9B%A0",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "自由落体",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3693,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          },
+          {
+            "ActionId": 9067,
+            "TimelineId": 3204,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+          },
+          {
+            "ActionId": 47584,
+            "TimelineId": 3212,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+          }
+        ]
+      },
+      {
+        "Name": "高山气流",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3694,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          },
+          {
+            "ActionId": 4505,
+            "TimelineId": 3207,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+          }
+        ]
+      },
+      {
+        "Name": "黄金爪",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3692,
+            "TimelineId": 3208,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+          },
+          {
+            "ActionId": 4690,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          }
+        ]
+      },
+      {
+        "Name": "凛冬之风",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3696,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 5993,
+    "Name": "熔骨炎蝎",
+    "ModelId": 1680,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%86%94%E9%AA%A8%E7%82%8E%E8%9D%8E",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "震撼领域",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 697,
+          "TimelineId": 1417,
+          "TimelineKey": "mon_sp/m0001/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "炎丝喷射",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 7234,
+            "TimelineId": 3220,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp020"
+          },
+          {
+            "ActionId": 7235,
+            "TimelineId": 3221,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp021"
+          },
+          {
+            "ActionId": 7236,
+            "TimelineId": 3222,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp022"
+          }
+        ]
+      },
+      {
+        "Name": "致命尾刺",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 329,
+            "TimelineId": 1114,
+            "TimelineKey": "mon_sp/m0001/mon_sp003"
+          },
+          {
+            "ActionId": 330,
+            "TimelineId": 1115,
+            "TimelineKey": "mon_sp/m0001/mon_sp004"
+          },
+          {
+            "ActionId": 702,
+            "TimelineId": 1420,
+            "TimelineKey": "mon_sp/m0001/mon_sp008"
+          }
+        ]
+      },
+      {
+        "Name": "飞跃重压",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 7230,
+          "TimelineId": 3223,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp023"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "死印",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3055,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 5994,
+    "Name": "马希沙",
+    "ModelId": 1473,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%A9%AC%E5%B8%8C%E6%B2%99",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "十一吨横扫",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3969,
+          "TimelineId": 1358,
+          "TimelineKey": "mon_sp/m0058/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "百十一吨回转",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3970,
+          "TimelineId": 1361,
+          "TimelineKey": "mon_sp/m0058/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "千百十一吨回转",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3975,
+          "TimelineId": 2943,
+          "TimelineKey": "mon_sp/m0058/mon_sp009"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "恶咒",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8010,
+          "TimelineId": 3212,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "空腹",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8016,
+          "TimelineId": 3216,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "捕食",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3022,
+            "TimelineId": 3218,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp018"
+          },
+          {
+            "ActionId": 3242,
+            "TimelineId": 3211,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp011"
+          },
+          {
+            "ActionId": 5185,
+            "TimelineId": 3210,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+          },
+          {
+            "ActionId": 6906,
+            "TimelineId": 3216,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+          },
+          {
+            "ActionId": 8011,
+            "TimelineId": 3214,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp014"
+          },
+          {
+            "ActionId": 11855,
+            "TimelineId": 3204,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+          },
+          {
+            "ActionId": 30500,
+            "TimelineId": 3215,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp015"
+          },
+          {
+            "ActionId": 30502,
+            "TimelineId": 3217,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp017"
+          },
+          {
+            "ActionId": 30793,
+            "TimelineId": 3220,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp020"
+          },
+          {
+            "ActionId": 35751,
+            "TimelineId": 4573,
+            "TimelineKey": "mon_sp/[SKL_ID]/hide/mon_sp001"
+          },
+          {
+            "ActionId": 36342,
+            "TimelineId": 3205,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+          },
+          {
+            "ActionId": 45590,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          },
+          {
+            "ActionId": 45594,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          },
+          {
+            "ActionId": 47223,
+            "TimelineId": 3206,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+          },
+          {
+            "ActionId": 48685,
+            "TimelineId": 3212,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 5995,
+    "Name": "泛光晶体",
+    "ModelId": 1994,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%B3%9B%E5%85%89%E6%99%B6%E4%BD%93",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "崩溃",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 972,
+          "TimelineId": 478,
+          "TimelineKey": "magic/thm_black/photonstrike"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "以太火花",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8496,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "龙卷",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 900,
+            "TimelineId": 2281,
+            "TimelineKey": "mon_sp/common/mon_sph012"
+          },
+          {
+            "ActionId": 13415,
+            "TimelineId": 528,
+            "TimelineKey": "magic/thm_black/tornado2"
+          },
+          {
+            "ActionId": 20367,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          }
+        ]
+      },
+      {
+        "Name": "勇气",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1281,
+          "TimelineId": 497,
+          "TimelineKey": "magic/swl_summon/brave"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "炎爆",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 7242,
+            "TimelineId": 4919,
+            "TimelineKey": "mon_sp/common/mon_sph027"
+          },
+          {
+            "ActionId": 11670,
+            "TimelineId": 6486,
+            "TimelineKey": "mon_sp/common/mon_sph041"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 6000,
+    "Name": "基里麦卡拉",
+    "ModelId": 1992,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%9F%BA%E9%87%8C%E9%BA%A6%E5%8D%A1%E6%8B%89",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "象鼻抽打",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3670,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "长毛吸气",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3672,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "象牙冲撞",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3673,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "史前咆哮",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3676,
+          "TimelineId": 3207,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "古代岩石",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3671,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "猛进",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3674,
+            "TimelineId": 3205,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+          },
+          {
+            "ActionId": 35729,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 6001,
+    "Name": "硕姆",
+    "ModelId": 1991,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%A1%95%E5%A7%86",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "水浪吐息",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 448,
+          "TimelineId": 1211,
+          "TimelineKey": "mon_sp/m0039/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "泥沼爆弹",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 978,
+          "TimelineId": 1498,
+          "TimelineKey": "mon_sp/m0039/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "奇异光",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 2729,
+            "TimelineId": 1212,
+            "TimelineKey": "mon_sp/m0039/mon_sp002"
+          },
+          {
+            "ActionId": 8194,
+            "TimelineId": 1213,
+            "TimelineKey": "mon_sp/m0039/mon_sp003"
+          }
+        ]
+      },
+      {
+        "Name": "奇怪光",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8195,
+          "TimelineId": 1212,
+          "TimelineKey": "mon_sp/m0039/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 6008,
+    "Name": "影中暗 雅弥尼",
+    "ModelId": 1740,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%BD%B1%E4%B8%AD%E6%9A%97_%E9%9B%85%E5%BC%A5%E5%B0%BC",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "尾部猛击",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 6231,
+            "TimelineId": 3206,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+          },
+          {
+            "ActionId": 8083,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 8715,
+            "TimelineId": 3204,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+          }
+        ]
+      },
+      {
+        "Name": "光彩",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 8714,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          },
+          {
+            "ActionId": 32291,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 6009,
+    "Name": "奥祖鲁姆",
+    "ModelId": 1720,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A5%A5%E7%A5%96%E9%B2%81%E5%A7%86",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "落喙俯冲",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8680,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "大尖啸",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8681,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 6002,
+    "Name": "剑豪 刑具",
+    "ModelId": 1699,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%89%91%E8%B1%AA_%E5%88%91%E5%85%B7",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "铁壳靠",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8584,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "袈裟斩",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8585,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 6003,
+    "Name": "姑获鸟",
+    "ModelId": 1973,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A7%91%E8%8E%B7%E9%B8%9F",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "钢喙",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 6626,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          },
+          {
+            "ActionId": 48488,
+            "TimelineId": 3204,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+          }
+        ]
+      },
+      {
+        "Name": "突风",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 6627,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          },
+          {
+            "ActionId": 22822,
+            "TimelineId": 4921,
+            "TimelineKey": "mon_sp/common/mon_sph028"
+          },
+          {
+            "ActionId": 48167,
+            "TimelineId": 14988,
+            "TimelineKey": "mon_sp/common/mon_sph091"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 6004,
+    "Name": "大太",
+    "ModelId": 1821,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A4%A7%E5%A4%AA",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "甩耳垂",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8608,
+          "TimelineId": 1728,
+          "TimelineKey": "mon_sp/m0055/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "千针棘",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8600,
+          "TimelineId": 3213,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 6005,
+    "Name": "闪雷击 鱼雷",
+    "ModelId": 1793,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%97%AA%E9%9B%B7%E5%87%BB_%E9%B1%BC%E9%9B%B7",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "渔叉三段",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8596,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "哔哩哔哩",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8597,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 6010,
+    "Name": "蛇仆蚂蜓",
+    "ModelId": 1364,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%9B%87%E4%BB%86%E8%9A%82%E8%9C%93",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "尾钳",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8700,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "超振动",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8701,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 6011,
+    "Name": "布卡卜",
+    "ModelId": 1767,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B8%83%E5%8D%A1%E5%8D%9C",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "躯体冲撞",
+        "Mode": "unavailable",
+        "Primary": null,
+        "Variants": []
+      },
+      {
+        "Name": "缺氧吐息",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8662,
+          "TimelineId": 3218,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp018"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "震雷",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 148,
+            "TimelineId": 480,
+            "TimelineKey": "magic/thm_black/thunderla"
+          },
+          {
+            "ActionId": 6516,
+            "TimelineId": 3210,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+          },
+          {
+            "ActionId": 8663,
+            "TimelineId": 3219,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp019"
+          },
+          {
+            "ActionId": 29313,
+            "TimelineId": 5236,
+            "TimelineKey": "magic/thm_black/mgc003"
+          },
+          {
+            "ActionId": 40370,
+            "TimelineId": 7482,
+            "TimelineKey": "mon_sp/common/mon_sph049"
+          },
+          {
+            "ActionId": 41987,
+            "TimelineId": 3225,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp025"
+          },
+          {
+            "ActionId": 43331,
+            "TimelineId": 3226,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp026"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 6012,
+    "Name": "玛涅斯",
+    "ModelId": 1711,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%8E%9B%E6%B6%85%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "暗影投射",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 9116,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 24129,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          }
+        ]
+      },
+      {
+        "Name": "暗影牙",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 9117,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "黑暗",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 928,
+            "TimelineId": 2280,
+            "TimelineKey": "mon_sp/common/mon_sph011"
+          },
+          {
+            "ActionId": 6623,
+            "TimelineId": 4925,
+            "TimelineKey": "mon_sp/common/mon_sph030"
+          },
+          {
+            "ActionId": 31814,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 48255,
+            "TimelineId": 3207,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 6013,
+    "Name": "奇洼",
+    "ModelId": 1709,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A5%87%E6%B4%BC",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "碎壳重击",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 8053,
+            "TimelineId": 3209,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+          },
+          {
+            "ActionId": 8684,
+            "TimelineId": 3204,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 6006,
+    "Name": "俱利摩",
+    "ModelId": 1718,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BF%B1%E5%88%A9%E6%91%A9",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "不朽大地",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8614,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "滚烫吐息",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 8613,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 6007,
+    "Name": "阿苏黄",
+    "ModelId": 1338,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%98%BF%E8%8B%8F%E9%BB%84",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "落雷",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 4016,
+            "TimelineId": 3207,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+          },
+          {
+            "ActionId": 5364,
+            "TimelineId": 3217,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp017"
+          },
+          {
+            "ActionId": 19356,
+            "TimelineId": 3208,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+          },
+          {
+            "ActionId": 23627,
+            "TimelineId": 3219,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp019"
+          },
+          {
+            "ActionId": 23967,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 28897,
+            "TimelineId": 3205,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+          },
+          {
+            "ActionId": 32214,
+            "TimelineId": 3211,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp011"
+          },
+          {
+            "ActionId": 39104,
+            "TimelineId": 3213,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp013"
+          },
+          {
+            "ActionId": 43651,
+            "TimelineId": 3222,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp022"
+          },
+          {
+            "ActionId": 43703,
+            "TimelineId": 3220,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp020"
+          }
+        ]
+      },
+      {
+        "Name": "放电",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 5365,
+            "TimelineId": 3218,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp018"
+          },
+          {
+            "ActionId": 14600,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 17402,
+            "TimelineId": 3210,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+          },
+          {
+            "ActionId": 23634,
+            "TimelineId": 3207,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+          },
+          {
+            "ActionId": 23635,
+            "TimelineId": 3206,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+          },
+          {
+            "ActionId": 35482,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 4362,
+    "Name": "米勒卡",
+    "ModelId": 1219,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%B1%B3%E5%8B%92%E5%8D%A1",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "殴打",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3088,
+            "TimelineId": 3216,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp016"
+          },
+          {
+            "ActionId": 4499,
+            "TimelineId": 3218,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp018"
+          },
+          {
+            "ActionId": 8189,
+            "TimelineId": 3227,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp027"
+          },
+          {
+            "ActionId": 8618,
+            "TimelineId": 3221,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp021"
+          },
+          {
+            "ActionId": 15671,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          },
+          {
+            "ActionId": 36447,
+            "TimelineId": 3220,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp020"
+          },
+          {
+            "ActionId": 36518,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          }
+        ]
+      },
+      {
+        "Name": "狂风暴雪",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3089,
+            "TimelineId": 3217,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp017"
+          },
+          {
+            "ActionId": 4500,
+            "TimelineId": 3219,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp019"
+          }
+        ]
+      },
+      {
+        "Name": "冻雾",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3087,
+          "TimelineId": 3215,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp015"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4363,
+    "Name": "卢芭",
+    "ModelId": 984,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8D%A2%E8%8A%AD",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "象鼻抽打",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3670,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "长毛吸气",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3672,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "古代岩石",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3671,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "猛进",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3674,
+            "TimelineId": 3205,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+          },
+          {
+            "ActionId": 35729,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 4364,
+    "Name": "派拉斯特暴龙",
+    "ModelId": 1220,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%B4%BE%E6%8B%89%E6%96%AF%E7%89%B9%E6%9A%B4%E9%BE%99",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "咬合",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3803,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "诱捕",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3805,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          },
+          {
+            "ActionId": 40566,
+            "TimelineId": 3214,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp014"
+          }
+        ]
+      },
+      {
+        "Name": "鳞刀",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3804,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4365,
+    "Name": "双足飞龙之王",
+    "ModelId": 1042,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8F%8C%E8%B6%B3%E9%A3%9E%E9%BE%99%E4%B9%8B%E7%8E%8B",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "崩溃击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1017,
+          "TimelineId": 1696,
+          "TimelineKey": "mon_sp/m0060/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "火球",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 1246,
+            "TimelineId": 1793,
+            "TimelineKey": "mon_sp/m0060/mon_sp013"
+          },
+          {
+            "ActionId": 1254,
+            "TimelineId": 1800,
+            "TimelineKey": "mon_sp/m0060/mon_sp020"
+          },
+          {
+            "ActionId": 2039,
+            "TimelineId": 2796,
+            "TimelineKey": "mon_sp/m0060/mon_sp032"
+          }
+        ]
+      },
+      {
+        "Name": "炽热弥漫",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1021,
+          "TimelineId": 1703,
+          "TimelineKey": "mon_sp/m0060/mon_sp005"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4366,
+    "Name": "机工兵 斯利普金克斯",
+    "ModelId": 6,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%9C%BA%E5%B7%A5%E5%85%B5_%E6%96%AF%E5%88%A9%E6%99%AE%E9%87%91%E5%85%8B%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "哥布林打击",
+        "Mode": "unavailable",
+        "Primary": null,
+        "Variants": []
+      },
+      {
+        "Name": "哥布防御",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 4508,
+            "TimelineId": 3218,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp018"
+          },
+          {
+            "ActionId": 6828,
+            "TimelineId": 3214,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp014"
+          }
+        ]
+      },
+      {
+        "Name": "虚张声势",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 991,
+          "TimelineId": 1569,
+          "TimelineKey": "mon_sp/d1004/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "投弹",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 405,
+            "TimelineId": 1185,
+            "TimelineKey": "mon_sp/d1004/mon_sp001"
+          },
+          {
+            "ActionId": 406,
+            "TimelineId": 1186,
+            "TimelineKey": "mon_sp/d1004/mon_sp002"
+          },
+          {
+            "ActionId": 1921,
+            "TimelineId": 3075,
+            "TimelineKey": "mon_sp/d1004/mon_sp007"
+          },
+          {
+            "ActionId": 2122,
+            "TimelineId": 1447,
+            "TimelineKey": "mon_sp/d1004/mon_sp004"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 4367,
+    "Name": "斯特拉斯",
+    "ModelId": 904,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%96%AF%E7%89%B9%E6%8B%89%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "鲁莽放纵",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4524,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "唧唧咋咋",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4523,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4368,
+    "Name": "布涅",
+    "ModelId": 1221,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B8%83%E6%B6%85",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "碎骨拳",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 612,
+          "TimelineId": 1345,
+          "TimelineKey": "mon_sp/m0049/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "火水",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 954,
+          "TimelineId": 1761,
+          "TimelineKey": "mon_sp/m0049/mon_sp008"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "落肘",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 613,
+          "TimelineId": 1346,
+          "TimelineKey": "mon_sp/m0049/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4369,
+    "Name": "阿伽托斯",
+    "ModelId": 1222,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%98%BF%E4%BC%BD%E6%89%98%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "野性连啄",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4445,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "扭曲的哭声",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4448,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "掠夺之风",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4446,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4370,
+    "Name": "恩克拉多斯",
+    "ModelId": 985,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%81%A9%E5%85%8B%E6%8B%89%E5%A4%9A%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "石腕飞拳",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4455,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "碎颈",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4457,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "沉岛",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4456,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4371,
+    "Name": "西斯尤",
+    "ModelId": 1189,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%A5%BF%E6%96%AF%E5%B0%A4",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "鳞鳍射线",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4117,
+          "TimelineId": 3208,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "洪水",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 4119,
+            "TimelineId": 3205,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+          },
+          {
+            "ActionId": 5830,
+            "TimelineId": 4724,
+            "TimelineKey": "mon_sp/common/mon_sph025"
+          },
+          {
+            "ActionId": 49471,
+            "TimelineId": 3204,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+          }
+        ]
+      },
+      {
+        "Name": "射水",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 4118,
+            "TimelineId": 3209,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+          },
+          {
+            "ActionId": 24150,
+            "TimelineId": 3220,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp020"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 4372,
+    "Name": "坎帕提",
+    "ModelId": 1223,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%9D%8E%E5%B8%95%E6%8F%90",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "蛇果",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3896,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "猛撞",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 497,
+          "TimelineId": 1233,
+          "TimelineKey": "mon_sp/m0034/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "堕罪",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3899,
+          "TimelineId": 3207,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4373,
+    "Name": "恶臭狂花",
+    "ModelId": 1224,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%81%B6%E8%87%AD%E7%8B%82%E8%8A%B1",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "血腥的爱抚",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 1943,
+            "TimelineId": 2835,
+            "TimelineKey": "mon_sp/m0005/mon_sp008"
+          },
+          {
+            "ActionId": 38573,
+            "TimelineId": 1717,
+            "TimelineKey": "mon_sp/m0005/mon_sp005"
+          }
+        ]
+      },
+      {
+        "Name": "绿叶风暴",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1950,
+          "TimelineId": 2847,
+          "TimelineKey": "mon_sp/m0005/mon_sp016"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "胶质排放物",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1948,
+          "TimelineId": 2845,
+          "TimelineKey": "mon_sp/m0005/mon_sp014"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "腐烂恶臭",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1954,
+          "TimelineId": 2851,
+          "TimelineKey": "mon_sp/m0005/mon_sp019"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4350,
+    "Name": "阿尔提克",
+    "ModelId": 1225,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%98%BF%E5%B0%94%E6%8F%90%E5%85%8B",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "急风雪",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4510,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "慢速球",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3703,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4351,
+    "Name": "克鲁泽",
+    "ModelId": 944,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%85%8B%E9%B2%81%E6%B3%BD",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "低咬",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4469,
+          "TimelineId": 3209,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "蛮荒咆哮",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 4470,
+            "TimelineId": 3210,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp010"
+          },
+          {
+            "ActionId": 4808,
+            "TimelineId": 3212,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp012"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 4352,
+    "Name": "骨颌彗星兵",
+    "ModelId": 832,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%AA%A8%E9%A2%8C%E5%BD%97%E6%98%9F%E5%85%B5",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "火炮",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4483,
+          "TimelineId": 3203,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "榴弹",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4484,
+          "TimelineId": 3204,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp004"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4353,
+    "Name": "提克斯塔",
+    "ModelId": 1226,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%8F%90%E5%85%8B%E6%96%AF%E5%A1%94",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "烈炎",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 1678,
+            "TimelineId": 479,
+            "TimelineKey": "magic/thm_black/firela"
+          },
+          {
+            "ActionId": 10655,
+            "TimelineId": 3205,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+          },
+          {
+            "ActionId": 47326,
+            "TimelineId": 3203,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp003"
+          }
+        ]
+      },
+      {
+        "Name": "胡乱咬",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4539,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "捕猎爪",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4538,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4354,
+    "Name": "翼肢鲎",
+    "ModelId": 1158,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%BF%BC%E8%82%A2%E9%B2%8E",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "穿刺",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 3054,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "螺旋尾",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3060,
+            "TimelineId": 3206,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+          },
+          {
+            "ActionId": 45030,
+            "TimelineId": 3223,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp023"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 4355,
+    "Name": "布拉巨猿",
+    "ModelId": 735,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B8%83%E6%8B%89%E5%B7%A8%E7%8C%BF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "殴打",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2205,
+          "TimelineId": 3421,
+          "TimelineKey": "mon_sp/m0183/mon_sp007"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "扔岩石",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2206,
+          "TimelineId": 3573,
+          "TimelineKey": "mon_sp/m0183/mon_sp017"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4356,
+    "Name": "斯奇塔利斯",
+    "ModelId": 952,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%96%AF%E5%A5%87%E5%A1%94%E5%88%A9%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "爆裂尾",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 415,
+          "TimelineId": 1195,
+          "TimelineKey": "mon_sp/m0064/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "光球",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4513,
+          "TimelineId": 3215,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp015"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4357,
+    "Name": "惊慌稻草龙",
+    "ModelId": 1227,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%83%8A%E6%85%8C%E7%A8%BB%E8%8D%89%E9%BE%99",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "低咬",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4469,
+          "TimelineId": 3209,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4358,
+    "Name": "斯奎克",
+    "ModelId": 905,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%96%AF%E5%A5%8E%E5%85%8B",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "鲁莽放纵",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4524,
+          "TimelineId": 3201,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "唧唧咋咋",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4523,
+          "TimelineId": 3202,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4359,
+    "Name": "飞舞翼 萨努瓦力",
+    "ModelId": 1101,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%A3%9E%E8%88%9E%E7%BF%BC_%E8%90%A8%E5%8A%AA%E7%93%A6%E5%8A%9B",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "羽翼闪",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4479,
+          "TimelineId": 3209,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp009"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "怒号",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 3373,
+            "TimelineId": 3205,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+          },
+          {
+            "ActionId": 4478,
+            "TimelineId": 3208,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp008"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 4360,
+    "Name": "利西达斯",
+    "ModelId": 842,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%88%A9%E8%A5%BF%E8%BE%BE%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "坚硬刺",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4518,
+          "TimelineId": 3205,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "侧扫",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 4519,
+          "TimelineId": 3206,
+          "TimelineKey": "mon_sp/[SKL_ID]/mon_sp006"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 4361,
+    "Name": "全能机甲",
+    "ModelId": 1283,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%85%A8%E8%83%BD%E6%9C%BA%E7%94%B2",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "染血剑",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1099,
+          "TimelineId": 313,
+          "TimelineKey": "ws/bt_swd_sld/ws_s03"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "天外之灵",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1098,
+          "TimelineId": 314,
+          "TimelineKey": "ws/bt_swd_sld/ws_s04"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2945,
+    "Name": "丑男子 沃迦加",
+    "ModelId": 10,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%B8%91%E7%94%B7%E5%AD%90_%E6%B2%83%E8%BF%A6%E5%8A%A0",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "地爆弹",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 562,
+          "TimelineId": 1300,
+          "TimelineKey": "mon_sp/d1008/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "回旋踢",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 561,
+          "TimelineId": 1299,
+          "TimelineKey": "mon_sp/d1008/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "重力领域",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1289,
+          "TimelineId": 503,
+          "TimelineKey": "magic/swl_summon/gravide"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2946,
+    "Name": "乌克提希",
+    "ModelId": 570,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%B9%8C%E5%85%8B%E6%8F%90%E5%B8%8C",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "浸射",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2334,
+          "TimelineId": 3411,
+          "TimelineKey": "mon_sp/m0173/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "泼水",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2333,
+          "TimelineId": 3409,
+          "TimelineKey": "mon_sp/m0173/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "鳞水涟漪",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2335,
+          "TimelineId": 3413,
+          "TimelineKey": "mon_sp/m0173/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2947,
+    "Name": "魔导地狱爪",
+    "ModelId": 331,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%AD%94%E5%AF%BC%E5%9C%B0%E7%8B%B1%E7%88%AA",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "大手",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 609,
+          "TimelineId": 1342,
+          "TimelineKey": "mon_sp/m0114/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "切裂",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 608,
+          "TimelineId": 1341,
+          "TimelineKey": "mon_sp/m0114/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "反击操作",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2703,
+          "TimelineId": 1340,
+          "TimelineKey": "mon_sp/m0114/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2948,
+    "Name": "纳恩",
+    "ModelId": 150,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%BA%B3%E6%81%A9",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "大剪钳",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 567,
+          "TimelineId": 1302,
+          "TimelineKey": "mon_sp/m0038/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "蟹甲流",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 569,
+          "TimelineId": 1304,
+          "TimelineKey": "mon_sp/m0038/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "泡泡吐息",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 566,
+            "TimelineId": 1301,
+            "TimelineKey": "mon_sp/m0038/mon_sp001"
+          },
+          {
+            "ActionId": 32484,
+            "TimelineId": 1303,
+            "TimelineKey": "mon_sp/m0038/mon_sp003"
+          }
+        ]
+      },
+      {
+        "Name": "泡泡浴",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 568,
+          "TimelineId": 1303,
+          "TimelineKey": "mon_sp/m0038/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2949,
+    "Name": "玛贝利",
+    "ModelId": 93,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%8E%9B%E8%B4%9D%E5%88%A9",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "侧身斩",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 419,
+          "TimelineId": 1199,
+          "TimelineKey": "mon_sp/m0022/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "要害攻击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 948,
+          "TimelineId": 1733,
+          "TimelineKey": "mon_sp/m0022/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "研磨石",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 420,
+          "TimelineId": 1200,
+          "TimelineKey": "mon_sp/m0022/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "锋利菜刀",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 945,
+          "TimelineId": 1730,
+          "TimelineKey": "mon_sp/m0022/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "虚空烈炎",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 855,
+          "TimelineId": 479,
+          "TimelineKey": "magic/thm_black/firela"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "虚空冰冻",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2854,
+          "TimelineId": 477,
+          "TimelineKey": "magic/thm_black/blizzarla"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "诅咒的危言",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 946,
+          "TimelineId": 1731,
+          "TimelineKey": "mon_sp/m0022/mon_sp004"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2940,
+    "Name": "阿列刻特利昂",
+    "ModelId": 154,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%98%BF%E5%88%97%E5%88%BB%E7%89%B9%E5%88%A9%E6%98%82",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "猛锤喙",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 504,
+          "TimelineId": 1240,
+          "TimelineKey": "mon_sp/m0040/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "催眠吐息",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 508,
+          "TimelineId": 1244,
+          "TimelineKey": "mon_sp/m0040/mon_sp005"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "剧毒吐息",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 507,
+          "TimelineId": 1243,
+          "TimelineKey": "mon_sp/m0040/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "麻痹吐息",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 506,
+          "TimelineId": 1242,
+          "TimelineKey": "mon_sp/m0040/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "石化吐息",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 505,
+          "TimelineId": 1241,
+          "TimelineKey": "mon_sp/m0040/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2941,
+    "Name": "花舞仙人刺",
+    "ModelId": 143,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%8A%B1%E8%88%9E%E4%BB%99%E4%BA%BA%E5%88%BA",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "一万针刺",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2678,
+          "TimelineId": 1237,
+          "TimelineKey": "mon_sp/m0036/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "二万针刺",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2679,
+          "TimelineId": 1238,
+          "TimelineKey": "mon_sp/m0036/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2942,
+    "Name": "玛赫斯",
+    "ModelId": 66,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%8E%9B%E8%B5%AB%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "微冲击波",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 350,
+          "TimelineId": 1135,
+          "TimelineKey": "mon_sp/m0017/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "大冲击波",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 355,
+          "TimelineId": 1140,
+          "TimelineKey": "mon_sp/m0017/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "蓄能晶须",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 351,
+          "TimelineId": 1136,
+          "TimelineKey": "mon_sp/m0017/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "冰冷如石",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 2685,
+            "TimelineId": 1139,
+            "TimelineKey": "mon_sp/m0017/mon_sp005"
+          },
+          {
+            "ActionId": 9369,
+            "TimelineId": 1136,
+            "TimelineKey": "mon_sp/m0017/mon_sp002"
+          }
+        ]
+      },
+      {
+        "Name": "石化眼",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2683,
+          "TimelineId": 1137,
+          "TimelineKey": "mon_sp/m0017/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2943,
+    "Name": "札尼戈",
+    "ModelId": 826,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%9C%AD%E5%B0%BC%E6%88%88",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "雷牙",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 519,
+          "TimelineId": 1255,
+          "TimelineKey": "mon_sp/m0046/mon_sp003"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "洒落雷",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 518,
+          "TimelineId": 1254,
+          "TimelineKey": "mon_sp/m0046/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "大放电",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 995,
+          "TimelineId": 1758,
+          "TimelineKey": "mon_sp/m0046/mon_sp004"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2944,
+    "Name": "菲兰德的遗火",
+    "ModelId": 601,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%8F%B2%E5%85%B0%E5%BE%B7%E7%9A%84%E9%81%97%E7%81%AB",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "恐怖触摸",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1661,
+          "TimelineId": 2526,
+          "TimelineKey": "mon_sp/m0182/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "强麻痹",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1662,
+          "TimelineId": 2527,
+          "TimelineKey": "mon_sp/m0182/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "虚空冰封",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 1696,
+            "TimelineId": 486,
+            "TimelineKey": "magic/thm_black/blizzarga"
+          },
+          {
+            "ActionId": 7284,
+            "TimelineId": 3202,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp002"
+          },
+          {
+            "ActionId": 7285,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          }
+        ]
+      },
+      {
+        "Name": "虚空冰冻",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2854,
+          "TimelineId": 477,
+          "TimelineKey": "magic/thm_black/blizzarla"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "龙卷",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 900,
+            "TimelineId": 2281,
+            "TimelineKey": "mon_sp/common/mon_sph012"
+          },
+          {
+            "ActionId": 13415,
+            "TimelineId": 528,
+            "TimelineKey": "magic/thm_black/tornado2"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 2936,
+    "Name": "弗内乌斯",
+    "ModelId": 19,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%BC%97%E5%86%85%E4%B9%8C%E6%96%AF",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "定罪",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 912,
+          "TimelineId": 1510,
+          "TimelineKey": "mon_sp/d1017/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "暗天顶",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 998,
+          "TimelineId": 1760,
+          "TimelineKey": "mon_sp/d1017/mon_sp004"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2937,
+    "Name": "千眼凝胶",
+    "ModelId": 690,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8D%83%E7%9C%BC%E5%87%9D%E8%83%B6",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "虚空烈炎",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 855,
+          "TimelineId": 479,
+          "TimelineKey": "magic/thm_black/firela"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "虚空爆炎",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 854,
+            "TimelineId": 483,
+            "TimelineKey": "magic/thm_black/firega"
+          },
+          {
+            "ActionId": 48222,
+            "TimelineId": 4919,
+            "TimelineKey": "mon_sp/common/mon_sph027"
+          }
+        ]
+      },
+      {
+        "Name": "凶眼",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1914,
+          "TimelineId": 2981,
+          "TimelineKey": "mon_sp/m0055/mon_sp007"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "死亡射线",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1913,
+          "TimelineId": 2980,
+          "TimelineKey": "mon_sp/m0055/mon_sp006"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "洗涤",
+        "Mode": "unavailable",
+        "Primary": null,
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2938,
+    "Name": "盖得",
+    "ModelId": 396,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%9B%96%E5%BE%97",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "臭嘴",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1909,
+          "TimelineId": 2742,
+          "TimelineKey": "mon_sp/m0158/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "利爪",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1908,
+          "TimelineId": 2740,
+          "TimelineKey": "mon_sp/m0158/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "手忙脚乱",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1910,
+          "TimelineId": 2743,
+          "TimelineKey": "mon_sp/m0158/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2939,
+    "Name": "尾宿蛛蝎",
+    "ModelId": 22,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B0%BE%E5%AE%BF%E8%9B%9B%E8%9D%8E",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "黏网",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 327,
+            "TimelineId": 1112,
+            "TimelineKey": "mon_sp/m0001/mon_sp001"
+          },
+          {
+            "ActionId": 698,
+            "TimelineId": 1418,
+            "TimelineKey": "mon_sp/m0001/mon_sp006"
+          }
+        ]
+      },
+      {
+        "Name": "蛛网屏",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 701,
+          "TimelineId": 1419,
+          "TimelineKey": "mon_sp/m0001/mon_sp007"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "致命尾刺",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 329,
+            "TimelineId": 1114,
+            "TimelineKey": "mon_sp/m0001/mon_sp003"
+          },
+          {
+            "ActionId": 330,
+            "TimelineId": 1115,
+            "TimelineKey": "mon_sp/m0001/mon_sp004"
+          },
+          {
+            "ActionId": 702,
+            "TimelineId": 1420,
+            "TimelineKey": "mon_sp/m0001/mon_sp008"
+          }
+        ]
+      },
+      {
+        "Name": "腐蚀喷雾",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 328,
+          "TimelineId": 1113,
+          "TimelineKey": "mon_sp/m0001/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "震撼领域",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 697,
+          "TimelineId": 1417,
+          "TimelineKey": "mon_sp/m0001/mon_sp005"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2951,
+    "Name": "马拉克",
+    "ModelId": 371,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%A9%AC%E6%8B%89%E5%85%8B",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "利爪",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 901,
+          "TimelineId": 1486,
+          "TimelineKey": "mon_sp/m0146/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "火焰吐息",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 676,
+            "TimelineId": 1487,
+            "TimelineKey": "mon_sp/m0146/mon_sp002"
+          },
+          {
+            "ActionId": 2294,
+            "TimelineId": 3447,
+            "TimelineKey": "mon_sp/m0146/mon_sp005"
+          }
+        ]
+      },
+      {
+        "Name": "重击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 903,
+          "TimelineId": 1695,
+          "TimelineKey": "mon_sp/m0146/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2952,
+    "Name": "库雷亚",
+    "ModelId": 151,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%BA%93%E9%9B%B7%E4%BA%9A",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "水浪吐息",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 448,
+          "TimelineId": 1211,
+          "TimelineKey": "mon_sp/m0039/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "泥沼爆弹",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 978,
+          "TimelineId": 1498,
+          "TimelineKey": "mon_sp/m0039/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "奇异光",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 2729,
+            "TimelineId": 1212,
+            "TimelineKey": "mon_sp/m0039/mon_sp002"
+          },
+          {
+            "ActionId": 8194,
+            "TimelineId": 1213,
+            "TimelineKey": "mon_sp/m0039/mon_sp003"
+          }
+        ]
+      },
+      {
+        "Name": "惊奇光",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 450,
+          "TimelineId": 1213,
+          "TimelineKey": "mon_sp/m0039/mon_sp003"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2950,
+    "Name": "角祖",
+    "ModelId": 604,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%A7%92%E7%A5%96",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "狂乱",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 1489,
+            "TimelineId": 2503,
+            "TimelineKey": "mon_sp/m0060/mon_sp028"
+          },
+          {
+            "ActionId": 2721,
+            "TimelineId": 3591,
+            "TimelineKey": "mon_sp/m0060/mon_sp035"
+          },
+          {
+            "ActionId": 38188,
+            "TimelineId": 11279,
+            "TimelineKey": "mon_sp/m0060/mon_sp046"
+          }
+        ]
+      },
+      {
+        "Name": "风息之翼",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1491,
+          "TimelineId": 2498,
+          "TimelineKey": "mon_sp/m0060/mon_sp025"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "跨音速冲击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2720,
+          "TimelineId": 2496,
+          "TimelineKey": "mon_sp/m0060/mon_sp024"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "音速风暴",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 1494,
+            "TimelineId": 2505,
+            "TimelineKey": "mon_sp/m0060/mon_sp029"
+          },
+          {
+            "ActionId": 37058,
+            "TimelineId": 11224,
+            "TimelineKey": "mon_sp/m0060/mon_sp045"
+          }
+        ]
+      },
+      {
+        "Name": "音爆",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1497,
+          "TimelineId": 2502,
+          "TimelineKey": "mon_sp/m0060/mon_sp027"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2928,
+    "Name": "花林女郎",
+    "ModelId": 57,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%8A%B1%E6%9E%97%E5%A5%B3%E9%83%8E",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "轰炸",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 370,
+          "TimelineId": 1152,
+          "TimelineKey": "mon_sp/m0013/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2929,
+    "Name": "宽耳凶蝠",
+    "ModelId": 98,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%AE%BD%E8%80%B3%E5%87%B6%E8%9D%A0",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "吸血",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 378,
+            "TimelineId": 1160,
+            "TimelineKey": "mon_sp/m0025/mon_sp001"
+          },
+          {
+            "ActionId": 731,
+            "TimelineId": 1429,
+            "TimelineKey": "mon_sp/m0025/mon_sp004"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 2930,
+    "Name": "血腥玛丽",
+    "ModelId": 190,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%A1%80%E8%85%A5%E7%8E%9B%E4%B8%BD",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "投掷沙丁鱼",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 573,
+          "TimelineId": 1308,
+          "TimelineKey": "mon_sp/m0050/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2931,
+    "Name": "暗盔魔蟹",
+    "ModelId": 722,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%9A%97%E7%9B%94%E9%AD%94%E8%9F%B9",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "大剪钳",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2480,
+          "TimelineId": 3462,
+          "TimelineKey": "mon_sp/d1010/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "泡泡浴",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2481,
+          "TimelineId": 3463,
+          "TimelineKey": "mon_sp/d1010/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2932,
+    "Name": "米腊德罗斯蜂鸟",
+    "ModelId": 360,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%B1%B3%E8%85%8A%E5%BE%B7%E7%BD%97%E6%96%AF%E8%9C%82%E9%B8%9F",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "空翻",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 923,
+          "TimelineId": 1523,
+          "TimelineKey": "mon_sp/m0138/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "减速咒",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 924,
+          "TimelineId": 1524,
+          "TimelineKey": "mon_sp/m0138/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2923,
+    "Name": "阴沟毒液",
+    "ModelId": 292,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%98%B4%E6%B2%9F%E6%AF%92%E6%B6%B2",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "消化",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 724,
+          "TimelineId": 1424,
+          "TimelineKey": "mon_sp/m0087/mon_sp001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "流散",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 725,
+            "TimelineId": 1425,
+            "TimelineKey": "mon_sp/m0087/mon_sp002"
+          },
+          {
+            "ActionId": 726,
+            "TimelineId": 1426,
+            "TimelineKey": "mon_sp/m0087/mon_sp003"
+          },
+          {
+            "ActionId": 727,
+            "TimelineId": 1427,
+            "TimelineKey": "mon_sp/m0087/mon_sp004"
+          },
+          {
+            "ActionId": 728,
+            "TimelineId": 1428,
+            "TimelineKey": "mon_sp/m0087/mon_sp005"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 2924,
+    "Name": "奥弗杰恩",
+    "ModelId": 221,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A5%A5%E5%BC%97%E6%9D%B0%E6%81%A9",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "火尘",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 2178,
+            "TimelineId": 473,
+            "TimelineKey": "magic/thm_black/fire"
+          },
+          {
+            "ActionId": 44425,
+            "TimelineId": 3214,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp014"
+          }
+        ]
+      },
+      {
+        "Name": "分裂刺",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2073,
+          "TimelineId": 2937,
+          "TimelineKey": "mon_sp/m0059/mon_sp004"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2925,
+    "Name": "加特林针鼹",
+    "ModelId": 283,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8A%A0%E7%89%B9%E6%9E%97%E9%92%88%E9%BC%B9",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "脊针刺",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 552,
+          "TimelineId": 1288,
+          "TimelineKey": "mon_sp/m0085/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2926,
+    "Name": "死灰复燃的阿尔宾",
+    "ModelId": 0,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%AD%BB%E7%81%B0%E5%A4%8D%E7%87%83%E7%9A%84%E9%98%BF%E5%B0%94%E5%AE%BE",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "精准刺",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 722,
+          "TimelineId": 343,
+          "TimelineKey": "ws/bt_2sp_emp/wsh001"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "强突",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 866,
+          "TimelineId": 347,
+          "TimelineKey": "ws/bt_2sp_emp/wsh005"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2927,
+    "Name": "永恒不灭的菲兰德副耀士",
+    "ModelId": 717,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%B0%B8%E6%81%92%E4%B8%8D%E7%81%AD%E7%9A%84%E8%8F%B2%E5%85%B0%E5%BE%B7%E5%89%AF%E8%80%80%E5%A3%AB",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "重力领域",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1289,
+          "TimelineId": 503,
+          "TimelineKey": "magic/swl_summon/gravide"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "强麻痹",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1916,
+          "TimelineId": 2984,
+          "TimelineKey": "mon_sp/d1014/mon_sp020"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "黑暗",
+        "Mode": "variants",
+        "Primary": null,
+        "Variants": [
+          {
+            "ActionId": 928,
+            "TimelineId": 2280,
+            "TimelineKey": "mon_sp/common/mon_sph011"
+          },
+          {
+            "ActionId": 6623,
+            "TimelineId": 4925,
+            "TimelineKey": "mon_sp/common/mon_sph030"
+          },
+          {
+            "ActionId": 31814,
+            "TimelineId": 3201,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp001"
+          },
+          {
+            "ActionId": 48255,
+            "TimelineId": 3207,
+            "TimelineKey": "mon_sp/[SKL_ID]/mon_sp007"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "NameId": 2919,
+    "Name": "白鬼鼠王",
+    "ModelId": 27,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%99%BD%E9%AC%BC%E9%BC%A0%E7%8E%8B",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "空翻斩",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 373,
+          "TimelineId": 1155,
+          "TimelineKey": "mon_sp/m0002/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2920,
+    "Name": "击刺魔蜂索菲",
+    "ModelId": 359,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%87%BB%E5%88%BA%E9%AD%94%E8%9C%82%E7%B4%A2%E8%8F%B2",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "蜂尾针",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 918,
+          "TimelineId": 1518,
+          "TimelineKey": "mon_sp/m0137/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2921,
+    "Name": "君王鬼蜻蜓",
+    "ModelId": 654,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%90%9B%E7%8E%8B%E9%AC%BC%E8%9C%BB%E8%9C%93",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "诅咒球",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1912,
+          "TimelineId": 2888,
+          "TimelineKey": "mon_sp/m0198/mon_sp002"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "毒液",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1911,
+          "TimelineId": 2886,
+          "TimelineKey": "mon_sp/m0198/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2922,
+    "Name": "天玑巨熊",
+    "ModelId": 574,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A4%A9%E7%8E%91%E5%B7%A8%E7%86%8A",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "强击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 2183,
+          "TimelineId": 3063,
+          "TimelineKey": "mon_sp/m0176/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2934,
+    "Name": "纳乌尔",
+    "ModelId": 224,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%BA%B3%E4%B9%8C%E5%B0%94",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "崩溃击",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1017,
+          "TimelineId": 1696,
+          "TimelineKey": "mon_sp/m0060/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2935,
+    "Name": "水蛭王",
+    "ModelId": 600,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%B0%B4%E8%9B%AD%E7%8E%8B",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "酸雾",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 1654,
+          "TimelineId": 2524,
+          "TimelineKey": "mon_sp/m0181/mon_sp002"
+        },
+        "Variants": []
+      }
+    ]
+  },
+  {
+    "NameId": 2933,
+    "Name": "巫刻猎鹫",
+    "ModelId": 39,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B7%AB%E5%88%BB%E7%8C%8E%E9%B9%AB",
+    "RecordSource": null,
+    "Skills": [
+      {
+        "Name": "猛啄",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 965,
+          "TimelineId": 1488,
+          "TimelineKey": "mon_sp/m0007/mon_sp004"
+        },
+        "Variants": []
+      },
+      {
+        "Name": "飞翼斩",
+        "Mode": "resource",
+        "Primary": {
+          "ActionId": 331,
+          "TimelineId": 1116,
+          "TimelineKey": "mon_sp/m0007/mon_sp001"
+        },
+        "Variants": []
+      }
+    ]
+  }
+]
