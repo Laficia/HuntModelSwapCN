@@ -745,6 +745,16 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
     Check(f.Link.Replaces(source) && f.Preview.OwnsLive(visual) && visual.NameId == 0 && visual.DataId == 0
         && f.Session.Entries.Single(e => e.Actor == source).Original == dummyState,
         "The linked visual must retain nonce ownership and no real hunt identity, while saving the original training target.");
+    var sourceEntry = f.Session.Entries.Single(e => e.Actor == source);
+    Check(sourceEntry.PresentationOnly && !f.Actors.Hidden.Contains(source) && !f.Actors.Writes.Any(w => w.Actor == source),
+        "Applying a furnishing swap must never DisableDraw or rebuild the real source, which would clear its IsDrawn bit.");
+    Check(sourceEntry.Applied.ModelId == dummyState.ModelId && sourceEntry.Applied.ModelScale == dummyState.ModelScale
+        && sourceEntry.Applied.ObjectScale == dummyState.ObjectScale && sourceEntry.Applied.DrawScale == dummyState.DrawScale,
+        "The real training target must retain its original model and every scale; only the owned visual uses hunt geometry.");
+    Check(f.Actors.Actors[source].NameBytes.SequenceEqual(DisplayName.Encode(sampleHunt.Name))
+        && f.Actors.Actors[source].Level == sampleHunt.Level && f.Actors.Actors[source].NameplateIcon == sampleHunt.NameplateIcon
+        && f.Actors.Actors[visual].ModelId == sampleHunt.ModelId,
+        "The source target bar must receive the hunt name/level/icon while the proxy receives the actual hunt model.");
     var selection = new LinkedDummyTarget(f.Link, f.Preview, f.Actors);
     Check(selection.Redirect(visual.Address) == source.Address,
         "Selecting the actual owned furnishing visual must immediately resolve to the real training target.");
@@ -752,6 +762,14 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
         && selection.Redirect(other.Address) == other.Address,
         "Clear-target, direct source selection and unrelated actor selection must remain unchanged.");
     f.Session.Tick(); f.Link.Tick(1);
+    Check(!f.Actors.Hidden.Contains(source) && !f.Actors.Writes.Any(w => w.Actor == source),
+        "Source upkeep must not disable/re-enable native drawing while the separate layout graphics are concealed.");
+    try { f.Session.Resize(source, 8); throw new Exception("Expected presentation-only resize rejection."); }
+    catch (InvalidOperationException) { Check(f.Actors.Actors[source].ModelScale == dummyState.ModelScale,
+        "A source resize must be rejected so the real furnishing keeps its targeting geometry."); }
+    f.Session.Resize(visual, 8);
+    Check(f.Actors.Actors[visual].ModelScale == 8 && f.Actors.Actors[source].ModelScale == dummyState.ModelScale,
+        "Free resizing must change only the actual linked visual, independently of the training target.");
     Check(f.Source.IsHidden(source) && f.Source.Aligned.Single() == (visual, source),
         "A live linked visual must conceal the original source and follow its position without changing the training identity.");
     f.Link.Clear();
@@ -762,6 +780,14 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
     f.Session.Tick(); f.Link.Tick(2);
     Check(f.Actors.Actors[source] == dummyState && !f.Source.IsHidden(source) && f.Session.Entries.Count == 0,
         "Restoring a furnishing replacement must restore its original appearance and visibility without a remaining proxy.");
+    Check(!f.Actors.Writes.Any(w => w.Actor == source),
+        "Restoring the source's display fields must not perform a native source redraw either.");
+
+    f = Setup(); f.Link.Start(source, "木人", sampleHunt, 3, 0);
+    f.Link.Clear(); f.Session.Shutdown(); f.Link.FinishRestores();
+    Check(f.Actors.Actors[source] == dummyState && !f.Actors.Writes.Any(w => w.Actor == source)
+        && !f.Actors.Hidden.Contains(source) && !f.Source.IsHidden(source),
+        "Unload between apply and the next tick must restore the real furnishing without ever toggling native draw readiness.");
 
     f = Setup();
     f.Link.Start(source, "木人", sampleHunt, 3, 0); f.Session.Tick();

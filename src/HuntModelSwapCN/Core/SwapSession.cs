@@ -30,7 +30,7 @@ public interface IActorAccess
     bool NeedsRedraw(ActorIdentity actor, VisualState state) => false;
 }
 public sealed record SwapEntry(ActorIdentity Actor, string OriginalName, string ReplacementName,
-    VisualState Original, VisualState Applied, bool WaitingForDraw, bool Restoring);
+    VisualState Original, VisualState Applied, bool WaitingForDraw, bool Restoring, bool PresentationOnly = false);
 
 public sealed class SwapSession(IActorAccess access)
 {
@@ -40,13 +40,14 @@ public sealed class SwapSession(IActorAccess access)
     public string? NameFor(ActorIdentity actor) => entries.TryGetValue(actor, out var entry)
         ? entry.Restoring ? entry.OriginalName : entry.ReplacementName : null;
 
-    public void Apply(ActorIdentity actor, string originalName, string replacementName, VisualState state)
+    public void Apply(ActorIdentity actor, string originalName, string replacementName, VisualState state, bool presentationOnly = false)
     {
         if (!access.Exists(actor)) throw new InvalidOperationException("目标已离开加载范围，请重新选择。");
         var original = entries.TryGetValue(actor, out var previous) ? previous.Original : access.Read(actor);
         // Register before writing so a partial failure can still be restored.
-        entries[actor] = new(actor, previous?.OriginalName ?? originalName, replacementName, original, state, true, false);
-        access.BeginRedraw(actor, state);
+        entries[actor] = new(actor, previous?.OriginalName ?? originalName, replacementName, original, state, true, false, presentationOnly);
+        if (presentationOnly) access.RefreshPresentation(actor, state);
+        else access.BeginRedraw(actor, state);
     }
 
     public bool Restore(ActorIdentity actor)
@@ -54,7 +55,8 @@ public sealed class SwapSession(IActorAccess access)
         if (!entries.TryGetValue(actor, out var entry)) return false;
         if (!access.Exists(actor)) { entries.Remove(actor); return false; }
         entries[actor] = entry with { WaitingForDraw = true, Restoring = true };
-        access.BeginRedraw(actor, entry.Original);
+        if (entry.PresentationOnly) access.RefreshPresentation(actor, entry.Original);
+        else access.BeginRedraw(actor, entry.Original);
         return true;
     }
 
@@ -63,6 +65,8 @@ public sealed class SwapSession(IActorAccess access)
         ModelSize.Validate(scale);
         if (!entries.TryGetValue(actor, out var entry) || !access.Exists(actor))
             throw new InvalidOperationException("请先生成预览或替换当前目标。");
+        if (entry.PresentationOnly)
+            throw new InvalidOperationException("请调整原位替身的体型，真实木人的体型保持原样。");
         if (entry.WaitingForDraw || entry.Restoring)
             throw new InvalidOperationException("请等待对象完成重绘后再调整体型。");
         var state = ModelSize.Apply(entry.Applied, scale);
@@ -77,13 +81,13 @@ public sealed class SwapSession(IActorAccess access)
             if (!access.Exists(entry.Actor)) { entries.Remove(entry.Actor); continue; }
             if (entry.WaitingForDraw)
             {
-                access.FinishRedraw(entry.Actor);
+                if (!entry.PresentationOnly) access.FinishRedraw(entry.Actor);
                 if (entry.Restoring) { entries.Remove(entry.Actor); continue; }
                 entries[entry.Actor] = entry with { WaitingForDraw = false };
             }
             // A real dummy can be reset without leaving its object-table slot.
             // Reuse the two-frame redraw, keeping the first original snapshot.
-            if (access.NeedsRedraw(entry.Actor, entry.Applied))
+            if (!entry.PresentationOnly && access.NeedsRedraw(entry.Actor, entry.Applied))
             {
                 entries[entry.Actor] = entry with { WaitingForDraw = true };
                 access.BeginRedraw(entry.Actor, entry.Applied);
@@ -109,6 +113,12 @@ public sealed class SwapSession(IActorAccess access)
         foreach (var entry in entries.Values.ToArray())
         {
             if (!access.Exists(entry.Actor)) continue;
+            if (entry.PresentationOnly)
+            {
+                try { access.RefreshPresentation(entry.Actor, entry.Original); }
+                catch (Exception ex) { failures.Add(ex); }
+                continue;
+            }
             try { access.BeginRedraw(entry.Actor, entry.Original); }
             catch (Exception ex) { failures.Add(ex); }
             finally

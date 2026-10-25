@@ -2,6 +2,24 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 2 && args[1] == "--target-visibility-api")
+{
+    foreach (var flag in Enum.GetValues<FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectTargetableFlags>())
+        Console.WriteLine($"Targetable {flag} = 0x{(byte)flag:X2}");
+    foreach (var flag in Enum.GetValues<FFXIVClientStructs.FFXIV.Client.Game.Object.VisibilityFlags>())
+        Console.WriteLine($"Visibility {flag} = 0x{(ulong)flag:X}");
+    foreach (var t in new[] { typeof(FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject), typeof(Character),
+        typeof(BattleChara), typeof(FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group.SharedGroupLayoutInstance),
+        typeof(FFXIVClientStructs.FFXIV.Client.LayoutEngine.ILayoutInstance) })
+    {
+        Console.WriteLine(t.FullName + ": " + string.Join(";", t.GetCustomAttributesData()));
+        foreach (var m in t.GetMethods().Where(m => m.DeclaringType == t && new[] { "Target", "Draw", "Active", "Visible" }.Any(s => m.Name.Contains(s))
+            && !m.IsSpecialName))
+            Console.WriteLine($"{m}: {string.Join(";", m.GetCustomAttributesData())}");
+    }
+    return;
+}
+
 if (args.Length is 2 or 3 && args[1] == "--target-api")
 {
     if (args.Length == 3)

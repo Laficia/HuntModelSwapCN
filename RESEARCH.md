@@ -281,3 +281,14 @@ ILocalActorAccess 增加 CreateAt，LocalPlacement 先验证有限位置／朝�
 - 本机当前游戏程序离线核对两处签名唯一匹配：SetHardTarget 调用 RVA 0x61DDA5、函数 RVA 0x61DFF0；SetSoftTarget 调用 RVA 0x621A21、函数 RVA 0x61DD10。运行时使用 FFCS 解析地址，不硬编码这些 RVA。上述核对说明接口可定位，不证明实际游戏点选已通过。
 - 原位对齐时只向已确认本地代理复制真实木人的 CurrentTargetStatus 显示标记。原木人的 TargetableStatus、身份、OwnerId、HP 和实际目标系统引用不被替身数据覆盖。主界面增加仅在关联存在时显示的「选中木人」按钮及 /hms target，走合法的目标管理器 setter，并验证返回目标身份；不依赖每帧事后改回目标来处理点击。
 - 4916 项离线检查通过，编译零警告。覆盖当前代理到真实木人的映射、清空及普通对象不变、无来源不落到复用槽位、代理 nonce 丢失不映射外部对象、解除关联／切图不残留、普通前方预览行为不变及重复换模仅映射当前代理。用户已确认上版可见替换，本版选中效果仍需游戏内验证。
+
+## 0.1.0.20 保留庭具木人的原生可选中状态
+
+用户确认 0.1.0.19 的「选中木人」按钮与直接点击模型均无效。该版修复了代理点击入口，但仍在 BeginRedraw／Hide 中对真实源调用 DisableDraw，并设置 RenderFlags.Model；FinishRedraw 又因 KeepHidden 跳过 EnableDraw。不能将上一版的离线映射测试当成原生可选中验证。
+
+本机 FFCS 7.57.0.9602 反射及当前国服程序离线核对：GameObject、Character、BattleChara 虚表签名均唯一匹配。BattleChara 的 GetIsTargetable vfunc 4（RVA 0x905F00）最终调用 GameObject 判断（RVA 0x897F70）；后者要求 TargetableStatus 0x02／0x08，并检查 RenderFlags。VisibilityFlags.Model=0x02 会命中拒绝掩码；Nameplate=0x800 与 TargetableStatus 0x80 还存在附加判断。DisableDraw 的基类实现（RVA 0x8985D0）会清除 TargetableStatus 的 0xA0，Character 实现（RVA 0x9067D0）调用该路径。因此原源对象保持隐藏模型标志本身就足以阻断原生可选中，禁用绘制也会破坏其正常状态。本实现不直接补写未知位，不对 GetIsTargetable 安装绕过 Hook。接口声明参考 [FFCS GameObject](https://raw.githubusercontent.com/aers/FFXIVClientStructs/main/FFXIVClientStructs/FFXIV/Client/Game/Object/GameObject.cs)，实际偏移与上述判断以安装 SDK／本机 CN 程序为准。
+
+- SwapEntry 增加 PresentationOnly 路径，应用、维护、恢复及卸载只调用 RefreshPresentation，不调用 BeginRedraw／FinishRedraw，也不进行 dummy NeedsRedraw。LinkedDummyPreview 对真实来源保留全部原模型、装备与比例数据，只取目标的 NameBytes／Level／NameplateIcon。可见代理仍走完整外观重绘、自由比例、动画、旋转及 nonce 生命周期。Resize 拒绝只维护显示字段的真实来源，插件照常将用户控制转交代理。
+- NativeLinkedDummyAccess.Hide 只控制经完整身份及布局指针核验的 SharedGroupLayoutInstance.SetActive(false)，并维持原 Collider 标志。不再 DisableDraw，不设置真实源的 RenderFlags.Model。还原布局时同样不调用角色 EnableDraw／DisableDraw。移除旧的 KeepHidden 绘制拦截。原源的实际模型类型始终保持 Type=0，避免把怪物模型写到真实庭具却无法加载，实际训练身份／HP／OwnerId 不改。
+- 保留上版懒加载的硬／软选中入口映射及手动按钮。诊断新增原生 GetIsTargetable 结果，关联存在时不依赖当前目标，始终显示原木人和代理两份信息。只在本地窗口／显式诊断命令输出，无自动上传。
+- 编译零警告，4924 项离线检查通过。新增真实源应用／维护／还原／卸载均无重绘、真实源保留全部比例和模型、目标栏名字／等级／头标仍同步、代理接收目标模型及独立缩放、真实源缩放拒绝的回归检查。其余失效身份、nonce、重复换模和场景生命周期检查继续通过。尚无运行中游戏集成环境，布局隐藏后原生选择与攻击仍需用户实测；发布说明要求先恢复旧替换后重新应用。

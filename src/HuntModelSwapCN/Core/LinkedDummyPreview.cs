@@ -35,7 +35,11 @@ public sealed class LinkedDummyPreview(SwapSession session, LocalPreview preview
         var placement = access.Placement(source) with { Targetable = true };
         placement.Validate(); ModelSize.Validate(scale);
         var current = actors.Read(source);
-        var applied = HuntAppearanceReplacement.Create(current, appearance, scale);
+        var replacement = HuntAppearanceReplacement.Create(current, appearance, scale);
+        // The real furnishing retains its original model and scale. In particular,
+        // never DisableDraw it: that clears the native IsDrawn targetability bit.
+        var applied = current with { NameBytes = replacement.NameBytes, Level = replacement.Level,
+            NameplateIcon = replacement.NameplateIcon };
         var wasHidden = pendingVisibility.TryGetValue(source, out var savedHidden) ? savedHidden : access.IsHidden(source);
         ActorIdentity visual;
         try { visual = preview.SpawnAt(appearance, scale, placement); }
@@ -44,7 +48,7 @@ public sealed class LinkedDummyPreview(SwapSession session, LocalPreview preview
         Source = source; Visual = visual; originalHidden = wasHidden; startedAt = now; ready = false;
         try
         {
-            session.Apply(source, originalName, appearance.Name, applied);
+            session.Apply(source, originalName, appearance.Name, applied, presentationOnly: true);
             access.Hide(source);
         }
         catch { Clear(); throw; }

@@ -28,8 +28,8 @@ public sealed unsafe class NativeLinkedDummyAccess(NativeActorAccess actors, Nat
     public void Hide(ActorIdentity source)
     {
         var c = Character(source);
-        if (!ModelVisibilityCodec.IsHidden(&c->GameObject)) c->GameObject.DisableDraw();
-        ModelVisibilityCodec.SetHidden(&c->GameObject, true);
+        // Conceal layout graphics only. DisableDraw clears IsDrawn, which makes
+        // GetIsTargetable reject the real furnishing even after SetHardTarget.
         var group = c->GameObject.SharedGroupLayoutInstance;
         if (group != null && layouts.TryGetValue(source, out var original) && original.Address == (nint)group)
         {
@@ -40,7 +40,6 @@ public sealed unsafe class NativeLinkedDummyAccess(NativeActorAccess actors, Nat
     public void RestoreVisibility(ActorIdentity source, bool hidden)
     {
         var c = Character(source);
-        if (hidden) c->GameObject.DisableDraw(); else c->GameObject.EnableDraw();
         ModelVisibilityCodec.SetHidden(&c->GameObject, hidden);
         var group = c->GameObject.SharedGroupLayoutInstance;
         if (layouts.Remove(source, out var original) && group != null && original.Address == (nint)group)
