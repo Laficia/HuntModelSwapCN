@@ -3,7 +3,7 @@
     "Author": "Laficia",
     "Name": "狩猎模型替换",
     "InternalName": "HuntModelSwapCN",
-    "AssemblyVersion": "0.1.0.13",
+    "AssemblyVersion": "0.1.0.14",
     "Description": "独立于 HHT。/hms 打开，替换小怪为 S/A/B 狩猎外观，或在面前生成本地预览。支持地图筛选、自由体型、逐只及批量隐藏、敌对怪名牌、暂停恢复与水平旋转。47 只常规 S 怪提供技能菜单和台词收集；内置 5 只 S 怪共 44 句台词，可在演示模型上显示原生气泡。/hms talk 演示阿提卡斯四句台词，/hms stoptalk 停止。/hms combo 演示布弗鲁连招。仅本机演示，不产生真实伤害。",
     "ApplicableVersion": "any",
     "Tags": [
@@ -17,14 +17,14 @@
     "CanUnloadAsync": false,
     "LoadPriority": 0,
     "Punchline": "将小怪模型、名称和等级显示为指定 S/A/B 狩猎怪物",
-    "Changelog": "0.1.0.13：修复生成的 B 怪错误使用红黄色主动精英头标，例如第十三个孩子现在使用蓝色被动精英头标。敌对阵营、黄色名字、等级和精英图形保持；A/S 怪继续使用主动标记。同一生成对象在 B 与 A/S 外观之间替换时同步更新头标分类。保留台词气泡、技能、体型、隐藏、暂停恢复与旋转。",
+    "Changelog": "0.1.0.14：替换真实小怪时同步使用所选狩猎怪物的原版头标：B 怪为蓝色被动精英，A/S 怪按目标精英类别使用主动头标，不再沿用原小怪的红蓝分类。只覆盖名牌显示，不改变真实小怪的主动攻击标志、阵营或战斗身份。恢复原模型时还原游戏原头标。保留生成预览的头标修复及全部原有功能。",
     "AcceptsFeedback": true,
-    "IsTestingExclusive": false,
-    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.13/latest.zip",
+    "LastUpdate": 1792901566,
+    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.14/latest.zip",
+    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.14/latest.zip",
+    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.14/latest.zip",
     "IsHide": false,
-    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.13/latest.zip",
-    "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN",
-    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.13/latest.zip",
-    "LastUpdate": 1792901106
+    "IsTestingExclusive": false,
+    "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN"
   }
 ]
