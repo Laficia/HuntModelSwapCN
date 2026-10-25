@@ -3,7 +3,7 @@
     "Author": "Laficia",
     "Name": "狩猎模型替换",
     "InternalName": "HuntModelSwapCN",
-    "AssemblyVersion": "0.1.0.19",
+    "AssemblyVersion": "0.1.0.20",
     "Description": "独立于 HHT。/hms 打开，替换战斗小怪或木人外观，也可在面前生成本地预览。庭具木人使用原位本地模型，真实木人保留为训练目标；与前方生成共用一个预览位置。207 种外观、802 项对应技能。支持名字、显示等级、原版头标、原版体型及自由调整、地图筛选、隐藏、暂停恢复、旋转和 S 怪台词气泡。仅本机演示，不产生真实伤害。",
     "ApplicableVersion": "any",
     "Tags": [
@@ -17,14 +17,14 @@
     "CanUnloadAsync": false,
     "LoadPriority": 0,
     "Punchline": "狩猎外观、名字、等级、头标与对应技能演示，支持 SS 及随从",
-    "Changelog": "0.1.0.19：修复庭具木人替换后无法点击选中。原位模型可被点选，硬选中／软选中在原生目标设置时转交给真实木人，保留真实训练目标与血量。仅映射当前完整身份和 nonce 验证通过的本地替身；无来源、恢复、场景切换或槽位失效时停止映射。新增「选中木人」按钮与 /hms target，复制选中标记到替身显示。保留简洁界面和原有功能。",
+    "Changelog": "0.1.0.20：继续修复庭具木人点击和「选中木人」无效。去除对真实木人的禁用绘制及隐藏模型标志，只隐藏庭具布局图形；真实模型与体型保持原样，仅同步显示名字、等级和头标，应用、恢复、卸载均不重绘真实木人。可见外形由本地替身承担，点击继续转交真实目标。诊断在未选中时也显示原木人和替身状态，并记录原生可选中结果。更新后请恢复旧替换并重新替换。",
     "AcceptsFeedback": true,
-    "IsHide": false,
+    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.20/latest.zip",
+    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.20/latest.zip",
+    "LastUpdate": 1792945888,
+    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.20/latest.zip",
     "RepoUrl": "https://github.com/Laficia/HuntModelSwapCN",
-    "DownloadLinkTesting": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.19/latest.zip",
-    "IsTestingExclusive": false,
-    "DownloadLinkInstall": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.19/latest.zip",
-    "LastUpdate": 1792944613,
-    "DownloadLinkUpdate": "https://github.com/Laficia/HuntModelSwapCN/releases/download/v0.1.0.19/latest.zip"
+    "IsHide": false,
+    "IsTestingExclusive": false
   }
 ]
