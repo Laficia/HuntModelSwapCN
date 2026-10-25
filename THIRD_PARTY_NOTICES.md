@@ -4,6 +4,8 @@ S 怪技能名称与归属核对自[最终幻想 XIV 中文维基（灰机 Wiki�
 
 动作 ID、中文名称、时间轴及资源存在性按本机国服客户端表核对。唯一资源对应不等于已经确认该怪的原始 Action ID；资料明确区分战斗记录映射、资源映射、多版本候选和无独立动作。
 
+S 怪台词归属于 2026-10-25 通过正常浏览器逐页核对上述 47 只怪物的页面；明确收录台词的五只的页面链接保存在 `Catalog/SRankDialogueProfiles.json`。台词正文由本机国服 `NpcYell` 表读取，JSON 中保留行号与文本校验值，游戏台词版权归原权利人所有。不收录 Wiki 攻略正文或图片。阿提卡斯 16874～16903 的方向台词变体 ID 还参考下述固定提交的 `BossMod.Modules/Dawntrail/Hunt/RankS/Atticus.cs`，只使用 ID 归属事实，没有引入其机制代码。其余三句由用户实战文本和 Wiki／客户端共同核对。
+
 部分技能的 NPC/Action ID 关系参考 [BossMod](https://github.com/awgil/ffxiv_bossmod)，提交 `4fc3798e283432e2bac33130f48769ba778a0eba`。具体源文件链接保存在各条目的 `RecordSource`。仅提取并核对动作 ID 事实，没有引入其战斗模块、机制处理、自动移动或施法实现。以下保留该项目的许可声明：
 
 ```text

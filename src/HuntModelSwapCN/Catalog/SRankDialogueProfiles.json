@@ -1,0 +1,580 @@
+[
+  {
+    "NameId": 13437,
+    "Name": "天气预报机器人",
+    "ModelId": 4199,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A4%A9%E6%B0%94%E9%A2%84%E6%8A%A5%E6%9C%BA%E5%99%A8%E4%BA%BA",
+    "Rows": [
+      {
+        "RowId": 16982,
+        "ExpectedText": "哔——错误……重启……\n今天也为您播报天气……"
+      },
+      {
+        "RowId": 16983,
+        "ExpectedText": "读取气象数据……\n愉快的天气预报时间！"
+      },
+      {
+        "RowId": 16984,
+        "ExpectedText": "气象速报……灿烂暖洋洋，心中热腾腾……\n热浪即将袭来！"
+      },
+      {
+        "RowId": 16985,
+        "ExpectedText": "气象速报……轰隆雷鸣，皮肤麻麻的……\n雷波即将袭来！"
+      },
+      {
+        "RowId": 16986,
+        "ExpectedText": "气象速报……唰唰强风，窗户哗啦响……\n暴风即将袭来！"
+      },
+      {
+        "RowId": 16987,
+        "ExpectedText": "气象速报……鹅毛大雪，狗狗兴冲冲……\n暴雪即将袭来！"
+      },
+      {
+        "RowId": 16988,
+        "ExpectedText": "气象速报……啪啦啪啦降雨，雨伞吧嗒吧嗒……\n大雨即将袭来！"
+      },
+      {
+        "RowId": 16989,
+        "ExpectedText": "叮咚铛咚，叮咚咚！\n为您提供最新的天气预报！"
+      },
+      {
+        "RowId": 16990,
+        "ExpectedText": "重新读取气象数据……\n热浪过后会有雷波、暴雪！"
+      },
+      {
+        "RowId": 16991,
+        "ExpectedText": "重新读取气象数据……\n雷波过后会有暴风、热浪！"
+      },
+      {
+        "RowId": 16992,
+        "ExpectedText": "重新读取气象数据……\n暴雪过后会有雷波、暴风！"
+      },
+      {
+        "RowId": 16993,
+        "ExpectedText": "重新读取气象数据……\n暴风过后会有热浪、雷波！"
+      },
+      {
+        "RowId": 16994,
+        "ExpectedText": "叮咚咣当，嘭嘭！\n再现预报的气象！"
+      }
+    ]
+  },
+  {
+    "NameId": 13360,
+    "Name": "厌忌之人 奇里格",
+    "ModelId": 4297,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8E%8C%E5%BF%8C%E4%B9%8B%E4%BA%BA_%E5%A5%87%E9%87%8C%E6%A0%BC",
+    "Rows": [
+      {
+        "RowId": 17348,
+        "ExpectedText": "奇里格的剑，\n无人能敌！"
+      },
+      {
+        "RowId": 17349,
+        "ExpectedText": "为什么还活着，\n不可能！"
+      }
+    ]
+  },
+  {
+    "NameId": 13444,
+    "Name": "伊努索奇",
+    "ModelId": 4196,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BC%8A%E5%8A%AA%E7%B4%A2%E5%A5%87",
+    "Rows": []
+  },
+  {
+    "NameId": 12754,
+    "Name": "内尤佐缇",
+    "ModelId": 4180,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%86%85%E5%B0%A4%E4%BD%90%E7%BC%87",
+    "Rows": []
+  },
+  {
+    "NameId": 13399,
+    "Name": "山谢亚",
+    "ModelId": 4173,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B1%B1%E8%B0%A2%E4%BA%9A",
+    "Rows": []
+  },
+  {
+    "NameId": 13156,
+    "Name": "先驱勇士 阿提卡斯",
+    "ModelId": 4191,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%85%88%E9%A9%B1%E5%8B%87%E5%A3%AB_%E9%98%BF%E6%8F%90%E5%8D%A1%E6%96%AF",
+    "Rows": [
+      {
+        "RowId": 16874,
+        "ExpectedText": "必、必杀……"
+      },
+      {
+        "RowId": 16875,
+        "ExpectedText": "三重……"
+      },
+      {
+        "RowId": 16876,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16877,
+        "ExpectedText": "三重……"
+      },
+      {
+        "RowId": 16878,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16879,
+        "ExpectedText": "歼、歼灭……"
+      },
+      {
+        "RowId": 16880,
+        "ExpectedText": "联合……"
+      },
+      {
+        "RowId": 16881,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16882,
+        "ExpectedText": "联合……"
+      },
+      {
+        "RowId": 16883,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16884,
+        "ExpectedText": "强、强力……"
+      },
+      {
+        "RowId": 16885,
+        "ExpectedText": "最棒……"
+      },
+      {
+        "RowId": 16886,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16887,
+        "ExpectedText": "最棒……"
+      },
+      {
+        "RowId": 16888,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16889,
+        "ExpectedText": "超、超热……"
+      },
+      {
+        "RowId": 16890,
+        "ExpectedText": "火焰……"
+      },
+      {
+        "RowId": 16891,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16892,
+        "ExpectedText": "火焰……"
+      },
+      {
+        "RowId": 16893,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16894,
+        "ExpectedText": "酷、酷热……"
+      },
+      {
+        "RowId": 16895,
+        "ExpectedText": "爆发……"
+      },
+      {
+        "RowId": 16896,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16897,
+        "ExpectedText": "爆发……"
+      },
+      {
+        "RowId": 16898,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16899,
+        "ExpectedText": "灼、灼热……"
+      },
+      {
+        "RowId": 16900,
+        "ExpectedText": "最终……"
+      },
+      {
+        "RowId": 16901,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16902,
+        "ExpectedText": "最终……"
+      },
+      {
+        "RowId": 16903,
+        "ExpectedText": "吐息？"
+      },
+      {
+        "RowId": 16904,
+        "ExpectedText": "我们三头……！\n三位一体，一起干掉你！"
+      },
+      {
+        "RowId": 16905,
+        "ExpectedText": "三、三连不行的话，\n那就用六连发干掉你！"
+      },
+      {
+        "RowId": 16906,
+        "ExpectedText": "我要吃烤肉，你们碍事……\n我们要认真了！"
+      }
+    ]
+  },
+  {
+    "NameId": 10617,
+    "Name": "布弗鲁",
+    "ModelId": 3315,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B8%83%E5%BC%97%E9%B2%81",
+    "Rows": []
+  },
+  {
+    "NameId": 10618,
+    "Name": "颇胝迦",
+    "ModelId": 3384,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%A2%87%E8%83%9D%E8%BF%A6",
+    "Rows": []
+  },
+  {
+    "NameId": 10619,
+    "Name": "阿姆斯特朗",
+    "ModelId": 3322,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%98%BF%E5%A7%86%E6%96%AF%E7%89%B9%E6%9C%97",
+    "Rows": []
+  },
+  {
+    "NameId": 10620,
+    "Name": "沉思之物",
+    "ModelId": 3335,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%B2%89%E6%80%9D%E4%B9%8B%E7%89%A9",
+    "Rows": []
+  },
+  {
+    "NameId": 10622,
+    "Name": "狭缝",
+    "ModelId": 3383,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%8B%AD%E7%BC%9D",
+    "Rows": []
+  },
+  {
+    "NameId": 10621,
+    "Name": "俄菲翁尼厄斯",
+    "ModelId": 3183,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BF%84%E8%8F%B2%E7%BF%81%E5%B0%BC%E5%8E%84%E6%96%AF",
+    "Rows": []
+  },
+  {
+    "NameId": 8905,
+    "Name": "戾虫",
+    "ModelId": 2724,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%88%BE%E8%99%AB",
+    "Rows": []
+  },
+  {
+    "NameId": 8910,
+    "Name": "得到宽恕的炫学",
+    "ModelId": 2636,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%BE%97%E5%88%B0%E5%AE%BD%E6%81%95%E7%9A%84%E7%82%AB%E5%AD%A6",
+    "Rows": []
+  },
+  {
+    "NameId": 8900,
+    "Name": "多智兽",
+    "ModelId": 2591,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A4%9A%E6%99%BA%E5%85%BD",
+    "Rows": []
+  },
+  {
+    "NameId": 8653,
+    "Name": "阿格拉俄珀",
+    "ModelId": 2593,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%98%BF%E6%A0%BC%E6%8B%89%E4%BF%84%E7%8F%80",
+    "Rows": []
+  },
+  {
+    "NameId": 8890,
+    "Name": "伊休妲",
+    "ModelId": 2596,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BC%8A%E4%BC%91%E5%A6%B2",
+    "Rows": [
+      {
+        "RowId": 8506,
+        "ExpectedText": "吾之诅咒，渗入伤口，啃噬血肉！"
+      },
+      {
+        "RowId": 8507,
+        "ExpectedText": "魔力之火，熊熊燃烧！"
+      },
+      {
+        "RowId": 8508,
+        "ExpectedText": "冰结之力，封锁万物！"
+      },
+      {
+        "RowId": 8509,
+        "ExpectedText": "雷电鸣响，束缚吾敌！"
+      },
+      {
+        "RowId": 8510,
+        "ExpectedText": "大地震颤，无处可逃！"
+      },
+      {
+        "RowId": 8511,
+        "ExpectedText": "星陨如雨，毁天灭地！"
+      },
+      {
+        "RowId": 8512,
+        "ExpectedText": "吾乃隆卡后人……"
+      },
+      {
+        "RowId": 8513,
+        "ExpectedText": "肉身易腐，\n吾之精神同神殿永存……"
+      },
+      {
+        "RowId": 8514,
+        "ExpectedText": "遵从与皇帝陛下的盟约，\n守护神殿！"
+      }
+    ]
+  },
+  {
+    "NameId": 8895,
+    "Name": "顾尼图",
+    "ModelId": 2594,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%A1%BE%E5%B0%BC%E5%9B%BE",
+    "Rows": [
+      {
+        "RowId": 8199,
+        "ExpectedText": "死在我的枪下吧！"
+      },
+      {
+        "RowId": 8201,
+        "ExpectedText": "碍事的家伙……\n别靠近我！"
+      },
+      {
+        "RowId": 8203,
+        "ExpectedText": "宝藏是我的……"
+      },
+      {
+        "RowId": 8204,
+        "ExpectedText": "啊……我的船……\n我的手下……都在哪？"
+      }
+    ]
+  },
+  {
+    "NameId": 5987,
+    "Name": "优昙婆罗花",
+    "ModelId": 1936,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BC%98%E6%98%99%E5%A9%86%E7%BD%97%E8%8A%B1",
+    "Rows": []
+  },
+  {
+    "NameId": 5984,
+    "Name": "巨大鳐",
+    "ModelId": 1939,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B7%A8%E5%A4%A7%E9%B3%90",
+    "Rows": []
+  },
+  {
+    "NameId": 5985,
+    "Name": "伽马",
+    "ModelId": 1940,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BC%BD%E9%A9%AC",
+    "Rows": []
+  },
+  {
+    "NameId": 5988,
+    "Name": "爬骨怪龙",
+    "ModelId": 1938,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%88%AC%E9%AA%A8%E6%80%AA%E9%BE%99",
+    "Rows": []
+  },
+  {
+    "NameId": 5989,
+    "Name": "盐和光",
+    "ModelId": 1937,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%9B%90%E5%92%8C%E5%85%89",
+    "Rows": []
+  },
+  {
+    "NameId": 5986,
+    "Name": "兀鲁忽乃朝鲁",
+    "ModelId": 1997,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%85%80%E9%B2%81%E5%BF%BD%E4%B9%83%E6%9C%9D%E9%B2%81",
+    "Rows": []
+  },
+  {
+    "NameId": 4374,
+    "Name": "凯撒贝希摩斯",
+    "ModelId": 166,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%87%AF%E6%92%92%E8%B4%9D%E5%B8%8C%E6%91%A9%E6%96%AF",
+    "Rows": []
+  },
+  {
+    "NameId": 4375,
+    "Name": "神穆尔鸟",
+    "ModelId": 1214,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%A5%9E%E7%A9%86%E5%B0%94%E9%B8%9F",
+    "Rows": []
+  },
+  {
+    "NameId": 4376,
+    "Name": "苍白骑士",
+    "ModelId": 1215,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%8B%8D%E7%99%BD%E9%AA%91%E5%A3%AB",
+    "Rows": []
+  },
+  {
+    "NameId": 4377,
+    "Name": "刚德瑞瓦",
+    "ModelId": 1216,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%88%9A%E5%BE%B7%E7%91%9E%E7%93%A6",
+    "Rows": []
+  },
+  {
+    "NameId": 4378,
+    "Name": "极乐鸟",
+    "ModelId": 1217,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%9E%81%E4%B9%90%E9%B8%9F",
+    "Rows": []
+  },
+  {
+    "NameId": 4380,
+    "Name": "卢克洛塔",
+    "ModelId": 1218,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8D%A2%E5%85%8B%E6%B4%9B%E5%A1%94",
+    "Rows": []
+  },
+  {
+    "NameId": 2962,
+    "Name": "护土精灵",
+    "ModelId": 198,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E6%8A%A4%E5%9C%9F%E7%B2%BE%E7%81%B5",
+    "Rows": []
+  },
+  {
+    "NameId": 2963,
+    "Name": "咕尔呱洛斯",
+    "ModelId": 126,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%92%95%E5%B0%94%E5%91%B1%E6%B4%9B%E6%96%AF",
+    "Rows": []
+  },
+  {
+    "NameId": 2964,
+    "Name": "伽洛克",
+    "ModelId": 603,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%BC%BD%E6%B4%9B%E5%85%8B",
+    "Rows": []
+  },
+  {
+    "NameId": 2965,
+    "Name": "火愤牛",
+    "ModelId": 140,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%81%AB%E6%84%A4%E7%89%9B",
+    "Rows": []
+  },
+  {
+    "NameId": 2966,
+    "Name": "南迪",
+    "ModelId": 564,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8D%97%E8%BF%AA",
+    "Rows": []
+  },
+  {
+    "NameId": 2957,
+    "Name": "虚无探索者",
+    "ModelId": 233,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%99%9A%E6%97%A0%E6%8E%A2%E7%B4%A2%E8%80%85",
+    "Rows": []
+  },
+  {
+    "NameId": 2958,
+    "Name": "布隆特斯",
+    "ModelId": 220,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B8%83%E9%9A%86%E7%89%B9%E6%96%AF",
+    "Rows": []
+  },
+  {
+    "NameId": 2959,
+    "Name": "巴拉乌尔",
+    "ModelId": 247,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%B7%B4%E6%8B%89%E4%B9%8C%E5%B0%94",
+    "Rows": []
+  },
+  {
+    "NameId": 2960,
+    "Name": "努纽努维",
+    "ModelId": 81,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8A%AA%E7%BA%BD%E5%8A%AA%E7%BB%B4",
+    "Rows": []
+  },
+  {
+    "NameId": 2961,
+    "Name": "蚓螈巨虫",
+    "ModelId": 242,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%9A%93%E8%9E%88%E5%B7%A8%E8%99%AB",
+    "Rows": []
+  },
+  {
+    "NameId": 2953,
+    "Name": "雷德罗巨蛇",
+    "ModelId": 235,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%9B%B7%E5%BE%B7%E7%BD%97%E5%B7%A8%E8%9B%87",
+    "Rows": []
+  },
+  {
+    "NameId": 2954,
+    "Name": "乌尔伽鲁",
+    "ModelId": 106,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E4%B9%8C%E5%B0%94%E4%BC%BD%E9%B2%81",
+    "Rows": []
+  },
+  {
+    "NameId": 2955,
+    "Name": "夺心魔",
+    "ModelId": 73,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%A4%BA%E5%BF%83%E9%AD%94",
+    "Rows": []
+  },
+  {
+    "NameId": 2956,
+    "Name": "千竿口花希达",
+    "ModelId": 34,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E5%8D%83%E7%AB%BF%E5%8F%A3%E8%8A%B1%E5%B8%8C%E8%BE%BE",
+    "Rows": []
+  },
+  {
+    "NameId": 2968,
+    "Name": "萨法特",
+    "ModelId": 230,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E8%90%A8%E6%B3%95%E7%89%B9",
+    "Rows": []
+  },
+  {
+    "NameId": 2969,
+    "Name": "阿格里帕",
+    "ModelId": 255,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E9%98%BF%E6%A0%BC%E9%87%8C%E5%B8%95",
+    "Rows": []
+  },
+  {
+    "NameId": 2967,
+    "Name": "牛头黑神",
+    "ModelId": 365,
+    "WikiUrl": "https://ff14.huijiwiki.com/wiki/%E7%89%9B%E5%A4%B4%E9%BB%91%E7%A5%9E",
+    "Rows": []
+  }
+]

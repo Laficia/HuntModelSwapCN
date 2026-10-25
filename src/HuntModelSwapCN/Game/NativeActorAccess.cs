@@ -8,7 +8,7 @@ using NativeCharacter = FFXIVClientStructs.FFXIV.Client.Game.Character.Character
 
 namespace HuntModelSwapCN.Game;
 
-public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui nameplates) : IActorAccess, IAnimationAccess, IDirectionalAnimationAccess
+public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui nameplates) : IActorAccess, IAnimationAccess, IDirectionalAnimationAccess, IDialogueAccess
 {
     public static ActorIdentity Identity(IBattleNpc npc)
         => new(npc.ObjectIndex, npc.GameObjectId, npc.BaseId, npc.NameId, npc.Address);
@@ -21,6 +21,8 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
     }
 
     public bool Exists(ActorIdentity actor) => Resolve(actor) is not null;
+    public bool HasRealHunt(uint nameId) => objects.OfType<IBattleNpc>()
+        .Any(n => n.IsValid() && n.Address != 0 && n.NameId == nameId);
     public float? Heading(ActorIdentity actor, int expectedModelId)
     {
         if (Resolve(actor) is not { } npc) return null;
@@ -55,6 +57,29 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
         var c = AnimationCharacter(actor, expectedModelId);
         // Playback only: never call ActionManager.UseAction or synthesize action-effect packets.
         c->Timeline.TimelineSequencer.PlayTimeline(timelineId);
+    }
+
+    public void OpenBubble(ActorIdentity actor, int modelId, string text, float seconds)
+    {
+        var c = AnimationCharacter(actor, modelId);
+        if (FFXIVClientStructs.FFXIV.Client.Game.NpcYellBalloon.Addresses.OpenBalloon.Value == 0
+            || FFXIVClientStructs.FFXIV.Client.Game.NpcYellBalloon.Addresses.CloseBalloon.Value == 0)
+            throw new InvalidOperationException("当前客户端未解析 NPC 气泡接口。");
+        if (c->YellBalloon.Character != c) throw new InvalidOperationException("对象的原生气泡尚未初始化。");
+        // Native attachment follows the rendered skeleton and its scale. No synthetic chat log entry.
+        c->YellBalloon.OpenBalloon(text, seconds, false, 0, false, false, false, byte.MaxValue);
+    }
+
+    public void CloseBubble(ActorIdentity actor, int modelId, string expectedText)
+    {
+        if (Resolve(actor) is not { } npc) return;
+        var c = (NativeCharacter*)npc.Address;
+        if (c->ModelContainer.ModelCharaId != modelId || c->YellBalloon.Character != c
+            || c->YellBalloon.State == FFXIVClientStructs.FFXIV.Client.Game.NpcYellBalloonState.Inactive
+            || c->YellBalloon.Text.ToString() != expectedText) return;
+        // A subsequent server-owned balloon with different text must be left alone.
+        if (FFXIVClientStructs.FFXIV.Client.Game.NpcYellBalloon.Addresses.CloseBalloon.Value != 0)
+            c->YellBalloon.CloseBalloon();
     }
 
     public string? CanApply(ActorIdentity actor)

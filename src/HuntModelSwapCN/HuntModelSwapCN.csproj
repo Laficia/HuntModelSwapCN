@@ -1,7 +1,7 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
     <AssemblyName>HuntModelSwapCN</AssemblyName>
-    <Version>0.1.0.11</Version>
+    <Version>0.1.0.12</Version>
     <Authors>Laficia</Authors>
     <PackageProjectUrl>https://github.com/Laficia/HuntModelSwapCN</PackageProjectUrl>
     <Description>独立的普通怪物外观替换插件，支持选择 S/A/B 狩猎模型。</Description>
@@ -9,5 +9,6 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Catalog/SRankSkillProfiles.json" LogicalName="HuntModelSwapCN.SRankSkillProfiles.json" />
+    <EmbeddedResource Include="Catalog/SRankDialogueProfiles.json" LogicalName="HuntModelSwapCN.SRankDialogueProfiles.json" />
   </ItemGroup>
 </Project>

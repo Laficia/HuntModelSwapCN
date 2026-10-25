@@ -4,6 +4,8 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Command;
+using Dalamud.Game.Chat;
+using Dalamud.Game.Text;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using HuntModelSwapCN.Catalog;
@@ -32,6 +34,13 @@ public sealed class Plugin : IDalamudPlugin
     private readonly NativeAnimationPause pauseAccess;
     private readonly AnimationPause animationPause;
     private readonly ModelRotation modelRotation;
+    private readonly DialoguePreview dialoguePreview;
+    private readonly HuntDialogueCatalog dialogueCatalog;
+    private readonly Configuration configuration;
+    private volatile HuntDialogue[] dialogueLines = [];
+    private volatile bool captureHuntDialogue;
+    private bool dialogueLoaded;
+    private readonly ConcurrentQueue<(long Epoch, uint NameId, string Text)> incomingDialogue = new();
     private readonly NativeModelVisibility visibilityAccess;
     private readonly ModelVisibility modelVisibility;
     private readonly NameplatePresentation nameplatePresentation;
@@ -68,7 +77,8 @@ public sealed class Plugin : IDalamudPlugin
     private SkillAnimation[] skillMatches = [];
     private record Request(long Epoch, string Action, ActorIdentity? Actor, int Selection = -1, float Scale = 1,
         uint SkillId = 0, bool ChatFeedback = false, float Distance = 8, bool HideSelf = false, int HoldMs = 2000,
-        bool HideAllMonsters = false, float AngleDegrees = 0);
+        bool HideAllMonsters = false, float AngleDegrees = 0, uint DialogueNameId = 0,
+        string Text = "", bool Enabled = false);
     private sealed record HiddenTarget(ActorIdentity Actor, string Name);
     private sealed record ActorSelection(ActorIdentity Actor);
     private sealed record ActorHeading(ActorIdentity Actor, float? Degrees);
@@ -78,7 +88,7 @@ public sealed class Plugin : IDalamudPlugin
         bool HideSelf = false, int HiddenCount = 0, string? CannotHide = null, HiddenTarget[]? HiddenTargets = null,
         bool ComboRunning = false, string ComboStatus = "", string ComboDirections = "", float ComboRemaining = 0,
         bool HideAllMonsters = false, ActorIdentity[]? PausedActors = null, ActorHeading[]? Headings = null,
-        ActorIdentity[]? RotationActors = null);
+        ActorIdentity[]? RotationActors = null, bool DialogueRunning = false);
 
     public Plugin(IDalamudPluginInterface pluginInterface, IFramework framework, ICommandManager commands,
         IClientState client, ICondition condition, IObjectTable objects, IDataManager data,
@@ -103,12 +113,20 @@ public sealed class Plugin : IDalamudPlugin
         pauseAccess.CanControl = actor => session.Entries.Any(e => e.Actor == actor)
             && (!localPreview.Owns(actor) || localPreview.OwnsLive(actor));
         modelRotation = new(session, actors, actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor));
+        dialoguePreview = new(session, actors, actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor));
         sequence = new(session, preview, actors, actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor),
             animationPause.IsPaused);
         visibilityAccess = new(objects);
         modelVisibility = new(visibilityAccess);
         catalog = HuntCatalog.Load(data.GetExcelSheet<TerritoryType>(), data.GetExcelSheet<BNpcName>(),
             data.GetExcelSheet<PlaceName>());
+        configuration = pluginInterface.GetPluginConfig() as Configuration ?? new();
+        captureHuntDialogue = configuration.CaptureHuntDialogue;
+        dialogueCatalog = new(catalog);
+        foreach (var line in (configuration.CapturedDialogue ?? []).Take(47 * HuntDialogueCatalog.MaxPerHunt))
+            try { if (line is not null) dialogueCatalog.Capture(line.NameId, line.Text); }
+            catch (InvalidOperationException) { /* Ignore invalid saved text, never pass it to native UI. */ }
+        dialogueLines = dialogueCatalog.All;
         mapChoices = catalog.GroupBy(h => h.TerritoryId)
             .Select(g => new MapChoice(g.Key, g.First().Expansion, g.First().Territory))
             .OrderByDescending(m => m.Expansion).ThenBy(m => m.TerritoryId).ToArray();
@@ -117,14 +135,15 @@ public sealed class Plugin : IDalamudPlugin
             id => SkillCatalog.ModelFamily(models.GetRow((uint)id)));
         nameplatePresentation = new(nameplates, session, localPreview, log);
         commands.AddHandler("/hms", new CommandInfo(OnCommand)
-            { HelpMessage = "打开狩猎模型替换；/hms controls 悬浮控制；/hms pause 暂停；/hms resume 恢复；/hms rotate 角度 水平旋转；/hms show 恢复显示；/hms restore 恢复全部；/hms play 技能ID；/hms combo 布弗鲁连招；/hms stop 停止连招。" });
+            { HelpMessage = "打开狩猎模型替换；/hms controls 悬浮控制；/hms pause 暂停；/hms resume 恢复；/hms rotate 角度 水平旋转；/hms show 恢复显示；/hms restore 恢复全部；/hms play 技能ID；/hms combo 布弗鲁连招；/hms stop 停止连招；/hms talk 阿提卡斯四句气泡；/hms stoptalk 停止台词。" });
         pluginInterface.UiBuilder.Draw += Draw;
         pluginInterface.UiBuilder.OpenMainUi += Open;
         pluginInterface.UiBuilder.OpenConfigUi += Open;
         client.TerritoryChanged += OnTerritoryChanged;
         client.Logout += OnLogout;
+        chat.ChatMessage += OnNpcDialogue;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.11 initialized. No appearance writes or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.12 initialized. No appearance writes, native bubbles or animation playback have been requested.");
     }
 
     private void Open()
@@ -156,6 +175,10 @@ public sealed class Plugin : IDalamudPlugin
         else if (arguments.Trim().Equals("resume", StringComparison.OrdinalIgnoreCase))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "resume", ControlActor(snapshot), ChatFeedback: true));
         else if (arguments.Trim().Equals("controls", StringComparison.OrdinalIgnoreCase)) floatingControls = !floatingControls;
+        else if (arguments.Trim().Equals("talk", StringComparison.OrdinalIgnoreCase))
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "dialogue-sequence", ControlActor(snapshot), ChatFeedback: true));
+        else if (arguments.Trim().Equals("stoptalk", StringComparison.OrdinalIgnoreCase))
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "dialogue-stop", null, ChatFeedback: true));
         else if (arguments.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Equals("rotate", StringComparison.OrdinalIgnoreCase) == true)
         {
             var parts = arguments.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -171,11 +194,43 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     private void OnTerritoryChanged(uint territory) => ClearSession();
+    private void OnNpcDialogue(IChatMessage message)
+    {
+        if (disposed || !captureHuntDialogue || incomingDialogue.Count >= 128
+            || message.LogKind is not (XivChatType.NPCDialogue or XivChatType.NPCDialogueAnnouncements)) return;
+        try
+        {
+            var nameId = dialogueCatalog.Speaker(message.OriginalSender.ExtractText());
+            if (nameId is not { } id) return;
+            var text = HuntDialogueCatalog.Normalize(message.OriginalMessage.ExtractText());
+            incomingDialogue.Enqueue((Interlocked.Read(ref epoch), id, text));
+        }
+        catch (Exception ex) { log.Warning(ex, "读取 S 怪台词失败"); }
+    }
+
+    private void SaveDialogue()
+    {
+        configuration.CaptureHuntDialogue = captureHuntDialogue;
+        configuration.CapturedDialogue = dialogueCatalog.All.Where(l => l.RowId == 0).ToList();
+        try { pluginInterface.SavePluginConfig(configuration); }
+        catch (Exception ex) { log.Error(ex, "保存 S 怪台词失败；当前会话仍可使用"); }
+    }
+
+    private void LoadDialogue()
+    {
+        if (dialogueLoaded) return;
+        dialogueCatalog.LoadBuiltIns(data.GetExcelSheet<NpcYell>());
+        dialogueLines = dialogueCatalog.All;
+        dialogueLoaded = true;
+    }
+
     private void OnLogout(int type, int code) => ClearSession();
     private void ClearSession()
     {
         Interlocked.Increment(ref epoch);
         requests.Clear();
+        incomingDialogue.Clear();
+        dialoguePreview.ForgetScene();
         sequence.ForgetScene();
         animationPause.ForgetScene();
         modelRotation.Clear();
@@ -199,6 +254,8 @@ public sealed class Plugin : IDalamudPlugin
         {
             if (Loading)
             {
+                dialoguePreview.ForgetScene();
+                incomingDialogue.Clear();
                 sequence.ForgetScene();
                 modelRotation.Clear();
                 try { animationPause.Reset(); }
@@ -212,6 +269,11 @@ public sealed class Plugin : IDalamudPlugin
             localPreview.Tick();
             // Complete last frame's redraws before processing new UI requests.
             session.Tick();
+            var captured = false;
+            while (incomingDialogue.TryDequeue(out var spoken))
+                if (captureHuntDialogue && spoken.Epoch == Interlocked.Read(ref epoch) && actors.HasRealHunt(spoken.NameId))
+                    captured |= dialogueCatalog.Capture(spoken.NameId, spoken.Text);
+            if (captured) { dialogueLines = dialogueCatalog.All; SaveDialogue(); }
             while (requests.TryDequeue(out var request))
             {
                 if (request.Epoch != Interlocked.Read(ref epoch)) continue;
@@ -230,6 +292,8 @@ public sealed class Plugin : IDalamudPlugin
             try { animationPause.Tick(); }
             catch (Exception ex) { status = "暂停动画维护失败，可点击恢复动作。"; log.Error(ex, status); }
             pauseAccess.PrunePending();
+            try { dialoguePreview.Tick(Environment.TickCount64); }
+            catch (Exception ex) { dialoguePreview.StopSequence(); status = "台词播放已中断，请重新选择演示对象。"; log.Error(ex, status); }
             try { modelRotation.Tick(); }
             catch (Exception ex) { status = "旋转对象已不可用，已解除固定朝向。"; log.Error(ex, status); }
             var wasRunning = sequence.Running;
@@ -255,7 +319,7 @@ public sealed class Plugin : IDalamudPlugin
                 sequence.Running, sequence.Status, sequence.DirectionOrder, sequence.RemainingSeconds(Environment.TickCount64),
                 modelVisibility.HideAllMonsters, animationPause.Actors.ToArray(),
                 entries.Select(e => new ActorHeading(e.Actor, actors.Heading(e.Actor, e.Applied.ModelId))).ToArray(),
-                modelRotation.Actors.ToArray());
+                modelRotation.Actors.ToArray(), dialoguePreview.Running);
         }
         catch (Exception ex)
         {
@@ -266,6 +330,24 @@ public sealed class Plugin : IDalamudPlugin
 
     private void Execute(Request request)
     {
+        if (request.Action == "dialogue-load") { LoadDialogue(); status = "已加载已确认的台词与实战收集记录。"; return; }
+        if (request.Action == "dialogue-capture")
+        {
+            captureHuntDialogue = request.Enabled;
+            incomingDialogue.Clear();
+            SaveDialogue();
+            status = captureHuntDialogue ? "已开启收集加载范围内真实 S 怪的 NPC 台词。" : "已停止收集 S 怪台词。";
+            return;
+        }
+        if (request.Action == "dialogue-stop")
+        {
+            dialoguePreview.Reset(); status = "已停止台词序列并关闭本插件播放的气泡。"; return;
+        }
+        if (request.Action == "all") dialoguePreview.Reset();
+        else if (request.Action is "spawn" or "remove-local" && localPreview.Actor is { } speakingPreview)
+            dialoguePreview.Clear(speakingPreview.Actor);
+        else if (request.Action is "apply" or "restore" && request.Actor is { } speakingActor)
+            dialoguePreview.Clear(speakingActor);
         if (request.Action is "play" or "start-combo" && request.Actor is { } playingActor && animationPause.IsPaused(playingActor))
             throw new InvalidOperationException("演示对象已暂停，请先点击「恢复动作」或输入 /hms resume。");
         // Restore saved speeds before any operation can redraw/delete/change the model.
@@ -342,6 +424,32 @@ public sealed class Plugin : IDalamudPlugin
             return;
         }
         if (request.Actor is not { } actor) throw new InvalidOperationException("请先选中一只普通小怪。");
+        if (request.Action is "dialogue-play" or "dialogue-sequence")
+        {
+            LoadDialogue();
+            var entry = session.Entries.FirstOrDefault(e => e.Actor == actor);
+            var hunt = catalog.FirstOrDefault(h => h.ModelId == entry?.Applied.ModelId && h.Name == entry.ReplacementName);
+            if (hunt is null || hunt.Rank != 3) throw new InvalidOperationException("请先生成或替换一只 S 怪，并选为控制对象。");
+            if (request.Action == "dialogue-sequence")
+            {
+                if (hunt.NameId != HuntDialogueCatalog.Atticus) throw new InvalidOperationException("/hms talk 当前演示阿提卡斯的四句台词；其他 S 怪可在台词菜单逐句播放。");
+                var texts = new[] { "我们三头……！\n三位一体，一起干掉你！", "必、必杀……", "三重……", "吐息？" };
+                if (texts.Any(t => !dialogueLines.Any(l => l.NameId == hunt.NameId && l.Text == t)))
+                    throw new InvalidOperationException("当前客户端的阿提卡斯台词未通过核对。");
+                dialoguePreview.Start(actor, texts.Select((t, i) => new DialogueStep(t, i == 0 ? 5 : 3,
+                    i == 0 ? 6000 : i == 1 ? 3000 : 4000)).ToArray(), Environment.TickCount64);
+                status = "已开始阿提卡斯四句台词气泡，按提供的 0／6／9／13 秒间隔演示。";
+            }
+            else
+            {
+                var line = dialogueLines.FirstOrDefault(l => l.NameId == hunt.NameId && l.NameId == request.DialogueNameId && l.Text == request.Text)
+                    ?? throw new InvalidOperationException("台词与当前演示对象不匹配。");
+                dialoguePreview.StopSequence();
+                dialoguePreview.Play(actor, line.Text, line.Seconds);
+                status = "已在演示模型上播放本地 NPC 台词气泡。";
+            }
+            return;
+        }
         if (request.Action == "pause")
         {
             animationPause.Pause(actor);
@@ -595,6 +703,7 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.EndDisabled();
             if (reason is not null) ImGui.TextWrapped(reason);
             ImGui.TextWrapped(view.Status);
+            DrawDialoguePreview(view);
             DrawSkillPreview(view);
             if (ImGui.CollapsingHeader($"已替换对象 ({view.Entries.Length})"))
                 foreach (var entry in view.Entries)
@@ -614,6 +723,52 @@ public sealed class Plugin : IDalamudPlugin
 
     private ActorIdentity? ControlActor(UiSnapshot view) => controlSelection is { } chosen
         && view.Entries.Any(e => e.Actor == chosen.Actor) ? chosen.Actor : view.LocalActor ?? view.Target;
+
+    private void DrawDialoguePreview(UiSnapshot view)
+    {
+        if (!ImGui.CollapsingHeader("S 怪台词与原生气泡")) return;
+        var capture = captureHuntDialogue;
+        if (ImGui.Checkbox("收集真实 S 怪的 NPC 台词（保存到本地）", ref capture))
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "dialogue-capture", null, Enabled: capture));
+        ImGui.TextWrapped("覆盖列表中的 47 只 S 怪；只收集 NPC 对话频道中名称完全匹配、且真实 S 怪在加载范围内的台词。不读取玩家聊天。相同台词去重保存。");
+        if (ImGui.Button("加载／刷新已确认台词库")) Enqueue("dialogue-load");
+        ImGui.TextUnformatted($"台词库：{dialogueLines.Length} 句，{dialogueLines.Select(l => l.NameId).Distinct().Count()} 只 S 怪");
+        if (ImGui.TreeNode("47 只 S 怪台词核对清单"))
+        {
+            foreach (var profile in HuntDialogueCatalog.Profiles)
+                ImGui.TextWrapped($"{profile.Name}：已核对 {profile.Rows.Length} 个原版台词 ID；当前可播放 {dialogueLines.Count(l => l.NameId == profile.NameId)} 句。"
+                    + (profile.Rows.Length == 0 ? "暂无确认资料，等待实战收集。" : ""));
+            ImGui.TreePop();
+        }
+        var actor = ControlActor(view);
+        var entry = view.Entries.FirstOrDefault(e => e.Actor == actor);
+        var hunt = entry is null ? null : catalog.FirstOrDefault(h => h.ModelId == entry.Applied.ModelId && h.Name == entry.ReplacementName && h.Rank == 3);
+        ImGui.TextUnformatted($"台词对象：{hunt?.Name ?? "请先生成或替换 S 怪，并选为控制对象"}");
+        if (hunt is not null && HuntDialogueCatalog.Profiles.FirstOrDefault(p => p.NameId == hunt.NameId) is { } profileSource
+            && ImGui.SmallButton("打开此怪 Wiki 台词资料")) Dalamud.Utility.Util.OpenLink(profileSource.WikiUrl);
+        var lines = dialogueLines.Where(l => l.NameId == hunt?.NameId).ToArray();
+        if (lines.Length == 0) ImGui.TextWrapped("该怪暂无已确认台词。遇到真实怪物说话后会自动收集；未收录不代表它不会说话。");
+        if (ImGui.BeginChild("huntDialogue", new Vector2(0, 180), true))
+            for (var i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                ImGui.PushID(i);
+                ImGui.BeginDisabled(Loading || entry is null || entry.WaitingForDraw || entry.Restoring);
+                if (ImGui.SmallButton("播放气泡"))
+                    requests.Enqueue(new(Interlocked.Read(ref epoch), "dialogue-play", actor, DialogueNameId: line.NameId, Text: line.Text));
+                ImGui.EndDisabled();
+                ImGui.SameLine();
+                ImGui.TextWrapped($"{(line.RowId == 0 ? "[实战收集]" : $"[NpcYell {line.RowId}]")} {line.Text}");
+                ImGui.PopID();
+            }
+        ImGui.EndChild();
+        ImGui.BeginDisabled(Loading || hunt?.NameId != HuntDialogueCatalog.Atticus || entry is null || entry.WaitingForDraw || entry.Restoring);
+        if (ImGui.Button("阿提卡斯四句连续气泡 /hms talk")) Enqueue("dialogue-sequence", actor);
+        ImGui.EndDisabled();
+        if (ImGui.Button("停止台词并关闭演示气泡 /hms stoptalk")) Enqueue("dialogue-stop");
+        ImGui.TextWrapped(view.DialogueRunning ? "台词序列播放中。" : "台词序列未播放。");
+        ImGui.TextWrapped("气泡挂在模型骨骼上，随模型移动与缩放。仅本机显示，不发送聊天、不触发技能；动作暂停不暂停气泡计时。47 只 S 怪已逐页核对，内置 5 只、44 句不同台词；其余暂无确认资料，可继续实战收集。");
+    }
 
     private void Rotate(ActorIdentity? actor, float degrees)
         => requests.Enqueue(new(Interlocked.Read(ref epoch), "rotate", actor, AngleDegrees: degrees));
@@ -792,6 +947,7 @@ public sealed class Plugin : IDalamudPlugin
         framework.Update -= Update;
         client.TerritoryChanged -= OnTerritoryChanged;
         client.Logout -= OnLogout;
+        chat.ChatMessage -= OnNpcDialogue;
         requests.Clear();
         nameplatePresentation.Dispose();
         try
@@ -800,6 +956,8 @@ public sealed class Plugin : IDalamudPlugin
             {
                 sequence.Stop("插件卸载，连招已取消。");
                 modelRotation.Clear();
+                try { dialoguePreview.Reset(); }
+                catch (Exception ex) { log.Error(ex, "卸载时关闭演示气泡失败"); }
                 try { animationPause.Reset(); }
                 finally
                 {

@@ -834,6 +834,62 @@ unsafe
         "Showing a model must preserve nameplate flags, identity, and position.");
 }
 
+// Dialogue timers must survive target selection changes and stop before touching stale models.
+{
+    var a = new FakeAccess();
+    a.Actors[actor] = State(17, 1);
+    var s = new SwapSession(a);
+    s.Apply(actor, "original", "speaker", State(18, 2));
+    s.Tick();
+    var native = new FakeDialogueAccess();
+    var speechEligible = true;
+    var talk = new DialoguePreview(s, native, _ => speechEligible);
+    var steps = new[] { new DialogueStep("first\nline", 5, 6000), new DialogueStep("second", 3, 3000),
+        new DialogueStep("third", 3, 4000), new DialogueStep("fourth", 3, 1000) };
+    talk.Start(actor, steps, 1000);
+    Check(native.Opens.Count == 1 && native.Opens[0].Text == "first\nline" && talk.Running, "First native bubble opens immediately, preserving newlines.");
+    talk.Tick(6999);
+    Check(native.Opens.Count == 1, "Speech must not advance before its deadline.");
+    talk.Tick(7000); talk.Tick(10000); talk.Tick(14000);
+    Check(native.Opens.Select(o => o.Text).SequenceEqual(steps.Select(s => s.Text)) && !talk.Running,
+        "Four-line playback must use the requested 0/6/9/13-second cadence.");
+    talk.Clear(actor);
+    Check(native.Closes.Single() == (actor, 18, "fourth"), "Clear must only close the last bubble owned by that actor/model/text.");
+    talk.Start(actor, steps, 0); talk.Tick(90000);
+    Check(native.Opens[^1].Text == "second", "Late frames must not skip and burst several NPC lines.");
+    var count = native.Opens.Count; talk.Tick(90000);
+    Check(native.Opens.Count == count, "Repeated ticks at the same time cannot advance another line.");
+    speechEligible = false; talk.Tick(100000);
+    Check(!talk.Running && native.Opens.Count == count, "Lost local ownership nonce must cancel speech without native access.");
+    var closed = native.Closes.Count; talk.Clear(actor);
+    Check(native.Closes.Count == closed, "Invalid owned actors must not receive stale close calls.");
+    speechEligible = true;
+    talk.Start(actor, steps, 0); talk.ForgetScene(); talk.Tick(100000);
+    Check(!talk.Running && native.Closes.Count == closed, "Scene forget must not dereference last territory's actors.");
+    talk.Start(actor, steps, 0); s.Restore(actor); talk.Tick(7000);
+    Check(!talk.Running, "Restoring or redrawing a model cancels its pending speech.");
+    s.Tick(); s.Apply(actor, "original", "speaker", State(18, 2)); s.Tick();
+    talk.Start(actor, steps, 0); s.Apply(actor, "original", "another speaker", State(18, 2)); s.Tick();
+    count = native.Opens.Count; talk.Tick(7000);
+    Check(!talk.Running && native.Opens.Count == count, "Reusing the same model for another named hunt must not replay the previous hunt's dialogue.");
+    s.Apply(actor, "original", "speaker", State(18, 2)); s.Tick();
+    talk.Start(actor, steps, 0); talk.Reset();
+    Check(!talk.Running && native.Closes[^1].Item3 == "first\nline", "Reset closes the bubble and cancels the remaining sequence.");
+    foreach (var invalid in new[] { "", "   ", "bad\0text", "bad\u0002payload", new string('中', 684) })
+    {
+        var rejected = false;
+        try { talk.Play(actor, invalid, 5); } catch (InvalidOperationException) { rejected = true; }
+        Check(rejected, "Invalid and oversized plain text must never reach the native string API.");
+    }
+    foreach (var seconds in new[] { 0f, -1f, 16f, float.NaN, float.PositiveInfinity })
+    {
+        var rejected = false;
+        try { talk.Play(actor, "valid", seconds); } catch (InvalidOperationException) { rejected = true; }
+        Check(rejected, "Native bubbles must always receive a bounded finite lifetime.");
+    }
+    Check(HuntDialogueCatalog.Normalize("  首句\r\n次句\r末句  ") == "首句\n次句\n末句", "Line ending normalization must preserve multiline NPC dialogue.");
+}
+
 if (args.Length == 1)
 {
     using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Language.ChineseSimplified });
@@ -842,6 +898,40 @@ if (args.Length == 1)
     Console.WriteLine("Catalog: " + string.Join(", ", catalog.GroupBy(h => h.RankName).Select(g => $"{g.Key}={g.Count()}")));
     Check(catalog.Count == 201, "The installed 2.0-7.0 client must supply 201 regular hunts.");
     Check(catalog.Count(h => h.Rank == 3) == 47, "S list must exclude SS bosses.");
+    var dialogue = new HuntDialogueCatalog(catalog);
+    var npcYells = game.Excel.GetSheet<NpcYell>(Language.ChineseSimplified)!;
+    Check(HuntDialogueCatalog.Profiles.Count == 47 && HuntDialogueCatalog.Profiles.Select(p => p.NameId).Distinct().Count() == 47,
+        "Every S hunt must have its own audited dialogue status.");
+    Check(HuntDialogueCatalog.Profiles.Sum(p => p.Rows.Length) == 61 && HuntDialogueCatalog.Profiles.Count(p => p.Rows.Length > 0) == 5,
+        "Reviewed ownership must contain exactly the confirmed 61 rows for five hunts.");
+    foreach (var p in HuntDialogueCatalog.Profiles)
+    {
+        Check(catalog.Any(h => h.Rank == 3 && h.NameId == p.NameId && h.Name == p.Name && h.ModelId == p.ModelId)
+            && p.WikiUrl.StartsWith("https://ff14.huijiwiki.com/wiki/"), "Each dialogue source must belong to the same current CN S hunt.");
+        foreach (var mapped in p.Rows)
+        {
+            Check(HuntDialogueCatalog.Matches(mapped, npcYells.GetRow(mapped.RowId).Text.ExtractText()),
+                $"Confirmed NpcYell ID/text changed: {p.Name}/{mapped.RowId}");
+            Check(!HuntDialogueCatalog.Matches(mapped, "unrelated text") && !HuntDialogueCatalog.Matches(mapped, ""),
+                "Changed or missing row text must disable a mapping rather than misattribute dialogue.");
+        }
+    }
+    dialogue.LoadBuiltIns(npcYells); dialogue.LoadBuiltIns(npcYells);
+    Check(dialogue.All.Length == 44 && dialogue.All.Select(l => l.NameId).Distinct().Count() == 5,
+        "Repeated loading must deduplicate 61 directional row variants into 44 distinct spoken lines.");
+    foreach (var h in catalog.Where(h => h.Rank == 3))
+    {
+        Check(dialogue.Speaker(h.Name) == h.NameId && dialogue.Capture(h.NameId, $"收集测试：{h.Name}"),
+            "Real NPC speech capture must accept every one of the 47 regular S hunts.");
+        Check(!dialogue.Capture(h.NameId, $"收集测试：{h.Name}"), "Repeated NPC chat must not duplicate saved dialogue.");
+    }
+    Check(dialogue.Speaker("玩家随便说的话") is null && dialogue.Speaker("前缀伊休妲") is null
+        && !dialogue.Capture(0, "unknown") && !dialogue.Capture(catalog.First(h => h.Rank == 2).NameId, "A hunt"),
+        "Player names, partial matches, unknown IDs and A hunts must not enter the S-hunt library.");
+    for (var i = 0; i < 140; i++) dialogue.Capture(10617, $"bounded-{i}");
+    Check(dialogue.All.Count(l => l.NameId == 10617) == HuntDialogueCatalog.MaxPerHunt, "Per-hunt captured speech must be bounded.");
+    var savedDialogue = System.Text.Json.JsonSerializer.Deserialize<HuntDialogue[]>(System.Text.Json.JsonSerializer.Serialize(dialogue.All))!;
+    Check(savedDialogue.SequenceEqual(dialogue.All), "Saved text, hunt ownership, line breaks and timing must survive a JSON round trip.");
     Check(catalog.Count(h => h.Rank == 1) == 77 && catalog.Count(h => h.Rank == 2) == 77, "B/A lists must exclude SS minions.");
     Check(catalog.Single(h => h.NameId == 2953).ModelId == 235, "Name ID must resolve to a ModelChara ID, not be used as the model.");
     Check(catalog.All(h => h.ModelId >= 0 && h.BaseId > 0 && float.IsFinite(h.Scale) && h.Scale > 0
@@ -978,6 +1068,14 @@ sealed class FakeAccess : IActorAccess
     public void RefreshPresentation(ActorIdentity actor, VisualState state)
         => Actors[actor] = Actors[actor] with { NameBytes = state.NameBytes, Level = state.Level,
             ModelScale = state.ModelScale, ObjectScale = state.ObjectScale, DrawScale = state.DrawScale, NameplateIcon = state.NameplateIcon };
+}
+
+sealed class FakeDialogueAccess : IDialogueAccess
+{
+    public List<(ActorIdentity Actor, int Model, string Text, float Seconds)> Opens { get; } = [];
+    public List<(ActorIdentity, int, string)> Closes { get; } = [];
+    public void OpenBubble(ActorIdentity actor, int modelId, string text, float seconds) => Opens.Add((actor, modelId, text, seconds));
+    public void CloseBubble(ActorIdentity actor, int modelId, string expectedText) => Closes.Add((actor, modelId, expectedText));
 }
 
 sealed class FakeAnimationAccess : IAnimationAccess, IDirectionalAnimationAccess

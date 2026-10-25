@@ -183,3 +183,18 @@ Release 编译无警告，1536 项离线检查通过，新增原生标脏回归�
 - [BNpcBase 数据结构](https://github.com/xivdev/EXDSchema/blob/latest/BNpcBase.yml)
 - [MonsterModelSwap 换模服务](https://github.com/Jayty07/MonsterModelSwap/blob/main/MonsterModelSwap/Services/ModelSwapService.cs)（原实现针对玩家，不能直接当作普通 NPC 换模成品）。
 - [FFXIVClientStructs 动作调度器](https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/Control/ActionTimelineSequencer.cs)
+
+
+## 0.1.0.12 S 怪台词与气泡
+
+2026-10-25 正常浏览器逐页读取 47 只常规 S 怪页面，展开「战斗对话」折叠栏后核对原版 YE 行号及简中台词。5 只页面明确提供战斗台词，42 只暂未在这些页面确认。结合固定提交 BossMod 的阿提卡斯 30 个方向喊话 ID，形成 61 条映射，与已安装国服 NpcYell 的文本逐条匹配，去重后 44 句。SRankDialogueProfiles.json 保留每只 S 的核对状态、来源 URL、模型及名称身份；不推断相邻行号的怪物归属。NpcYell.Name 在已检查记录中为 0，无法从该列直接关联 BNpcName。
+
+HuntDialogueCatalog 对文本长度、控制字符、已知 S 怪归属和重复记录进行限制，客户端行号文本变化则跳过该条。IChatGui.ChatMessage 使用当前 API 15 的 IChatMessage，仅读 OriginalSender/OriginalMessage 的 ExtractText 副本；只接受 NPCDialogue / NPCDialogueAnnouncements。事件回调不保留消息对象、不访问原生对象，送入有界队列；框架线程检查 epoch、真实 S 怪 NameId 在当前对象表中存在，再归档并保存配置。生成对象 NameId=0，不作为真实来源。只收集新收到的频道台词，不解析历史或网络包。
+
+NativeActorAccess 使用已安装 FFXIVClientStructs NpcYellBalloon.OpenBalloon/CloseBalloon，首次用户点击才调用，无新增钩子或原生回调。离线只读扫描当前国服 exe 文件，两者的已安装签名各唯一匹配，不硬编码地址。调用前完整对象身份、加载状态、会话模型、展示名称及本地 lease nonce 校验；校验 YellBalloon.Character 回指，使用默认骨骼回退，原生定时有限生命周期，printToLog=false。关闭前检查当前模型、回指、活跃状态及文字仍与本插件上次播放相同，不关闭后续不同文本的服务器气泡。
+
+DialoguePreview 按框架时钟调度，长帧每次最多一步，不补播风暴。阿提卡斯四句按用户 0/6/9/13 秒间隔，动作暂停不冻结台词。换模或移除前清理，切图只遗忘旧会话，不解引用旧对象；停止按钮及卸载清理有限时气泡。只播放气泡，不自动释放技能或同步实战台词到演示模型。
+
+Release 编译无警告，1828 项离线检查通过，包括全部 61 条客户端原文匹配、改名数据拒绝、47 只 S 怪收集归属、去重与容量、换图/换模/nonce 失效、四句时序与延迟帧。原生气泡实际位置、骨骼缩放与聊天来源仍需游戏内验证。未声称对 47 只怪进行实际战斗测试。
+
+原生接口参考：https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/NpcYellBalloon.cs

@@ -2,6 +2,44 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length is 2 or 3 && args[1] == "--dialogue")
+{
+    foreach (var type in new[] { typeof(NpcYell), typeof(FFXIVClientStructs.FFXIV.Client.Game.NpcYellBalloon),
+        typeof(Dalamud.Plugin.Services.IChatGui.OnChatMessageDelegate), typeof(Dalamud.Game.Chat.IChatMessage) })
+    {
+        Console.WriteLine(type.FullName);
+        foreach (var p in type.GetProperties()) Console.WriteLine($"  {p.Name}: {p.PropertyType}");
+        foreach (var f in type.GetFields().Where(f => !f.IsStatic)) Console.WriteLine($"  {f.Name}: {f.FieldType}");
+        foreach (var m in type.GetMethods().Where(m => m.DeclaringType == type && !m.IsSpecialName))
+            Console.WriteLine($"  {m}: {string.Join("; ", m.GetCustomAttributesData())}");
+    }
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    var rows = probe.Excel.GetSheet<NpcYell>()!;
+    var logKind = typeof(Dalamud.Game.Chat.IChatMessage).GetProperty("LogKind")!.PropertyType;
+    Console.WriteLine("LogKind " + logKind + " " + string.Join(",", Enum.GetNames(logKind).Where(n => n.Contains("Npc", StringComparison.OrdinalIgnoreCase))));
+    var hunts = HuntModelSwapCN.Catalog.HuntCatalog.Load(probe.Excel.GetSheet<TerritoryType>()!, probe.Excel.GetSheet<BNpcName>()!, probe.Excel.GetSheet<PlaceName>()!);
+    var ids = hunts.Where(h => h.Rank == 3).Select(h => h.NameId).ToHashSet();
+    var matched = rows.Where(r => ids.Contains(r.Name.RowId)).ToArray();
+    if (args.Length == 3)
+        File.WriteAllText(args[2], System.Text.Json.JsonSerializer.Serialize(new {
+            Hunts = hunts.Where(h => h.Rank == 3).Select(h => new { h.NameId, h.Name, h.ModelId }),
+            Rows = rows.Select(r => new { r.RowId, Text = r.Text.ExtractText(), Seconds = r.BalloonTime }),
+            Signatures = new[] { "OpenBalloon", "CloseBalloon" }.Select(name => new {
+                Name = name, Signature = typeof(FFXIVClientStructs.FFXIV.Client.Game.NpcYellBalloon).GetMethods()
+                    .First(m => m.Name == name && m.GetCustomAttributesData().Any(a => a.AttributeType.Name == "MemberFunctionAttribute"))
+                    .GetCustomAttributesData().Single(a => a.AttributeType.Name == "MemberFunctionAttribute").ConstructorArguments[0].Value,
+            }),
+        }));
+    Console.WriteLine($"S DIALOGUES {matched.Length}");
+    foreach (var g in matched.GroupBy(r => r.Name.RowId))
+        Console.WriteLine($"{g.Key} {hunts.First(h => h.NameId == g.Key).Name}: {g.Count()}");
+    foreach (var row in rows.Where(r => r.RowId is >= 16874 and <= 16906))
+    {
+        Console.WriteLine($"{row.RowId} name={row.Name.RowId} time={row.BalloonTime} output={row.OutputType} unk6={row.Unknown6} {row.Text}");
+    }
+    return;
+}
+
 if (args.Length is 2 or 3 && args[1] == "--animation-pause")
 {
     foreach (var type in new[] { typeof(TimelineContainer), typeof(FFXIVClientStructs.FFXIV.Client.Game.Control.ActionTimelineSequencer) })
