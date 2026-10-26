@@ -41,6 +41,8 @@
     <Compile Include="../../src/HuntModelSwapCN/Game/NativeLocalPresentationCodec.cs" Link="NativeLocalPresentationCodec.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Game/NativeCombatPresentationCodec.cs" Link="NativeCombatPresentationCodec.cs" />
     <Compile Include="../../src/HuntModelSwapCN/Game/NativeLocalNameplateCodec.cs" Link="NativeLocalNameplateCodec.cs" />
+    <Compile Include="../../src/HuntModelSwapCN/Game/ChineseGameFontData.cs" Link="ChineseGameFontData.cs" />
+    <Reference Include="Dalamud"><HintPath>$(DALAMUD_HOME)/Dalamud.dll</HintPath></Reference>
     <Compile Include="../../src/HuntModelSwapCN/Game/ModelVisibilityCodec.cs" Link="ModelVisibilityCodec.cs" />
     <Reference Include="FFXIVClientStructs"><HintPath>$(DALAMUD_HOME)/FFXIVClientStructs.dll</HintPath></Reference>
     <Reference Include="InteropGenerator.Runtime"><HintPath>$(DALAMUD_HOME)/InteropGenerator.Runtime.dll</HintPath></Reference>

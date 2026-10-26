@@ -342,3 +342,18 @@ LinkedDummyPreview 读取并维护 CombatPresentation：有战斗标志即要求
 主界面合并为「动作播放与控制」：选对象、播放所选动作、暂停／继续、重置位于同一组，技能库紧随其后；列表底部复用同一套播放／暂停按钮，通过不同 ImGui ID 隔离。暂停仍调用原有 AnimationPause，继续调用既有 resume（含速度修复），没有改变实际动作或冻结时钟。专属技能／版本试播同步所选动作，主面板与悬浮窗可直接重播。姿态／平A／旋转默认折叠，折叠偏好纳入白名单；迁移时将旧 skills 与 modelControls 的打开状态合并，并移除旧 skills 键，防止新面板被旧偏好反复打开。
 
 编译零警告／零错误，5041 项离线检查通过。新增检查覆盖批量隐藏默认开启、显式 true／false 的实际 JSON 往返与新内部折叠项；既有隐藏对象恢复、重绘、场景、例外和对象复用检查继续通过。不编写仅镜像界面条件的测试；无运行中游戏，未宣称实际点击或布局已实测。原始三份技能／台词 JSON 未变。
+
+
+## 0.1.0.24：原版等级字形与全部文本字体
+
+用户先指出等级数字不像原版，随后要求所有文本按游戏实际字体处理。原因是旧版 NameplateLevelPolicy 直接拼接 ASCII 的“90级 ”，使数字字形与末尾间隔不同。保持姓名走 NamePlate 服务、台词走原生 NPC 气泡，仍由各自游戏界面负责字体／描边／颜色；仅替换内容，不在 ImGui 叠画模型旁文本。
+
+当前国服二进制的 UpdateBattleCharaNameplates 签名唯一命中 RVA 0x117A70。等级分支 0x117EC1～0x117ED6 调用 0x108F10 生成专用数字，随后在 0x117F2E～0x117F49 使用 Addon 0x7F2（2034）格式化。0x108F98 从 RVA 0x28A3630 读取数字基字形指针，该指针静态值 0x142126F10 指向 UTF-8 `EE 81 A0`，即 U+E060；循环将十进制各位附加到该基字形，不补前导零。Addon 2034 实际原文为 `<string(lstr1)>级<nbsp>`，原始字节 `022903EA0203E7BAA7021D0103`。因此缓存每个 byte 等级的原生 UTF-8 字形、“级”及 `02 1D 01 03` NBSP payload，通过 NamePlateStringField.LevelPrefix 的 ReadOnlySpan<byte> 重载写入。等级 0 不写字段；恢复时使用原始等级。没有新增游戏函数调用或原生 hook。
+
+[Dalamud SeIconChar 源码](https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Game/Text/SeIconChar.cs) 同样定义 Number0～9 为 U+E060～E069。名牌服务支持直接设置 SeString 字节，保留 payload；本版使用 EntryFor 的现有身份查询。
+
+窗口字体核对发现，本地当前 SDK 的 GameFontFamilyAndSize.Axis14 仍映射 `common/font/AXIS_14.fdt`（7594 字形），缺少“猎、换、级、隐、动、暂、继、续、转、鲁”等简体字，不能直接用于国服整窗。当前国服实际有 `common/font/chnaxis_140.fdt`（28770 条，含两条相同空格），行高 19、上行 15、69 个字距对。官方国服分支也将 Axis14 指向该资源及 `common/font/font_chn_{0}.tex`：[国服字体定义](https://github.com/ottercorp/Dalamud/blob/master/Dalamud/Interface/GameFonts/GameFontFamilyAndSize.cs)。
+
+ChineseGameFontData 只读取用户本机字库与贴图，按 FDT 的通道、区域及字宽／基线提取字形，并核验数据尺寸、去重空格。GameUiFont 使用公开的 IFontAtlas.NewDelegateFontHandle 与 ImGui 自定义字形矩形，将实际像素拷入本插件字体图集，保留字距对。模板仅包含空格，实际窗口文字来自 ChnAXIS。每次构建按新 atlas 标识隔离预处理／后处理状态，清理时匹配构建计划，避免切缩放或异步重建复用旧状态。图集页不小于 2048×2048，按当前 UI 缩放构建，卸载释放句柄。字体数据异步、按需、只读取一次；读取或构建错误仅记录一次，字体未就绪时保留框架字体，避免窗口因字库问题不可用。全局 SDK 字体定义、其他插件、系统设置及原资源均未修改。发行包不包含任何游戏字体／贴图。
+
+5054 项离线检查通过：含 1／9／10／99／100／255 等级的真实 SeString payload、未知等级不写、原始等级恢复；Addon 2034 实际模板、国服字库全量尺寸／像素、全部 207 个狩猎名字覆盖，以及 69 个字距对。额外独立 ImGui 图集测试复用正式 Register／Populate 代码，28769 个唯一字形在 1／1.5／2 倍缩放下逐像素及 lookup 核对通过，对应 2／5／8 个图集页；报告位于 dist/verification/font-atlas-v0.1.0.24.json。字体图集不是游戏内界面截图，不能据此宣称已实测实际 UI 混合或布局。三份原始技能／台词 JSON 保持不变。

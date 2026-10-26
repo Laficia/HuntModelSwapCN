@@ -70,6 +70,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly NativeModelVisibility visibilityAccess;
     private readonly ModelVisibility modelVisibility;
     private readonly NameplatePresentation nameplatePresentation;
+    private readonly GameUiFont gameUiFont;
     private readonly IReadOnlyList<HuntAppearance> catalog;
     private readonly MapChoice[] mapChoices;
     private volatile IReadOnlyDictionary<uint, SkillAnimation> skills = new Dictionary<uint, SkillAnimation>();
@@ -133,6 +134,7 @@ public sealed class Plugin : IDalamudPlugin
         this.log = log;
         this.chat = chat;
         this.data = data;
+        gameUiFont = new(pluginInterface.UiBuilder.FontAtlas, data, log);
         catalog = HuntCatalog.Load(data.GetExcelSheet<TerritoryType>(), data.GetExcelSheet<BNpcName>(),
             data.GetExcelSheet<PlaceName>());
         actors = new(objects, nameplates);
@@ -184,7 +186,7 @@ public sealed class Plugin : IDalamudPlugin
         client.Logout += OnLogout;
         chat.ChatMessage += OnNpcDialogue;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.23 initialized. No appearance writes, native bubbles or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.24 initialized. No appearance writes, native bubbles or animation playback have been requested.");
     }
 
     private void Open()
@@ -510,7 +512,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             var target = targets.Target as IBattleNpc;
             var diagnoseReason = target is { } && target.IsValid() ? actors.CanApply(NativeActorAccess.Identity(target)) : "未选中有效战斗对象。";
-            chat.Print($"[狩猎模型替换 0.1.0.23] {DescribeTargets()}；替换条件：{diagnoseReason ?? "目标可替换，请选择外观"}");
+            chat.Print($"[狩猎模型替换 0.1.0.24] {DescribeTargets()}；替换条件：{diagnoseReason ?? "目标可替换，请选择外观"}");
             return;
         }
         if (request.Action == "stance")
@@ -853,7 +855,11 @@ public sealed class Plugin : IDalamudPlugin
     private void Draw()
     {
         var before = (rankFilter, expansionFilter, territoryFilter, selected, scale, spawnDistance, floatingControls, search, stanceSelection);
-        try { DrawCore(); }
+        try
+        {
+            using var font = !disposed && (visible || floatingControls) ? gameUiFont.Push() : null;
+            DrawCore();
+        }
         finally
         {
             if (before != (rankFilter, expansionFilter, territoryFilter, selected, scale, spawnDistance, floatingControls, search, stanceSelection))
@@ -880,7 +886,7 @@ public sealed class Plugin : IDalamudPlugin
         ImGui.SetNextWindowSize(new Vector2(700, 640), ImGuiCond.FirstUseEver);
         if (ImGui.Begin("狩猎模型替换 /hms###HuntModelSwapCN", ref visible))
         {
-            ImGui.TextDisabled("0.1.0.23 · 本机外观与动作演示");
+            ImGui.TextDisabled("0.1.0.24 · 本机外观与动作演示");
             ImGui.SameLine();
             ImGui.Checkbox("显示悬浮控制窗 /hms controls", ref floatingControls);
             var hideSelf = view.HideSelf;
@@ -1031,7 +1037,7 @@ public sealed class Plugin : IDalamudPlugin
                 ImGui.TextWrapped("庭具木人使用原位本地模型，点击模型或名牌时将选择转交给真实木人；也可点「选中木人」或输入 /hms target。它与前方生成共用一个本地模型；再次生成、移除预览或恢复时会还原庭具。木人歼灭战等有角色绘制对象的木人沿用直接替换。");
                 ImGui.TextWrapped(view.TargetDiagnostics);
                 if (ImGui.SmallButton("复制目标诊断"))
-                    ImGui.SetClipboardText($"狩猎模型替换 0.1.0.23\n{view.TargetDiagnostics}\n替换条件：{reason ?? "可替换"}");
+                    ImGui.SetClipboardText($"狩猎模型替换 0.1.0.24\n{view.TargetDiagnostics}\n替换条件：{reason ?? "可替换"}");
                 ImGui.SameLine();
                 ImGui.TextDisabled("或输入 /hms diagnose");
             }
@@ -1384,6 +1390,7 @@ public sealed class Plugin : IDalamudPlugin
         chat.ChatMessage -= OnNpcDialogue;
         requests.Clear();
         nameplatePresentation.Dispose();
+        gameUiFont.Dispose();
         try
         {
             void Shutdown()

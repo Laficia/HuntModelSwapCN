@@ -214,9 +214,9 @@ catch (InvalidOperationException) { tests++; }
         "A failed repair must remain tracked and be recoverable on a subsequent tick.");
     dummySession.Apply(dummy, "雷德罗巨蛇", "B怪", State(300, 0.5f) with { Level = 80, NameplateIcon = 1 });
     dummySession.Tick();
-    Check(NameplateLevelPolicy.Resolve(dummySession.Entries.Single()) == "80级 ", "Changing a dummy from S to B must update the cached nameplate level.");
+    Check(NameplateLevelPolicy.Resolve(dummySession.Entries.Single()) is { } level80 && level80.Span.SequenceEqual(ExpectedLevelPrefix(80)), "Changing a dummy from S to B must update its native numeric glyphs.");
     dummySession.Restore(dummy);
-    Check(NameplateLevelPolicy.Resolve(dummySession.Entries.Single()) == "100级 ", "A restoring dummy must use its original level prefix immediately.");
+    Check(NameplateLevelPolicy.Resolve(dummySession.Entries.Single()) is { } level100 && level100.Span.SequenceEqual(ExpectedLevelPrefix(100)), "A restoring dummy must use its original native level prefix immediately.");
     dummySession.Tick();
     Check(dummyAccess.Actors[dummy] == dummyOriginal && dummySession.Entries.Count == 0,
         "Repeated swaps and automatic repairs must still restore the original dummy's complete presentation.");
@@ -227,6 +227,19 @@ catch (InvalidOperationException) { tests++; }
         && !StrikingDummyPolicy.NeedsRedraw(541, 2449, -1, true, State(235, 3)),
         "Automatic dummy repair must not apply to ordinary monsters or native transformations.");
     Check(NameplateLevelPolicy.Resolve(null) is null, "Untracked objects must retain the game's level text.");
+}
+
+{
+    var entry = new SwapEntry(actor, "source", "demo", original, State(235, 1), false, false);
+    foreach (var (level, digits) in new (byte, string)[] { (1, "\uE061"), (9, "\uE069"), (10, "\uE061\uE060"),
+        (99, "\uE069\uE069"), (100, "\uE061\uE060\uE060"), (255, "\uE062\uE065\uE065") })
+    {
+        var prefix = NameplateLevelPolicy.Resolve(entry with { Applied = entry.Applied with { Level = level } });
+        Check(prefix is { } bytes && new Lumina.Text.ReadOnly.ReadOnlySeString(bytes.Span).ToMacroString() == digits + "级<nbsp>",
+            $"Level {level} must retain native digit glyphs and a valid native NBSP payload without ASCII or zero padding.");
+    }
+    Check(NameplateLevelPolicy.Resolve(entry with { Applied = entry.Applied with { Level = 0 } }) is null,
+        "An unknown level must leave the native level prefix alone.");
 }
 
 // Regression: spawned actors used friendly green nameplates despite the correct name/level/icon data.
@@ -1572,9 +1585,24 @@ unsafe
 if (args.Length == 1)
 {
     using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Language.ChineseSimplified });
+    Check(game.Excel.GetSheet<Addon>().GetRow(2034).Text.ToMacroString() == "<string(lstr1)>级<nbsp>",
+        "The CN nameplate format must match the audited native template, including its nonbreaking-space payload.");
+    var cnFont = ChineseGameFontData.Load(path => game.GetFile(path)?.Data,
+        path => game.GetFile<Lumina.Data.Files.TexFile>(path) is { } tex ? new(tex.Header.Width, tex.Header.Height, tex.ImageData) : null);
+    Check(cnFont.LineHeight == 19 && cnFont.Ascent == 15 && cnFont.Glyphs.Count > 28000,
+        "The plugin UI must read the actual CN ChnAXIS font instead of the SDK's incomplete Japanese AXIS table.");
+    var cnGlyphs = cnFont.Glyphs.ToDictionary(g => g.Character);
+    Check("狩猎模型替换等级隐藏动作播放暂停继续旋转布弗鲁".All(c => cnGlyphs.ContainsKey(c)),
+        "CN game font must cover all simplified Chinese characters that the generic SDK AXIS misses.");
+    Check(cnFont.Glyphs.All(g => g.Alpha.Length == g.Width * g.Height && g.Advance >= 0)
+        && cnGlyphs['猎'].Alpha.Any(p => p > 0) && cnGlyphs['级'].Alpha.Any(p => p > 0),
+        "Font channels must decode real nonempty Chinese pixels with bounded glyph dimensions.");
+    Check(cnFont.Kerning.Count == 69 && cnFont.Kerning.All(k => cnGlyphs.ContainsKey(k.Left) && cnGlyphs.ContainsKey(k.Right)),
+        "CN UI text must retain the game's real kerning pairs in addition to its glyph shapes and advance widths.");
     var catalog = HuntCatalog.Load(game.Excel.GetSheet<TerritoryType>(Language.ChineseSimplified),
         game.Excel.GetSheet<BNpcName>(Language.ChineseSimplified), game.Excel.GetSheet<PlaceName>(Language.ChineseSimplified));
     Console.WriteLine("Catalog: " + string.Join(", ", catalog.GroupBy(h => h.RankName).Select(g => $"{g.Key}={g.Count()}")));
+    Check(catalog.SelectMany(h => h.Name).All(c => cnGlyphs.ContainsKey(c)), "All 207 hunt names must be covered by the game's CN UI font.");
     Check(catalog.Count == 207 && catalog.Count(h => !h.IsSpecial) == 201,
         "The installed client must supply 201 regular hunts and six requested special appearances.");
     Check(catalog.Count(h => h.FilterRank == 3) == 47 && catalog.Count(h => h.FilterRank == 4) == 3
@@ -1683,7 +1711,7 @@ if (args.Length == 1)
                 && dummy.Level == hunt.Level && dummy.Icon == hunt.NameplateIcon
                 && dummy.ModelScale == hunt.Scale && dummy.GameObject.Scale == hunt.Scale
                 && (System.Numerics.Vector3)dummyDraw.Object.Scale == new System.Numerics.Vector3(hunt.Scale)
-                && NameplateLevelPolicy.Resolve(entry) == $"{hunt.Level}级 "
+                && NameplateLevelPolicy.Resolve(entry) is { } nativePrefix && nativePrefix.Span.SequenceEqual(ExpectedLevelPrefix(hunt.Level))
                 && NameplateIconPolicy.Resolve(entry, catalog) == (hunt.IsAggressive ? 61710 : 61704),
                 $"A dummy must use every hunt's own model, name, numeric/rendered level, elite icon and native scale: {hunt.Name}");
             Check(dummy.NameId == 541 && dummy.GameObject.BaseId == 901 && dummy.Health == 1234 && dummy.MaxHealth == 5678
@@ -1823,6 +1851,11 @@ if (args.Length == 1)
         "Unmapped actors must not inherit another hunt's curated skill list.");
 }
 Console.WriteLine($"PASS: {tests} checks.");
+
+static byte[] ExpectedLevelPrefix(byte level) => [.. System.Text.Encoding.UTF8.GetBytes(level switch {
+    50 => "\uE065\uE060级", 60 => "\uE066\uE060级", 70 => "\uE067\uE060级", 80 => "\uE068\uE060级",
+    90 => "\uE069\uE060级", 100 => "\uE061\uE060\uE060级", _ => throw new ArgumentOutOfRangeException(nameof(level)),
+}), 0x02, 0x1D, 0x01, 0x03];
 
 static VisualState State(int id, float scale) => new(id, -1, scale, new byte[26], new ulong[10], new ulong[3], 0, 0,
     DisplayName.Encode($"怪物{id}"), 7, scale, new System.Numerics.Vector3(scale));

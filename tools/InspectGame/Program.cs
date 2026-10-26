@@ -2,6 +2,107 @@ using Lumina;
 using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
+if (args.Length == 4 && args[1] == "--verify-game-ui-font")
+{
+    using var fontGame = new GameData(args[0]);
+    var cnFont = HuntModelSwapCN.Game.ChineseGameFontData.Load(path => fontGame.GetFile(path)?.Data,
+        path => fontGame.GetFile<Lumina.Data.Files.TexFile>(path) is { } tex ? new(tex.Header.Width, tex.Header.Height, tex.ImageData) : null);
+    File.Copy(Path.Combine(args[3], "cimgui.dll"), Path.Combine(AppContext.BaseDirectory, "cimgui.dll"), true);
+    List<object> results = [];
+    foreach (var scale in new[] { 1f, 1.5f, 2f })
+    {
+        var context = Dalamud.Bindings.ImGui.ImGui.CreateContext();
+        try
+        {
+            var atlas = Dalamud.Bindings.ImGui.ImGui.GetIO().Fonts;
+            var font = atlas.AddFontDefault();
+            font.FontSize = cnFont.LineHeight * scale;
+            var plan = HuntModelSwapCN.Game.GameUiFont.Register(atlas, font, cnFont, scale);
+            if (!atlas.Build()) throw new InvalidOperationException("Offline font atlas build failed.");
+            HuntModelSwapCN.Game.GameUiFont.Populate(atlas, font, cnFont, plan);
+            var verified = 0;
+            unsafe
+            {
+                var buffers = new (nint Pointer, int Width)[atlas.Textures.Size];
+                for (var i = 0; i < buffers.Length; i++)
+                {
+                    byte* pixels = null; var w = 0; var h = 0;
+                    atlas.GetTexDataAsAlpha8(i, ref pixels, ref w, ref h);
+                    buffers[i] = ((nint)pixels, w);
+                }
+                foreach (var (id, glyph, w, h) in plan.Rectangles)
+                {
+                    var rect = new Dalamud.Bindings.ImGui.ImFontAtlasCustomRectPtr(atlas.GetCustomRectByIndex(id));
+                    var buffer = buffers[rect.TextureIndex];
+                    for (var y = 0; y < h; y++)
+                        for (var x = 0; x < w; x++)
+                        {
+                            var sx = Math.Min(glyph.Width - 1, (int)(x / scale));
+                            var sy = Math.Min(glyph.Height - 1, (int)(y / scale));
+                            var expected = sx < 0 || sy < 0 ? 0 : glyph.Alpha[sy * glyph.Width + sx];
+                            if (((byte*)buffer.Pointer)[(rect.Y + y) * buffer.Width + rect.X + x] != expected)
+                                throw new InvalidOperationException($"Font pixels differ for U+{(int)glyph.Character:X4}.");
+                        }
+                    if (font.FindGlyphNoFallback(glyph.Character) == null) throw new InvalidOperationException("Missing baked glyph.");
+                    verified++;
+                }
+            }
+            results.Add(new { Scale = scale, VerifiedGlyphs = verified, Textures = atlas.Textures.Size, font.FontSize, font.Ascent, font.Descent });
+        }
+        finally { Dalamud.Bindings.ImGui.ImGui.DestroyContext(context); }
+    }
+    var report = System.Text.Json.JsonSerializer.Serialize(results, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+    File.WriteAllText(args[2], report);
+    Console.WriteLine(report);
+    return;
+}
+
+if (args.Length == 2 && args[1] == "--nameplate-level-font")
+{
+    foreach (var t in new[] { typeof(Dalamud.Bindings.ImGui.ImFontAtlasPtr), typeof(Dalamud.Bindings.ImGui.ImFontPtr), typeof(Dalamud.Bindings.ImGui.ImFontAtlasCustomRectPtr) })
+    {
+        foreach (var m in t.GetMethods().Where(m => m.DeclaringType == t && new[] { "CustomRect", "TexData", "AddFontDefault", "AddGlyph", "BuildLookup", "Kerning" }.Any(k => m.Name.Contains(k))))
+            Console.WriteLine($"FONT API {t.Name}.{m}");
+        Console.WriteLine($"FONT FIELDS {t.Name}: {string.Join(", ", t.GetProperties().Select(p => $"{p.Name}:{p.PropertyType.Name}"))}");
+    }
+    foreach (var t in new[] { typeof(FFXIVClientStructs.FFXIV.Client.UI.RaptureAtkModule),
+        typeof(FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureTextModule),
+        typeof(FFXIVClientStructs.FFXIV.Client.System.String.Utf8String) })
+        foreach (var m in t.GetMethods().Where(m => m.DeclaringType == t && new[] { "Nameplate", "Number", "Normalize", "FormatAddonText" }.Any(k => m.Name.Contains(k, StringComparison.OrdinalIgnoreCase))))
+            Console.WriteLine($"API {t.Name}.{m}: {string.Join(";", m.GetCustomAttributesData())}");
+    foreach (var icon in Enum.GetValues<Dalamud.Game.Text.SeIconChar>().Where(v => v.ToString().StartsWith("Number") || v.ToString().StartsWith("Level")))
+        Console.WriteLine($"Icon {icon}=U+{(int)icon:X4}");
+    using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+    var uiFont = Dalamud.Interface.GameFonts.GameFontFamilyAndSize.Axis14;
+    var uiFontAttribute = typeof(Dalamud.Interface.GameFonts.GameFontFamilyAndSize).GetField(uiFont.ToString())!
+        .GetCustomAttributesData().Single(a => a.AttributeType.Name == "GameFontFamilyAndSizeAttribute");
+    var uiFontPath = (string)uiFontAttribute.ConstructorArguments[0].Value!;
+    Console.WriteLine($"CN SDK font {uiFont}: {uiFontPath}; {uiFontAttribute.ConstructorArguments[1].Value}");
+    foreach (var fontPath in new[] { "common/font/AXIS_14.fdt", "common/font/chnaxis_140.fdt" })
+    {
+        var fontFile = probe.GetFile(fontPath);
+        if (fontFile is null) { Console.WriteLine($"Font missing: {fontPath}"); continue; }
+        var font = new Dalamud.Interface.GameFonts.FdtReader(fontFile.Data);
+        var missing = "狩猎模型替换等级隐藏动作播放暂停继续旋转布弗鲁蜜蜂云跳蜥幼体俄菲翁尼厄斯0123456789".Distinct().Where(c => font.FindGlyphIndex(c) < 0).ToArray();
+        Console.WriteLine($"Font {fontPath}: glyphs={font.Glyphs.Count}; missing={new string(missing)}");
+        Console.WriteLine("Duplicate codepoints: " + string.Join(", ", font.Glyphs.GroupBy(g => g.CharInt).Where(g => g.Count() > 1).Take(10).Select(g => $"U+{g.Key:X4}={g.Count()}")));
+        Console.WriteLine("Space glyphs: " + string.Join(", ", font.Glyphs.Where(g => g.CharInt == 32).Select(g => $"raw={g.CharUtf8:X8} advance={g.AdvanceWidth}")));
+        Console.WriteLine("Metrics: " + string.Join(", ", font.FontHeader.GetType().GetFields().Select(f => $"{f.Name}={f.GetValue(font.FontHeader)}")));
+    }
+    foreach (var id in new uint[] { 35, 36, 242, 716, 866, 1093, 2034, 2035, 2039, 16599, 17740 })
+    {
+        var text = probe.Excel.GetSheet<Addon>().GetRow(id).Text;
+        Console.WriteLine($"Raw Addon {id}: {Convert.ToHexString(text.Data.Span)}; {text.ToMacroString()}");
+    }
+    foreach (var row in probe.Excel.GetSheet<Addon>())
+    {
+        var text = row.Text.ToString();
+        if (text.Length <= 160 && (text.Contains('级') || text.Any(c => c is >= '\uE060' and <= '\uE06C')))
+            Console.WriteLine($"Addon {row.RowId}: {text}");
+    }
+    return;
+}
+
 if (args.Length == 2 && args[1] == "--auto-attacks")
 {
     using var probe = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
