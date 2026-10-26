@@ -1,7 +1,7 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
     <AssemblyName>HuntModelSwapCN</AssemblyName>
-    <Version>0.1.0.22</Version>
+    <Version>0.1.0.23</Version>
     <Authors>Laficia</Authors>
     <PackageProjectUrl>https://github.com/Laficia/HuntModelSwapCN</PackageProjectUrl>
     <Description>独立的狩猎外观与动作演示插件，支持 S/A/B、SS 及其随从。</Description>

@@ -1,6 +1,6 @@
 namespace HuntModelSwapCN.Core;
 
-// Persist values only. Actor identities, pointers, hiding and pause leases are session-only.
+// Persist values only. Hidden actor identities, pointers and pause leases are session-only.
 public sealed record UserPreferences
 {
     public uint SelectedNameId { get; init; }
@@ -11,6 +11,7 @@ public sealed record UserPreferences
     public string Search { get; init; } = "";
     public float SpawnDistance { get; init; } = 8;
     public bool FloatingControls { get; init; }
+    public bool HideAllMonsters { get; init; } = true;
     public ModelStance Stance { get; init; }
     public bool AutoAttack { get; init; } = true;
     public int AutoAttackIntervalMs { get; init; } = AutoAttackPreview.DefaultIntervalMs;
@@ -30,7 +31,7 @@ public sealed record UserPreferences
         Scales = (Scales ?? []).Where(p => ValidKey(p.Key) && float.IsFinite(p.Value) && p.Value > 0)
             .Take(1024).ToDictionary(p => p.Key, p => p.Value),
         Sections = (Sections ?? []).Where(p => p.Key is "modelControls" or "visibilityControls" or "hiddenTargets"
-            or "swappedActors" or "help" or "dialogue" or "skills").ToDictionary(p => p.Key, p => p.Value),
+            or "swappedActors" or "help" or "dialogue" or "skills" or "presentationControls").ToDictionary(p => p.Key, p => p.Value),
     };
 
     private static bool ValidKey(string key)

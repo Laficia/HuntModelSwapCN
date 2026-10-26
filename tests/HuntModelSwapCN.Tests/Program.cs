@@ -1168,6 +1168,17 @@ var sampleHunt = new HuntAppearance(10617, 13834, 3315, 3, 4, 961, "布弗鲁", 
         "Existing configurations without the new preference fields must load safely.");
     Check(legacy.AutoAttack && legacy.AutoAttackIntervalMs == 2500,
         "Legacy configurations must enable combat swings with a valid default interval.");
+    Check(legacy.HideAllMonsters, "New and legacy preferences must default to hiding all eligible monsters.");
+    foreach (var hideAll in new[] { true, false })
+    {
+        var visibilityPreferences = System.Text.Json.JsonSerializer.Deserialize<UserPreferences>(
+            System.Text.Json.JsonSerializer.Serialize(new UserPreferences { HideAllMonsters = hideAll }))!.Normalize();
+        Check(visibilityPreferences.HideAllMonsters == hideAll,
+            "Both enabled and explicitly disabled bulk hiding must survive a real JSON round-trip.");
+    }
+    var presentationPreferences = new UserPreferences { Sections = new() { ["presentationControls"] = true, ["unknown"] = true } }.Normalize();
+    Check(presentationPreferences.Sections.Count == 1 && presentationPreferences.Sections["presentationControls"],
+        "The unified action controls must remember the presentation subsection without retaining unknown sections.");
     var attackSettings = System.Text.Json.JsonSerializer.Deserialize<UserPreferences>(System.Text.Json.JsonSerializer.Serialize(
         new UserPreferences { AutoAttack = false, AutoAttackIntervalMs = 5500, AutoAttackVariant = AutoAttackVariant.MonsterB }))!.Normalize();
     Check(!attackSettings.AutoAttack && attackSettings.AutoAttackIntervalMs == 5500 && attackSettings.AutoAttackVariant == AutoAttackVariant.MonsterB,
