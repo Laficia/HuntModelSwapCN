@@ -29,6 +29,8 @@ public sealed class Plugin : IDalamudPlugin
     private readonly NativeActorAccess actors;
     private readonly SwapSession session;
     private readonly ActionPreview preview;
+    private readonly KnockdownPreview knockdown;
+    private readonly Dictionary<string, bool> riseClips = [];
     private readonly LocalPreview localPreview;
     private readonly LinkedDummyPreview linkedDummy;
     private readonly NativeLinkedDummyTarget linkedTarget;
@@ -119,7 +121,8 @@ public sealed class Plugin : IDalamudPlugin
         bool HideSelf = false, int HiddenCount = 0, string? CannotHide = null, HiddenTarget[]? HiddenTargets = null,
         bool ComboRunning = false, string ComboStatus = "", string ComboDirections = "", float ComboRemaining = 0,
         bool HideAllMonsters = false, ActorIdentity[]? PausedActors = null, ActorHeading[]? Headings = null,
-        ActorIdentity[]? RotationActors = null, bool DialogueRunning = false, string TargetDiagnostics = "", ActorIdentity? LinkedSource = null);
+        ActorIdentity[]? RotationActors = null, bool DialogueRunning = false, string TargetDiagnostics = "", ActorIdentity? LinkedSource = null,
+        ActorIdentity[]? KnockdownActors = null);
 
     public Plugin(IDalamudPluginInterface pluginInterface, IFramework framework, ICommandManager commands,
         IClientState client, ICondition condition, IObjectTable objects, IDataManager data,
@@ -147,6 +150,8 @@ public sealed class Plugin : IDalamudPlugin
         animationPause = new(session, pauseAccess, actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor));
         preview.IsPaused = animationPause.IsPaused;
         preview.IsEligible = actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor);
+        knockdown = new(session, actors, (actor, model) => preview.IsEligible(actor) && actors.ReadyForAnimation(actor, model),
+            animationPause.IsPaused, actors.ResetIdle);
         pauseAccess.ShouldPause = animationPause.IsPausedAddress;
         pauseAccess.CanControl = actor => session.EntryFor(actor) is not null
             && (!localPreview.Owns(actor) || localPreview.OwnsLive(actor));
@@ -155,9 +160,9 @@ public sealed class Plugin : IDalamudPlugin
         sequence = new(session, preview, actors, actor => !localPreview.Owns(actor) || localPreview.OwnsLive(actor),
             animationPause.IsPaused);
         linkedDummy = new(session, localPreview, actors, new NativeLinkedDummyAccess(actors, localActors),
-            actor => animationPause.IsPaused(actor) || sequence.Actor == actor || preview.IsBusy(actor, Environment.TickCount64));
+            actor => animationPause.IsPaused(actor) || knockdown.Active(actor) || sequence.Actor == actor || preview.IsBusy(actor, Environment.TickCount64));
         autoAttack = new(session, new NativeAutoAttackAccess(objects, localActors, actors), animationPause.IsPaused,
-            (actor, now) => sequence.Actor == actor || preview.IsBusy(actor, now), actor => modelRotation.Actors.Contains(actor));
+            (actor, now) => knockdown.Active(actor) || sequence.Actor == actor || preview.IsBusy(actor, now), actor => modelRotation.Actors.Contains(actor));
         preview.BeforePlay = actor => { if (localPreview.Owns(actor)) autoAttack.Interrupt(); };
         linkedTarget = new(interop, log, new LinkedDummyTarget(linkedDummy, localPreview, actors));
         visibilityAccess = new(objects);
@@ -178,7 +183,7 @@ public sealed class Plugin : IDalamudPlugin
         RestorePreferences();
         nameplatePresentation = new(nameplates, session, localPreview, log, catalog, linkedDummy.Replaces);
         commands.AddHandler("/hms", new CommandInfo(OnCommand)
-            { HelpMessage = "打开狩猎模型替换；/hms controls 悬浮控制；/hms target 选中原位木人；/hms pause 暂停；/hms resume 恢复；/hms reset 重置演示状态；/hms rotate 角度 水平旋转；/hms show 恢复显示；/hms restore 恢复全部；/hms play 技能ID；/hms combo 布弗鲁连招；/hms stop 停止连招；/hms talk 阿提卡斯四句气泡；/hms stoptalk 停止台词。" });
+            { HelpMessage = "打开狩猎模型替换；/hms controls 悬浮控制；/hms target 选中原位木人；/hms down 演示击倒，/hms up 提前起身；/hms pause 暂停；/hms resume 恢复；/hms reset 重置演示状态；/hms rotate 角度 水平旋转；/hms show 恢复显示；/hms restore 恢复全部；/hms play 技能ID；/hms combo 布弗鲁连招；/hms stop 停止连招；/hms talk 阿提卡斯四句气泡；/hms stoptalk 停止台词。" });
         pluginInterface.UiBuilder.Draw += Draw;
         pluginInterface.UiBuilder.OpenMainUi += Open;
         pluginInterface.UiBuilder.OpenConfigUi += Open;
@@ -186,7 +191,7 @@ public sealed class Plugin : IDalamudPlugin
         client.Logout += OnLogout;
         chat.ChatMessage += OnNpcDialogue;
         framework.Update += Update;
-        log.Information("HuntModelSwapCN 0.1.0.24 initialized. No appearance writes, native bubbles or animation playback have been requested.");
+        log.Information("HuntModelSwapCN 0.1.0.25 initialized. No appearance writes, native bubbles or animation playback have been requested.");
     }
 
     private void Open()
@@ -217,6 +222,10 @@ public sealed class Plugin : IDalamudPlugin
             requests.Enqueue(new(Interlocked.Read(ref epoch), "pause", ControlActor(snapshot), ChatFeedback: true));
         else if (arguments.Trim().Equals("resume", StringComparison.OrdinalIgnoreCase))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "resume", ControlActor(snapshot), ChatFeedback: true));
+        else if (arguments.Trim().Equals("down", StringComparison.OrdinalIgnoreCase))
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "down", ControlActor(snapshot), ChatFeedback: true));
+        else if (arguments.Trim().Equals("up", StringComparison.OrdinalIgnoreCase))
+            requests.Enqueue(new(Interlocked.Read(ref epoch), "up", ControlActor(snapshot), ChatFeedback: true));
         else if (arguments.Trim().Equals("controls", StringComparison.OrdinalIgnoreCase)) { floatingControls = !floatingControls; preferencesDirty = true; }
         else if (arguments.Trim().Equals("target", StringComparison.OrdinalIgnoreCase))
             requests.Enqueue(new(Interlocked.Read(ref epoch), "target-source", snapshot.LinkedSource, ChatFeedback: true));
@@ -373,6 +382,7 @@ public sealed class Plugin : IDalamudPlugin
         requests.Clear();
         incomingDialogue.Clear();
         dialoguePreview.ForgetScene();
+        knockdown.ForgetScene();
         sequence.ForgetScene();
         animationPause.ForgetScene();
         autoAttack.ForgetScene(); autoAttackFaulted = false;
@@ -403,6 +413,7 @@ public sealed class Plugin : IDalamudPlugin
             {
                 autoAttack.ForgetScene(); autoAttackFaulted = false;
                 dialoguePreview.ForgetScene();
+                knockdown.ForgetScene();
                 incomingDialogue.Clear();
                 sequence.ForgetScene();
                 modelRotation.Clear();
@@ -444,6 +455,8 @@ public sealed class Plugin : IDalamudPlugin
             catch (Exception ex) { status = "暂停动画维护失败，可继续动作或重置演示状态。"; log.Error(ex, status); }
             pauseAccess.PrunePending();
             preview.Tick(Environment.TickCount64);
+            try { knockdown.Tick(Environment.TickCount64); }
+            catch (Exception ex) { status = "击倒演示已中断，可重新选择模型再试。"; log.Error(ex, status); }
             try { dialoguePreview.Tick(Environment.TickCount64); }
             catch (Exception ex) { dialoguePreview.StopSequence(); status = "台词播放已中断，请重新选择演示对象。"; log.Error(ex, status); }
             try { modelRotation.Tick(); }
@@ -497,7 +510,8 @@ public sealed class Plugin : IDalamudPlugin
                 modelVisibility.HideAllMonsters, animationPause.Actors.ToArray(),
                 entries.Select(e => new ActorHeading(e.Actor, actors.Heading(e.Actor, e.Applied.ModelId))).ToArray(),
                 modelRotation.Actors.ToArray(), dialoguePreview.Running,
-                visible || floatingControls ? DescribeTargets() : "输入 /hms diagnose 获取当前诊断。", linkedDummy.Source);
+                visible || floatingControls ? DescribeTargets() : "输入 /hms diagnose 获取当前诊断。", linkedDummy.Source,
+                knockdown.Actors.ToArray());
         }
         catch (Exception ex)
         {
@@ -512,7 +526,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             var target = targets.Target as IBattleNpc;
             var diagnoseReason = target is { } && target.IsValid() ? actors.CanApply(NativeActorAccess.Identity(target)) : "未选中有效战斗对象。";
-            chat.Print($"[狩猎模型替换 0.1.0.24] {DescribeTargets()}；替换条件：{diagnoseReason ?? "目标可替换，请选择外观"}");
+            chat.Print($"[狩猎模型替换 0.1.0.25] {DescribeTargets()}；替换条件：{diagnoseReason ?? "目标可替换，请选择外观"}");
             return;
         }
         if (request.Action == "stance")
@@ -576,13 +590,21 @@ public sealed class Plugin : IDalamudPlugin
             dialoguePreview.Clear(speakingActor);
         if (request.Action is "play" or "start-combo" && request.Actor is { } playingActor && animationPause.IsPaused(playingActor))
             throw new InvalidOperationException("演示对象已暂停，请先点击「继续动作」或输入 /hms resume。");
+        if (request.Action is "play" or "start-combo" or "auto-attack-once" && request.Actor is { } downActor && knockdown.Active(downActor))
+            throw new InvalidOperationException("模型正在演示击倒，请等它起身或点击「立即起身」。");
         // Restore saved speeds before any operation can redraw/delete/change the model.
-        if (request.Action == "all") { animationPause.Reset(); autoAttack.Interrupt(); autoAttack.ForgetScene(); preview.Clear(); demoDefaults.Clear(); }
+        if (request.Action == "all")
+        {
+            animationPause.Reset();
+            foreach (var down in knockdown.Actors.ToArray()) knockdown.Cancel(down);
+            autoAttack.Interrupt(); autoAttack.ForgetScene(); preview.Clear(); demoDefaults.Clear();
+        }
         else if (request.Action is "spawn" or "remove-local" && localPreview.Actor is { } oldPreview)
             animationPause.Resume(oldPreview.Actor);
         else if (request.Action is "apply" or "restore" && request.Actor is { } changingActor)
         {
             animationPause.Resume(changingActor);
+            knockdown.Cancel(changingActor);
             if (localPreview.Owns(changingActor)) { autoAttack.Interrupt(); autoAttack.ForgetScene(); }
             preview.Forget(changingActor);
         }
@@ -667,6 +689,7 @@ public sealed class Plugin : IDalamudPlugin
             if (sequence.Actor == actor) sequence.Stop("已重置演示状态，连招已停止。");
             dialoguePreview.Clear(actor);
             animationPause.Resume(actor, repairIfNotPaused: true);
+            knockdown.Cancel(actor);
             if (localPreview.Owns(actor)) { autoAttack.Interrupt(); autoAttackFaulted = false; }
             preview.Stop(actor);
             session.Resize(actor, defaults.Scale);
@@ -709,6 +732,33 @@ public sealed class Plugin : IDalamudPlugin
                 dialoguePreview.Play(actor, line.Text, line.Seconds);
                 status = "已在演示模型上播放本地 NPC 台词气泡。";
             }
+            return;
+        }
+        if (request.Action == "down")
+        {
+            if (session.EntryFor(actor) is not { } entry || !modelFamilies.TryGetValue(entry.Applied.ModelId, out var family))
+                throw new InvalidOperationException("请先生成或替换要演示的狩猎模型。");
+            if (!riseClips.TryGetValue(family, out var canRise))
+            {
+                var risePath = KnockdownClips.RisePath(family);
+                canRise = data.FileExists(risePath) && KnockdownClips.Contains(data.GetFile(risePath)?.Data, "cbnm_revive"u8);
+                riseClips[family] = canRise;
+            }
+            knockdown.Start(actor, family, canRise, Environment.TickCount64, () =>
+            {
+                if (sequence.Actor == actor) sequence.Stop("已停止连招，改为演示击倒。");
+                if (localPreview.Owns(actor)) autoAttack.Interrupt();
+                preview.Stop(actor);
+            });
+            status = $"「{entry.ReplacementName}」开始演示击倒，倒地后会自动起身。";
+            return;
+        }
+        if (request.Action == "up")
+        {
+            if (!knockdown.Active(actor)) throw new InvalidOperationException("该模型当前没有击倒演示。");
+            animationPause.Resume(actor);
+            knockdown.Recover(actor, Environment.TickCount64);
+            status = "已请求提前起身，恢复当前姿态。";
             return;
         }
         if (request.Action == "pause")
@@ -820,6 +870,7 @@ public sealed class Plugin : IDalamudPlugin
         if (localPreview.Actor is not { } lease) return;
         dialoguePreview.Clear(lease.Actor);
         animationPause.Resume(lease.Actor);
+        knockdown.Cancel(lease.Actor);
         autoAttack.Interrupt(); autoAttack.ForgetScene(); autoAttackFaulted = false;
         preview.Forget(lease.Actor);
         demoDefaults.Forget(lease.Actor);
@@ -886,7 +937,7 @@ public sealed class Plugin : IDalamudPlugin
         ImGui.SetNextWindowSize(new Vector2(700, 640), ImGuiCond.FirstUseEver);
         if (ImGui.Begin("狩猎模型替换 /hms###HuntModelSwapCN", ref visible))
         {
-            ImGui.TextDisabled("0.1.0.24 · 本机外观与动作演示");
+            ImGui.TextDisabled("0.1.0.25 · 本机外观与动作演示");
             ImGui.SameLine();
             ImGui.Checkbox("显示悬浮控制窗 /hms controls", ref floatingControls);
             var hideSelf = view.HideSelf;
@@ -1037,7 +1088,7 @@ public sealed class Plugin : IDalamudPlugin
                 ImGui.TextWrapped("庭具木人使用原位本地模型，点击模型或名牌时将选择转交给真实木人；也可点「选中木人」或输入 /hms target。它与前方生成共用一个本地模型；再次生成、移除预览或恢复时会还原庭具。木人歼灭战等有角色绘制对象的木人沿用直接替换。");
                 ImGui.TextWrapped(view.TargetDiagnostics);
                 if (ImGui.SmallButton("复制目标诊断"))
-                    ImGui.SetClipboardText($"狩猎模型替换 0.1.0.24\n{view.TargetDiagnostics}\n替换条件：{reason ?? "可替换"}");
+                    ImGui.SetClipboardText($"狩猎模型替换 0.1.0.25\n{view.TargetDiagnostics}\n替换条件：{reason ?? "可替换"}");
                 ImGui.SameLine();
                 ImGui.TextDisabled("或输入 /hms diagnose");
             }
@@ -1144,7 +1195,7 @@ public sealed class Plugin : IDalamudPlugin
         ImGui.BeginDisabled(Loading || entry is null || entry.WaitingForDraw || entry.Restoring);
         if (showPlay)
         {
-            ImGui.BeginDisabled(paused || !skills.ContainsKey(selectedSkill));
+            ImGui.BeginDisabled(paused || !skills.ContainsKey(selectedSkill) || (actor.HasValue && view.KnockdownActors?.Contains(actor.Value) == true));
             if (ImGui.Button("播放所选动作"))
                 requests.Enqueue(new(Interlocked.Read(ref epoch), "play", actor, SkillId: selectedSkill));
             ImGui.EndDisabled();
@@ -1175,6 +1226,11 @@ public sealed class Plugin : IDalamudPlugin
         DrawPlaybackButtons(view, actor);
         ImGui.SameLine();
         ImGui.BeginDisabled(Loading || entry is null || entry.WaitingForDraw || entry.Restoring);
+        var down = actor.HasValue && view.KnockdownActors?.Contains(actor.Value) == true;
+        ImGui.BeginDisabled(paused && !down);
+        if (ImGui.Button(down ? "立即起身" : "演示击倒")) Enqueue(down ? "up" : "down", actor);
+        ImGui.EndDisabled();
+        ImGui.SameLine();
         if (ImGui.Button("重置演示状态")) Enqueue("reset-demo", actor);
         ImGui.EndDisabled();
         if (skills.TryGetValue(selectedSkill, out var selectedAction)) ImGui.TextWrapped($"所选动作：{selectedAction.Name} · ID {selectedAction.ActionId}");
@@ -1201,7 +1257,7 @@ public sealed class Plugin : IDalamudPlugin
             ImGui.BeginDisabled(actor != view.LocalActor || !view.LocalActor.HasValue);
             var attackOptionsChanged = ImGui.Checkbox("战斗时自动平A（朝向自己）", ref autoAttackEnabled);
             ImGui.SameLine();
-            ImGui.BeginDisabled(paused);
+            ImGui.BeginDisabled(paused || down);
             if (ImGui.SmallButton("试播一次平A")) Enqueue("auto-attack-once", actor);
             ImGui.EndDisabled();
             ImGui.SetNextItemWidth(150);
@@ -1293,6 +1349,7 @@ public sealed class Plugin : IDalamudPlugin
             : entry is null ? "请先生成本地预览，或替换当前目标的模型。"
             : entry.WaitingForDraw || entry.Restoring ? "请等待对象完成重绘。" : null;
         if (playActor.HasValue && (view.PausedActors?.Contains(playActor.Value) ?? false)) reason = "对象已暂停，请先恢复动作。";
+        if (playActor.HasValue && view.KnockdownActors?.Contains(playActor.Value) == true) reason = "模型正在演示击倒，可点击「立即起身」。";
         var hunt = entry is null ? null : catalog.FirstOrDefault(h => h.ModelId == entry.Applied.ModelId
             && h.Name == entry.ReplacementName);
         if (hunt is not null && HuntSkillPresets.Profile(hunt.NameId) is { } profile && profile.ModelId == entry!.Applied.ModelId)
@@ -1403,7 +1460,11 @@ public sealed class Plugin : IDalamudPlugin
                     modelRotation.Clear();
                     try { dialoguePreview.Reset(); }
                     catch (Exception ex) { log.Error(ex, "卸载时关闭演示气泡失败"); }
-                    try { animationPause.Reset(); }
+                    try
+                    {
+                        animationPause.Reset();
+                        foreach (var down in knockdown.Actors.ToArray()) knockdown.Cancel(down);
+                    }
                     finally
                     {
                         try { pauseAccess.Dispose(); }

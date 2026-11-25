@@ -378,6 +378,73 @@ var previewSession = new SwapSession(previewAccess);
 var preview = new ActionPreview(previewSession, animationAccess);
 var testSkill = new SkillAnimation(27316, "巨魔碎颈臂", 3205, "mon_sp/[SKL_ID]/mon_sp005", 1);
 {
+    var a = new FakeAccess(); a.Actors[actor] = original; a.Actors[other] = original;
+    var s = new SwapSession(a);
+    var anim = new FakeAnimationAccess();
+    var idle = new List<(ActorIdentity Actor, int Model)>();
+    var ready = true; var paused = false; var interrupts = 0;
+    var down = new KnockdownPreview(s, anim, (_, _) => ready, _ => paused, (target, model) => idle.Add((target, model)));
+    void Start(ActorIdentity target, string family, bool canRise, long now) =>
+        down.Start(target, family, canRise, now, () => interrupts++);
+    void ExpectRejected()
+    {
+        try { Start(actor, "m0741", false, 0); throw new Exception("Invalid knockdown accepted."); }
+        catch (InvalidOperationException) { Check(interrupts == 0 && anim.Calls.Count == 0, "Rejected knockdown interrupted another action."); }
+    }
+    ExpectRejected();
+    s.Apply(actor, "木人", "布弗鲁", State(3315, 3)); ExpectRejected(); s.Tick();
+    paused = true; ExpectRejected(); paused = false;
+    Start(actor, "m0741", false, 0);
+    Check(anim.Calls.Single() == (actor, 3315, (ushort)72) && down.Active(actor), "A knockdown must start with this model's fall.");
+    anim.Active = true;
+    down.Tick(800); paused = true; down.Tick(900); down.Tick(90000);
+    paused = false; down.Tick(90001); down.Tick(92700);
+    Check(anim.Calls.Count == 1, "A pause must freeze the fall's active time.");
+    down.Tick(92701);
+    Check(anim.Calls.Last().Timeline == 73, "A resident fall must eventually enter the prone pose.");
+    down.Tick(95700);
+    Check(down.Active(actor) && idle.Count == 0, "The prone pose must last three active seconds.");
+    down.Tick(95701);
+    Check(!down.Active(actor) && idle.Single() == (actor, 3315) && anim.Stopped.Single().Timeline == 73,
+        "Models without a get-up clip must automatically return to idle.");
+    s.Apply(other, "小怪", "飞行模型", State(4161, 1)); s.Tick();
+    Start(other, "m0129", false, 100000);
+    down.Tick(110000); down.Tick(110000);
+    Check(anim.Calls.TakeLast(2).Select(c => c.Timeline).SequenceEqual(new ushort[] {74, 75}),
+        "A long frame must not skip the flying fall loop.");
+    down.Tick(110600); down.Tick(114100);
+    Check(anim.Calls.Last().Timeline == 76 && !down.Active(other) && idle.Last() == (other, 4161),
+        "Flying models without a prone clip must recover from landing without requesting a missing pose.");
+    Start(actor, "m0741", true, 120000); Start(other, "m0011", true, 120000);
+    down.Recover(actor, 120010);
+    Check(anim.Calls.Last() == (actor, 3315, (ushort)77) && down.Active(actor) && down.Active(other),
+        "Early recovery must play the supported get-up on the selected actor only.");
+    down.Tick(120760);
+    Check(!down.Active(actor) && down.Active(other) && idle.Last() == (actor, 3315), "Get-up must finish in the original pose.");
+    var stopCount = anim.Stopped.Count; var playCount = anim.Calls.Count;
+    ready = false; down.Tick(121000);
+    Check(!down.Active(other) && anim.Stopped.Count == stopCount && anim.Calls.Count == playCount,
+        "Lost ownership/draw must discard the sequence without another native call.");
+    ready = true; Start(actor, "m0741", false, 130000);
+    s.Apply(actor, "木人", "其他外观", State(999, 1)); s.Tick(); down.Cancel(actor);
+    Check(anim.Stopped.Count == stopCount && !down.Active(actor), "A new model must not receive the previous model's recovery.");
+    Start(actor, "", true, 140000); down.ForgetScene(); down.Tick(240000);
+    Check(anim.Calls.Last().Timeline == 66 && anim.Stopped.Count == stopCount && !down.Active(actor),
+        "Forgetting a scene must not write idle or a deferred clip through the old identity.");
+    s.Apply(actor, "木人", "名字", State(999, 1), presentationOnly: true); s.Tick();
+    try { Start(actor, "", true, 250000); throw new Exception("Presentation-only source animated."); }
+    catch (InvalidOperationException) { Check(!down.Active(actor), "The real linked furnishing must never be animated."); }
+    var lease = new LocalActorLease(100, 0x5000, other, 1);
+    var swings = new FakeAutoAttackAccess { ValidLease = lease };
+    var attacks = new AutoAttackPreview(s, swings, _ => false, (target, _) => down.Active(target), _ => false);
+    attacks.Tick(lease, true, 300000);
+    down.Start(other, "m0011", false, 300001, attacks.Interrupt);
+    attacks.Tick(lease, true, 310000);
+    Check(swings.Plays.Count == 1 && swings.Stops.Count == 1, "The fall must interrupt the previous swing and block automatic swings.");
+    down.Recover(other, 310001); attacks.Tick(lease, true, 310001); attacks.Tick(lease, true, 312500);
+    Check(swings.Plays.Count == 2 && !down.Active(other), "Automatic swings must resume after the recovery interval.");
+}
+{
     var a = new FakeAccess(); a.Actors[actor] = original;
     var s = new SwapSession(a); s.Apply(actor, "小怪", "布弗鲁", State(3315, 3)); s.Tick();
     var anim = new FakeAnimationAccess();
@@ -1743,6 +1810,37 @@ if (args.Length == 1)
     }
     var actions = game.Excel.GetSheet<Lumina.Excel.Sheets.Action>(Language.ChineseSimplified);
     var timelines = game.Excel.GetSheet<ActionTimeline>();
+    var knockdownClips = new Dictionary<ushort, (string Key, string Clip)> {
+        [66] = ("normal/dead", "cbnm_ded"), [67] = ("normal/dead_pose", "cbnm_dedpose"),
+        [72] = ("battle/dead", "cbbm_ded"), [73] = ("battle/dead_pose", "cbbm_dedpose"),
+        [74] = ("battle/mon_float_dead_start", "cbbm_ft_ded_1"), [75] = ("battle/mon_float_dead_loop", "cbbm_ft_ded_2lp"),
+        [76] = ("battle/mon_float_dead_landing", "cbbm_ft_ded_3"), [77] = ("normal/revive", "cbnm_revive"),
+    };
+    foreach (var (id, motion) in knockdownClips)
+    {
+        var row = timelines.GetRow(id);
+        var tmb = game.GetFile($"chara/action/{motion.Key}.tmb");
+        Check(row.Key.ToString() == motion.Key && row.Slot == 1 && tmb is not null &&
+            tmb.Data.AsSpan().IndexOf(System.Text.Encoding.ASCII.GetBytes(motion.Clip + "\0")) >= 0,
+            $"Incorrect CN knockdown timeline or missing clip reference: {id}.");
+    }
+    var verifiedFalls = 0; var verifiedRises = 0;
+    foreach (var h in catalog)
+    {
+        var family = SkillCatalog.ModelFamily(game.Excel.GetSheet<ModelChara>().GetRow((uint)h.ModelId));
+        var rise = game.GetFile(KnockdownClips.RisePath(family));
+        if (KnockdownClips.Contains(rise?.Data, "cbnm_revive"u8)) verifiedRises++;
+        if (h.ModelType != 3) continue;
+        var pap = game.GetFile($"chara/monster/{family}/animation/a0001/bt_common/resident/monster.pap");
+        foreach (var step in KnockdownPreview.Steps(family))
+            Check(KnockdownClips.Contains(pap?.Data, System.Text.Encoding.ASCII.GetBytes(knockdownClips[step.Timeline].Clip)),
+                $"{h.Name} lacks the selected knockdown clip for {step.Timeline}.");
+        verifiedFalls++;
+    }
+    Check(!KnockdownClips.Contains(new byte[26], "cbbm_ded"u8) &&
+        !KnockdownClips.Contains(game.GetFile(KnockdownClips.RisePath("d1007"))?.Data, "cbnm_revive"u8),
+        "An empty or invalid PAP must not select a get-up animation.");
+    Console.WriteLine($"Knockdown: {verifiedFalls} monster appearances with matching fall clips; {verifiedRises} appearances with a get-up clip.");
     foreach (var variant in Enum.GetValues<AutoAttackVariant>())
     {
         var attack = AutoAttackPreview.Animation(variant);

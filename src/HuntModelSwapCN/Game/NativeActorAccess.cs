@@ -31,6 +31,14 @@ public sealed unsafe class NativeActorAccess(IObjectTable objects, INamePlateGui
             ? ModelRotation.Degrees(c->GameObject.Rotation) : null;
     }
 
+    public bool ReadyForAnimation(ActorIdentity actor, int expectedModelId)
+    {
+        if (CanApply(actor) is not null) return false;
+        var c = (NativeCharacter*)actor.Address;
+        return c->ModelContainer.ModelCharaId == expectedModelId
+            && c->GameObject.DrawObject != null && c->GameObject.DrawObject->LoadState == 3;
+    }
+
     private NativeCharacter* AnimationCharacter(ActorIdentity actor, int expectedModelId)
     {
         if (CanApply(actor) is { } reason) throw new InvalidOperationException(reason);
